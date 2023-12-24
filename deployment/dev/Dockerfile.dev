@@ -1,0 +1,15 @@
+FROM node:18
+
+WORKDIR /home/workspace
+
+RUN apt update -y && apt upgrade -y
+RUN apt-get update -y && apt-get upgrade -y
+
+RUN apt install curl git vim iputils-ping -y
+
+RUN npm install -g pm2
+RUN pm2 install typescript
+RUN pm2 install pm2-logrotate
+
+# 서버 없어도 무시
+CMD tail -f /dev/null

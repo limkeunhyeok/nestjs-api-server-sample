@@ -11,5 +11,15 @@ module.exports = {
       autorestart: true,
       env: {},
     },
+    {
+      name: 'server-prod',
+      script: 'npm',
+      args: 'run start:prod',
+      exec_mode: 'fork',
+      instance_var: 'INSTANCE_ID',
+      instances: 1,
+      autorestart: true,
+      env: {},
+    },
   ],
 };

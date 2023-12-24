@@ -1,0 +1,19 @@
+FROM node:18
+
+RUN apt update -y && apt upgrade -y
+RUN apt-get update -y && apt-get upgrade -y
+
+RUN apt install curl vim iputils-ping -y
+
+RUN npm install -g pm2
+RUN pm2 install typescript
+RUN pm2 install pm2-logrotate
+
+WORKDIR /home/workspace
+
+COPY . .
+
+RUN npm install
+RUN npm run build
+
+ENTRYPOINT ["pm2-runtime", "start", "ecosystem.config.js", "--only", "server-prod"]

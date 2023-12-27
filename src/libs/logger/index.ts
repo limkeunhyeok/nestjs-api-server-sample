@@ -3,6 +3,8 @@ import * as winston from 'winston';
 export const LogCategory = {
   INITIALIZE: 'initialize',
   VALIDATION: 'validation',
+  REQUEST_FAIL: 'requestFail',
+  UNHANDLED_ERROR: 'unhandledError',
   HTTP_REQUEST: 'httpRequest',
   HTTP_RESPONSE: 'httpResponse',
   HTTP_EXCEPTION: 'httpException',
@@ -18,6 +20,7 @@ export interface LogParams {
   category: string;
   message: string;
   error?: Error;
+  path?: string;
 }
 
 const logLevel = process.env.NODE_ENV === 'prod' ? 'info' : 'silly';
@@ -44,32 +47,32 @@ export class CustomLogger {
     return this.logger;
   }
 
-  error({ category, message, error }: LogParams) {
-    this.logger.error({ category, message, error });
+  error(logParams: LogParams) {
+    this.logger.error({ ...logParams });
   }
 
-  warn({ category, message }: LogParams) {
-    this.logger.warn({ category, message, error: null });
+  warn(logParams: LogParams) {
+    this.logger.warn({ ...logParams });
   }
 
-  info({ category, message }: LogParams) {
-    this.logger.info({ category, message, error: null });
+  info(logParams: LogParams) {
+    this.logger.info({ ...logParams });
   }
 
-  http({ category, message }: LogParams) {
-    this.logger.http({ category, message, error: null });
+  http(logParams: LogParams) {
+    this.logger.http({ ...logParams });
   }
 
-  verbose({ category, message }: LogParams) {
-    this.logger.verbose({ category, message, error: null });
+  verbose(logParams: LogParams) {
+    this.logger.verbose({ ...logParams });
   }
 
-  debug({ category, message }: LogParams) {
-    this.logger.debug({ category, message, error: null });
+  debug(logParams: LogParams) {
+    this.logger.debug({ ...logParams });
   }
 
-  silly({ category, message }: LogParams) {
-    this.logger.silly({ category, message, error: null });
+  silly(logParams: LogParams) {
+    this.logger.silly({ ...logParams });
   }
 }
 

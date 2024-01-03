@@ -7,11 +7,13 @@ import {
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { HttpLoggingMiddleware } from './common/middlewares/http-logging.middleware';
+import { UserEntity } from './modules/users/user.entity';
+import { UserModule } from './modules/users/user.module';
 import { getDbConfig } from './typeorm/db.config';
 import { initializeData } from './typeorm/initialize';
 
 @Module({
-  imports: [TypeOrmModule.forRoot(getDbConfig([]))],
+  imports: [TypeOrmModule.forRoot(getDbConfig([UserEntity])), UserModule],
   controllers: [],
   providers: [],
 })

@@ -7,36 +7,47 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { LogCategory, logger } from 'src/libs/logger';
+import { TypeORMError } from 'typeorm';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
-  catch(exception: Error, host: ArgumentsHost) {
+  catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
 
     const request = ctx.getRequest<Request>();
     const response = ctx.getResponse<Response>();
 
-    const httpStatus =
-      exception instanceof HttpException
-        ? exception.getStatus()
-        : HttpStatus.INTERNAL_SERVER_ERROR;
+    let httpStatus: number;
+    let message: string;
+    let category: LogCategory;
 
-    const category =
-      exception instanceof HttpException
-        ? LogCategory.REQUEST_FAIL
-        : LogCategory.UNHANDLED_ERROR;
+    if (exception instanceof HttpException) {
+      httpStatus = exception.getStatus();
+      message = exception.message;
+      category = LogCategory.REQUEST_FAIL;
+    } else if (exception instanceof TypeORMError) {
+      httpStatus = HttpStatus.UNPROCESSABLE_ENTITY;
+      message = exception.message;
+      category = LogCategory.DB_FAIL;
+    } else {
+      httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+      message = 'Unhandled error occurred.';
+      category = LogCategory.UNHANDLED_ERROR;
+    }
 
     const path = request.url;
 
     logger.error({
       category,
-      message: exception.message,
-      error: exception,
+      message,
+      error: <Error>exception,
       path,
     });
 
     response.status(httpStatus).json({
-      ...exception,
+      status: httpStatus,
+      message,
+      error: exception,
       timestamp: new Date().toISOString(),
       path,
     });

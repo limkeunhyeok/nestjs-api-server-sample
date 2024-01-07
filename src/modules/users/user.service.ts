@@ -107,7 +107,7 @@ export class UserService {
       },
     );
 
-    return this.toJson(userEntity);
+    return this.toJson({ ...userEntity, id });
   }
 
   private generateEntity(

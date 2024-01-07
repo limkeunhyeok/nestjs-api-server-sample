@@ -10,8 +10,14 @@ export const getDbConfig = (entities: any): TypeOrmModuleOptions => {
     database: serverConfig.dbName,
     username: serverConfig.dbUser,
     password: serverConfig.dbPass,
-    synchronize: serverConfig.nodeEnv !== 'prod' ? true : false,
-    logging: serverConfig.nodeEnv !== 'prod' ? true : false,
+    synchronize:
+      serverConfig.nodeEnv === 'prod' || serverConfig.nodeEnv === 'test'
+        ? false
+        : true,
+    logging:
+      serverConfig.nodeEnv === 'prod' || serverConfig.nodeEnv === 'test'
+        ? false
+        : true,
     entities,
   };
 };

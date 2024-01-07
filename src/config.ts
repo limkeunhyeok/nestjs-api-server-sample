@@ -1,12 +1,13 @@
 import { config } from 'dotenv';
 import * as path from 'path';
+import { logger } from './libs/logger';
 
 const { error } = config({
   path: path.resolve(`.env.${process.env.NODE_ENV || 'dev'}`),
 });
 
 if (error) {
-  console.error({
+  logger.error({
     message: `Not found .env file for ${process.env.NODE_ENV}.`,
     category: 'initializer',
   });

@@ -2,6 +2,7 @@ import {
   MiddlewareConsumer,
   Module,
   NestModule,
+  OnModuleInit,
   RequestMethod,
 } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -17,14 +18,16 @@ import { initializeData } from './typeorm/initialize';
   controllers: [],
   providers: [],
 })
-export class AppModule implements NestModule {
-  constructor(datasource: DataSource) {
-    initializeData(datasource);
-  }
+export class AppModule implements NestModule, OnModuleInit {
+  constructor(private readonly datasource: DataSource) {}
 
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(HttpLoggingMiddleware)
       .forRoutes({ path: '*', method: RequestMethod.ALL });
+  }
+
+  async onModuleInit() {
+    await initializeData(this.datasource);
   }
 }

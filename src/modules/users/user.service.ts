@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import { serverConfig } from 'src/config';
 import { pagingResponse } from 'src/libs/paging';
 import { getDateRange } from 'src/libs/range';
 import { DataSource } from 'typeorm';
@@ -116,7 +117,10 @@ export class UserService {
     const userEntity = new UserEntity();
 
     userEntity.email = userInfo.email;
-    userEntity.password = bcrypt.hashSync(userInfo.password, 10);
+    userEntity.password = bcrypt.hashSync(
+      userInfo.password,
+      serverConfig.saltRound,
+    );
     userEntity.role = userInfo.role;
     userEntity.latestTryLoginDate = new Date();
     return userEntity;

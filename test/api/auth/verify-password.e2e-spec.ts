@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
 import { AllExceptionsFilter } from 'src/common/filters/all-exceptions.filter';
 import { DtoValidationPipe } from 'src/common/pipes/dto-validation.pipe';
+import { AuthModule } from 'src/modules/auth/auth.module';
 import { UserEntity } from 'src/modules/users/user.entity';
 import { getDbConfig } from 'src/typeorm/db.config';
 import * as request from 'supertest';
@@ -17,7 +18,7 @@ describe('Auth API Test', () => {
 
   beforeAll(async () => {
     testingModule = await Test.createTestingModule({
-      imports: [TypeOrmModule.forRoot(getDbConfig([UserEntity]))],
+      imports: [AuthModule, TypeOrmModule.forRoot(getDbConfig([UserEntity]))],
     }).compile();
 
     app = testingModule.createNestApplication();

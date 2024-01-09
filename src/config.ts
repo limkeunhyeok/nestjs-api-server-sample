@@ -22,6 +22,9 @@ class ServerConfig {
   dbHost = process.env.DB_HOST || 'localhost';
   dbUser = process.env.DB_USER || 'root';
   dbPass = process.env.DB_PASS || 'password';
+
+  saltRound = Number(process.env.SALT_ROUND) || 10;
+  secretKey = process.env.SECRET_KEY || 'secret-key';
 }
 
 export const serverConfig = new ServerConfig();

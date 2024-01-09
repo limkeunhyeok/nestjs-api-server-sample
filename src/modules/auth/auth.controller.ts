@@ -1,5 +1,6 @@
-import { Body, Controller, Post } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Post, Req } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Request } from 'express';
 import { AuthService } from './auth.service';
 import { SignInDto } from './dto/sign-in.dto';
 import { SignUpDto } from './dto/sign-up.dto';
@@ -20,8 +21,10 @@ export class AuthController {
     return await this.authService.signUp(dto);
   }
 
+  @ApiBearerAuth('accessToken')
   @Post('/verify-password')
-  async verifyPassword(@Body() dto: VerifyPasswordDto) {
-    return await this.authService.verifyPassword(1, dto);
+  async verifyPassword(@Body() dto: VerifyPasswordDto, @Req() req: Request) {
+    const user = req['user'];
+    return await this.authService.verifyPassword(user.userId, dto);
   }
 }

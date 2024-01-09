@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
+import { AuthMiddleware } from './common/middlewares/auth.middleware';
 import { HttpLoggingMiddleware } from './common/middlewares/http-logging.middleware';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserEntity } from './modules/users/user.entity';
@@ -29,6 +30,10 @@ export class AppModule implements NestModule, OnModuleInit {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(HttpLoggingMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL })
+      .apply(AuthMiddleware)
+      .exclude({ path: '/auth/sign-in', method: RequestMethod.POST })
+      .exclude({ path: '/auth/sign-up', method: RequestMethod.POST })
       .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 

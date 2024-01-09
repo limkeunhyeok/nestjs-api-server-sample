@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
+import { HealthCheckModule } from './common/health-check/health-check.module';
 import { AuthMiddleware } from './common/middlewares/auth.middleware';
 import { HttpLoggingMiddleware } from './common/middlewares/http-logging.middleware';
 import { AuthModule } from './modules/auth/auth.module';
@@ -20,6 +21,7 @@ import { initializeData } from './typeorm/initialize';
     TypeOrmModule.forRoot(getDbConfig([UserEntity])),
     UserModule,
     AuthModule,
+    HealthCheckModule,
   ],
   controllers: [],
   providers: [],
@@ -32,8 +34,12 @@ export class AppModule implements NestModule, OnModuleInit {
       .apply(HttpLoggingMiddleware)
       .forRoutes({ path: '*', method: RequestMethod.ALL })
       .apply(AuthMiddleware)
-      .exclude({ path: '/auth/sign-in', method: RequestMethod.POST })
-      .exclude({ path: '/auth/sign-up', method: RequestMethod.POST })
+      .exclude(
+        { path: '/auth/sign-in', method: RequestMethod.POST },
+        { path: '/auth/sign-up', method: RequestMethod.POST },
+        { path: '/health-check/(.*)', method: RequestMethod.GET },
+        // { path: '/health-check/typeorm', method: RequestMethod.GET },
+      )
       .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 

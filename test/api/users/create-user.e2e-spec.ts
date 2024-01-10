@@ -1,14 +1,24 @@
-import { INestApplication } from '@nestjs/common';
+import {
+  INestApplication,
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
 import { AllExceptionsFilter } from 'src/common/filters/all-exceptions.filter';
+import { HealthCheckModule } from 'src/common/health-check/health-check.module';
+import { AuthMiddleware } from 'src/common/middlewares/auth.middleware';
 import { DtoValidationPipe } from 'src/common/pipes/dto-validation.pipe';
+import { AuthModule } from 'src/modules/auth/auth.module';
 import { Role, UserEntity } from 'src/modules/users/user.entity';
 import { UserModule } from 'src/modules/users/user.module';
 import { getDbConfig } from 'src/typeorm/db.config';
 import * as request from 'supertest';
 import { expectResponseFailed } from 'test/expectation/common';
 import { expectUserResponseSucceed } from 'test/expectation/user';
+import { fetchUserTokenAndHeaders, withHeadersBy } from 'test/lib/utils';
 import {
   createUser,
   extractUserCreationParams,
@@ -16,14 +26,35 @@ import {
 } from 'test/mockup/user';
 import { Repository } from 'typeorm';
 
+@Module({
+  imports: [
+    HealthCheckModule,
+    AuthModule,
+    TypeOrmModule.forRoot(getDbConfig([UserEntity])),
+    UserModule,
+  ],
+})
+class TestModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(AuthMiddleware)
+      .forRoutes({ path: '/users', method: RequestMethod.POST });
+  }
+}
+
 describe('User API Test', () => {
   let app: INestApplication;
+  let req: request.SuperTest<request.Test>;
+
   let testingModule: TestingModule;
   let userRepository: Repository<UserEntity>;
 
+  let adminTokenHeaders: any;
+  let withHeadersIncludeAdminToken: any;
+
   beforeAll(async () => {
     testingModule = await Test.createTestingModule({
-      imports: [UserModule, TypeOrmModule.forRoot(getDbConfig([UserEntity]))],
+      imports: [TestModule],
     }).compile();
 
     app = testingModule.createNestApplication();
@@ -36,6 +67,15 @@ describe('User API Test', () => {
     userRepository = testingModule.get<Repository<UserEntity>>(
       getRepositoryToken(UserEntity),
     );
+
+    req = request(app.getHttpServer());
+
+    adminTokenHeaders = await fetchUserTokenAndHeaders(
+      req,
+      userRepository,
+      Role.ADMIN,
+    );
+    withHeadersIncludeAdminToken = withHeadersBy(adminTokenHeaders);
   });
 
   afterAll(async () => {
@@ -53,10 +93,9 @@ describe('User API Test', () => {
       const params = extractUserCreationParams(userRaw);
 
       // when
-      const res = await request(app.getHttpServer())
-        .post(`${rootApiPath}`)
-        .send(params)
-        .expect(201);
+      const res = await withHeadersIncludeAdminToken(
+        req.post(`${rootApiPath}`).send(params),
+      ).expect(201);
 
       // then
       const body = res.body;
@@ -70,10 +109,9 @@ describe('User API Test', () => {
       delete params.email;
 
       // when
-      const res = await request(app.getHttpServer())
-        .post(`${rootApiPath}`)
-        .send(params)
-        .expect(400);
+      const res = await withHeadersIncludeAdminToken(
+        req.post(`${rootApiPath}`).send(params),
+      ).expect(400);
 
       // then
       expectResponseFailed(res);
@@ -86,10 +124,9 @@ describe('User API Test', () => {
       delete params.password;
 
       // when
-      const res = await request(app.getHttpServer())
-        .post(`${rootApiPath}`)
-        .send(params)
-        .expect(400);
+      const res = await withHeadersIncludeAdminToken(
+        req.post(`${rootApiPath}`).send(params),
+      ).expect(400);
 
       // then
       expectResponseFailed(res);
@@ -102,10 +139,9 @@ describe('User API Test', () => {
       delete params.role;
 
       // when
-      const res = await request(app.getHttpServer())
-        .post(`${rootApiPath}`)
-        .send(params)
-        .expect(400);
+      const res = await withHeadersIncludeAdminToken(
+        req.post(`${rootApiPath}`).send(params),
+      ).expect(400);
 
       // then
       expectResponseFailed(res);
@@ -118,10 +154,9 @@ describe('User API Test', () => {
       params.email = 'example';
 
       // when
-      const res = await request(app.getHttpServer())
-        .post(`${rootApiPath}`)
-        .send(params)
-        .expect(400);
+      const res = await withHeadersIncludeAdminToken(
+        req.post(`${rootApiPath}`).send(params),
+      ).expect(400);
 
       // then
       expectResponseFailed(res);
@@ -134,10 +169,9 @@ describe('User API Test', () => {
       params.password = 'example';
 
       // when
-      const res = await request(app.getHttpServer())
-        .post(`${rootApiPath}`)
-        .send(params)
-        .expect(400);
+      const res = await withHeadersIncludeAdminToken(
+        req.post(`${rootApiPath}`).send(params),
+      ).expect(400);
 
       // then
       expectResponseFailed(res);
@@ -150,10 +184,9 @@ describe('User API Test', () => {
       params.role = 'role' as Role;
 
       // when
-      const res = await request(app.getHttpServer())
-        .post(`${rootApiPath}`)
-        .send(params)
-        .expect(400);
+      const res = await withHeadersIncludeAdminToken(
+        req.post(`${rootApiPath}`).send(params),
+      ).expect(400);
 
       // then
       expectResponseFailed(res);
@@ -167,10 +200,9 @@ describe('User API Test', () => {
       await createUser(userRepository, userRaw);
 
       // when
-      const res = await request(app.getHttpServer())
-        .post(`${rootApiPath}`)
-        .send(params)
-        .expect(400);
+      const res = await withHeadersIncludeAdminToken(
+        req.post(`${rootApiPath}`).send(params),
+      ).expect(400);
 
       // then
       expectResponseFailed(res);

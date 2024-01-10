@@ -32,6 +32,10 @@ export const verifyToken = (
 ) => {
   try {
     const decoded = <TokenPayload>verify(token, secret, options);
+    if (!decoded.userId || !decoded.role) {
+      throw new UnauthorizedException('Invalid token.');
+    }
+
     return decoded;
   } catch (error) {
     throw new UnauthorizedException(error);

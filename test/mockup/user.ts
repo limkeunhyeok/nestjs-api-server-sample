@@ -3,7 +3,7 @@ import * as faker from 'faker';
 import { Role, UserEntity } from 'src/modules/users/user.entity';
 import { Repository } from 'typeorm';
 
-export function mockUserRaw(role = Role.MEMBER) {
+export function mockUserRaw(role: Role = Role.MEMBER) {
   const now = new Date();
 
   return {

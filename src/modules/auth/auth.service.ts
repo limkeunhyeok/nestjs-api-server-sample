@@ -73,4 +73,8 @@ export class AuthService {
 
     return { success: isSuccess, message };
   }
+
+  async getMe(userId: number) {
+    return await this.userService.getById(userId);
+  }
 }

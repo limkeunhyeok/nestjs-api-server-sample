@@ -1,5 +1,6 @@
 import { CustomEntity } from 'src/typeorm/custom.entity';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { PostEntity } from '../posts/post.entity';
 
 export const Role = {
   ADMIN: 'admin',
@@ -25,4 +26,7 @@ export class UserEntity extends CustomEntity {
 
   @Column({ type: 'timestamptz' })
   latestTryLoginDate: Date;
+
+  @OneToMany(() => PostEntity, (post) => post.author)
+  posts: PostEntity[];
 }

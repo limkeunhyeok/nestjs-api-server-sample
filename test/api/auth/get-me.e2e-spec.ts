@@ -13,14 +13,14 @@ import { AuthMiddleware } from 'src/common/middlewares/auth.middleware';
 import { DtoValidationPipe } from 'src/common/pipes/dto-validation.pipe';
 import { AuthModule } from 'src/modules/auth/auth.module';
 import { PostEntity } from 'src/modules/posts/post.entity';
-import { Role, UserEntity } from 'src/modules/users/user.entity';
+import { UserEntity } from 'src/modules/users/user.entity';
 import { UserModule } from 'src/modules/users/user.module';
 import { getDbConfig } from 'src/typeorm/db.config';
 import * as request from 'supertest';
-import { expectResponseFailed } from 'test/expectation/common';
 import { expectUserResponseSucceed } from 'test/expectation/user';
-import { fetchUserTokenAndHeaders, withHeadersBy } from 'test/lib/utils';
-import { createUser } from 'test/mockup/user';
+import { fetchHeaders, withHeadersBy } from 'test/lib/utils';
+import { extractSignInParams } from 'test/mockup/auth';
+import { createUser, mockUserRaw } from 'test/mockup/user';
 import { Repository } from 'typeorm';
 
 @Module({
@@ -35,19 +35,20 @@ class TestModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(AuthMiddleware)
-      .forRoutes({ path: '/users/*', method: RequestMethod.GET });
+      .forRoutes({ path: '/auth/me', method: RequestMethod.GET });
   }
 }
 
-describe('User API Test', () => {
+describe('Auth API Test', () => {
   let app: INestApplication;
   let req: request.SuperTest<request.Test>;
 
   let testingModule: TestingModule;
   let userRepository: Repository<UserEntity>;
 
-  let adminTokenHeaders: any;
-  let withHeadersIncludeAdminToken: any;
+  let userRaw: any;
+  let headers: any;
+  let withHeaders: any;
 
   beforeAll(async () => {
     testingModule = await Test.createTestingModule({
@@ -67,12 +68,11 @@ describe('User API Test', () => {
 
     req = request(app.getHttpServer());
 
-    adminTokenHeaders = await fetchUserTokenAndHeaders(
-      req,
-      userRepository,
-      Role.ADMIN,
-    );
-    withHeadersIncludeAdminToken = withHeadersBy(adminTokenHeaders);
+    userRaw = mockUserRaw();
+    await createUser(userRepository, userRaw);
+
+    headers = await fetchHeaders(req);
+    withHeaders = withHeadersBy(headers);
   });
 
   afterAll(async () => {
@@ -81,35 +81,25 @@ describe('User API Test', () => {
     await app.close();
   });
 
-  describe('GET /users/:id', () => {
-    const rootApiPath = '/users';
+  describe('POST /auth/me', () => {
+    const rootApiPath = '/auth/me';
 
-    it('success - get user by id (200)', async () => {
+    it('success - get me (200)', async () => {
       // given
-      const user = await createUser(userRepository);
-      const userId = user.id;
+      const signInParams = extractSignInParams(userRaw);
+      const signInRes = await withHeaders(
+        req.post('/auth/sign-in').send(signInParams),
+      ).expect(201);
+
+      const { accessToken } = signInRes.body;
+      withHeaders = withHeadersBy({ token: accessToken });
 
       // when
-      const res = await withHeadersIncludeAdminToken(
-        req.get(`${rootApiPath}/${userId}`),
-      ).expect(200);
+      const res = await withHeaders(req.get(`${rootApiPath}`)).expect(200);
 
       // then
       const body = res.body;
       expectUserResponseSucceed(body);
-    });
-
-    it('failed - not found user entity (404)', async () => {
-      // given
-      const nonExistentId = 2 ** 31 - 1;
-
-      // when
-      const res = await withHeadersIncludeAdminToken(
-        req.get(`${rootApiPath}/${nonExistentId}`),
-      ).expect(404);
-
-      // then
-      expectResponseFailed(res);
     });
   });
 });

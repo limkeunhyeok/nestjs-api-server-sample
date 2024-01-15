@@ -12,6 +12,7 @@ import { HealthCheckModule } from 'src/common/health-check/health-check.module';
 import { AuthMiddleware } from 'src/common/middlewares/auth.middleware';
 import { DtoValidationPipe } from 'src/common/pipes/dto-validation.pipe';
 import { AuthModule } from 'src/modules/auth/auth.module';
+import { PostEntity } from 'src/modules/posts/post.entity';
 import { Role, UserEntity } from 'src/modules/users/user.entity';
 import { UserModule } from 'src/modules/users/user.module';
 import { getDbConfig } from 'src/typeorm/db.config';
@@ -30,7 +31,7 @@ import { Repository } from 'typeorm';
   imports: [
     HealthCheckModule,
     AuthModule,
-    TypeOrmModule.forRoot(getDbConfig([UserEntity])),
+    TypeOrmModule.forRoot(getDbConfig([UserEntity, PostEntity])),
     UserModule,
   ],
 })

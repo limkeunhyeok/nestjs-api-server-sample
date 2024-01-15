@@ -51,7 +51,7 @@ export async function fetchUserTokenAndHeaders(
   userType: Role = Role.MEMBER,
 ) {
   const userRaw = mockUserRaw(userType);
-  await createUser(userRepository, userRaw);
+  const user = await createUser(userRepository, userRaw);
 
   const headers = await fetchHeaders(req);
   const withHeaders = withHeadersBy(headers);

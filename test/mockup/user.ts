@@ -17,7 +17,7 @@ export function mockUserRaw(role: Role = Role.MEMBER) {
 }
 
 export function extractUserCreationParams(
-  userRaw: Omit<UserEntity, 'id' | 'version'>,
+  userRaw: Omit<UserEntity, 'id' | 'version' | 'posts'>,
 ) {
   return {
     email: userRaw.email,
@@ -29,7 +29,7 @@ export function extractUserCreationParams(
 export async function createUser(
   repository: Repository<UserEntity>,
   userRaw = mockUserRaw(),
-) {
+): Promise<UserEntity> {
   const data = JSON.parse(JSON.stringify(userRaw));
   data.password = bcrypt.hashSync(data.password, 10);
   return await repository.save(data);

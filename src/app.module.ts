@@ -11,6 +11,7 @@ import { HealthCheckModule } from './common/health-check/health-check.module';
 import { AuthMiddleware } from './common/middlewares/auth.middleware';
 import { HttpLoggingMiddleware } from './common/middlewares/http-logging.middleware';
 import { AuthModule } from './modules/auth/auth.module';
+import { PostEntity } from './modules/posts/post.entity';
 import { UserEntity } from './modules/users/user.entity';
 import { UserModule } from './modules/users/user.module';
 import { getDbConfig } from './typeorm/db.config';
@@ -18,7 +19,7 @@ import { initializeData } from './typeorm/initialize';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot(getDbConfig([UserEntity])),
+    TypeOrmModule.forRoot(getDbConfig([UserEntity, PostEntity])),
     UserModule,
     AuthModule,
     HealthCheckModule,

@@ -7,11 +7,10 @@ import {
   Post,
   Put,
   Query,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { Request } from 'express';
+import { UserInToken } from 'src/common/decorators/user.decorator';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { Role } from '../users/user.entity';
 import { CreatePostDto } from './dto/create.dto';
@@ -27,9 +26,11 @@ export class PostController {
   constructor(private readonly postService: PostService) {}
 
   @Post()
-  async create(@Body() dto: CreatePostDto, @Req() req: Request) {
-    const user = req['user'];
-    return await this.postService.create(user.userId, dto);
+  async create(
+    @Body() dto: CreatePostDto,
+    @UserInToken('userId') userId: number,
+  ) {
+    return await this.postService.create(userId, dto);
   }
 
   @Get()

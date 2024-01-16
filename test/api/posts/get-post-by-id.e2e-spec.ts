@@ -13,6 +13,7 @@ import { AuthMiddleware } from 'src/common/middlewares/auth.middleware';
 import { DtoValidationPipe } from 'src/common/pipes/dto-validation.pipe';
 import { AuthModule } from 'src/modules/auth/auth.module';
 import { PostEntity } from 'src/modules/posts/post.entity';
+import { PostModule } from 'src/modules/posts/post.module';
 import { Role, UserEntity } from 'src/modules/users/user.entity';
 import { UserModule } from 'src/modules/users/user.module';
 import { getDbConfig } from 'src/typeorm/db.config';
@@ -28,14 +29,17 @@ import { Repository } from 'typeorm';
     AuthModule,
     TypeOrmModule.forRoot(getDbConfig([UserEntity, PostEntity])),
     UserModule,
-    PostEntity,
+    PostModule,
   ],
 })
 class TestModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(AuthMiddleware)
-      .forRoutes({ path: '/posts/*', method: RequestMethod.GET });
+      .forRoutes(
+        { path: '/posts/*', method: RequestMethod.GET },
+        { path: '/auth/me', method: RequestMethod.GET },
+      );
   }
 }
 

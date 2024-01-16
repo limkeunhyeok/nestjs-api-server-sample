@@ -1,8 +1,8 @@
-import { IsBoolean, IsString, Max } from 'class-validator';
+import { IsBoolean, IsString, Length } from 'class-validator';
 
 export class CreatePostDto {
   @IsString()
-  @Max(100)
+  @Length(1, 100)
   title: string;
 
   @IsString()

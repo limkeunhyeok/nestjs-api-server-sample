@@ -1,9 +1,9 @@
-import { IsBoolean, IsOptional, IsString, Max } from 'class-validator';
+import { IsBoolean, IsOptional, IsString, Length } from 'class-validator';
 
 export class UpdatePostByIdDto {
   @IsOptional()
   @IsString()
-  @Max(100)
+  @Length(1, 100)
   title?: string;
 
   @IsOptional()

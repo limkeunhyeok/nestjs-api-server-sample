@@ -89,7 +89,7 @@ export class PostService {
       },
     );
 
-    return postEntity;
+    return { ...postEntity, id };
   }
 
   private generateEntity(userId: number, postInfo: PostInfo) {

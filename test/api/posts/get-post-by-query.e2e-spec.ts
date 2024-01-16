@@ -38,7 +38,10 @@ class TestModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(AuthMiddleware)
-      .forRoutes({ path: '/posts', method: RequestMethod.GET });
+      .forRoutes(
+        { path: '/posts', method: RequestMethod.GET },
+        { path: '/auth/me', method: RequestMethod.GET },
+      );
   }
 }
 

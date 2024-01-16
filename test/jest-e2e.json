@@ -1,7 +1,7 @@
 {
   "moduleFileExtensions": ["js", "json", "ts"],
   "rootDir": "..",
-  "roots": ["<rootDir>"],
+  "roots": ["<rootDir>/test/api/posts"],
   "modulePaths": ["<rootDir>"],
   "moduleDirectories": ["node_modules"],
   "testEnvironment": "node",

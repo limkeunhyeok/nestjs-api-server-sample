@@ -19,7 +19,10 @@ import { Role, UserEntity } from 'src/modules/users/user.entity';
 import { UserModule } from 'src/modules/users/user.module';
 import { getDbConfig } from 'src/typeorm/db.config';
 import * as request from 'supertest';
-import { expectPagingResponseSucceed } from 'test/expectation/common';
+import {
+  expectPagingResponseSucceed,
+  expectResponseFailed,
+} from 'test/expectation/common';
 import { expectPostResponseSucceed } from 'test/expectation/post';
 import { fetchUserTokenAndHeaders, withHeadersBy } from 'test/lib/utils';
 import { createPost, mockPostRaw } from 'test/mockup/post';
@@ -129,6 +132,223 @@ describe('Post API Test', () => {
       for (const post of body.data) {
         expectPostResponseSucceed(post);
       }
+    });
+
+    it('failed - invalid date (400)', async () => {
+      // given
+      const authResult = await withHeadersIncludeAdminToken(
+        req.get('/auth/me'),
+      ).expect(200);
+
+      const user: Partial<UserEntity> = authResult.body;
+
+      const postRaw = mockPostRaw(user);
+      const post = await createPost(postRepository, postRaw);
+
+      const params = {
+        startDate: addDays(new Date(), 1),
+        endDate: subDays(new Date(), 1),
+        limit: 10,
+        offset: 0,
+        sortingField: 'createdAt',
+        sortingDirection: 'desc',
+        authorId: user.id,
+        published: true,
+      };
+
+      // when
+      const res = await withHeadersIncludeAdminToken(
+        req.get(`${rootApiPath}`).query(params),
+      ).expect(400);
+
+      // then
+      expectResponseFailed(res);
+    });
+
+    it('failed - invalid published (400)', async () => {
+      // given
+      const authResult = await withHeadersIncludeAdminToken(
+        req.get('/auth/me'),
+      ).expect(200);
+
+      const user: Partial<UserEntity> = authResult.body;
+
+      const postRaw = mockPostRaw(user);
+      const post = await createPost(postRepository, postRaw);
+
+      const params = {
+        startDate: subDays(new Date(), 1),
+        endDate: addDays(new Date(), 1),
+        limit: 10,
+        offset: 0,
+        sortingField: 'createdAt',
+        sortingDirection: 'desc',
+        authorId: user.id,
+        published: 'EXAMPLE',
+      };
+
+      // when
+      const res = await withHeadersIncludeAdminToken(
+        req.get(`${rootApiPath}`).query(params),
+      ).expect(400);
+
+      // then
+      expectResponseFailed(res);
+    });
+
+    it('failed - invalid authorId (422)', async () => {
+      // given
+      const authResult = await withHeadersIncludeAdminToken(
+        req.get('/auth/me'),
+      ).expect(200);
+
+      const user: Partial<UserEntity> = authResult.body;
+
+      const postRaw = mockPostRaw(user);
+      const post = await createPost(postRepository, postRaw);
+
+      const params = {
+        startDate: subDays(new Date(), 1),
+        endDate: addDays(new Date(), 1),
+        limit: 10,
+        offset: 0,
+        sortingField: 'createdAt',
+        sortingDirection: 'desc',
+        authorId: 'authorId',
+        published: true,
+      };
+
+      // when
+      const res = await withHeadersIncludeAdminToken(
+        req.get(`${rootApiPath}`).query(params),
+      ).expect(400);
+
+      // then
+      expectResponseFailed(res);
+    });
+
+    it('failed - invalid limit (422)', async () => {
+      // given
+      const authResult = await withHeadersIncludeAdminToken(
+        req.get('/auth/me'),
+      ).expect(200);
+
+      const user: Partial<UserEntity> = authResult.body;
+
+      const postRaw = mockPostRaw(user);
+      const post = await createPost(postRepository, postRaw);
+
+      const params = {
+        startDate: subDays(new Date(), 1),
+        endDate: addDays(new Date(), 1),
+        limit: -1,
+        offset: 0,
+        sortingField: 'createdAt',
+        sortingDirection: 'desc',
+        authorId: user.id,
+        published: true,
+      };
+
+      // when
+      const res = await withHeadersIncludeAdminToken(
+        req.get(`${rootApiPath}`).query(params),
+      ).expect(422);
+
+      // then
+      expectResponseFailed(res);
+    });
+
+    it('failed - invalid offset (422)', async () => {
+      // given
+      const authResult = await withHeadersIncludeAdminToken(
+        req.get('/auth/me'),
+      ).expect(200);
+
+      const user: Partial<UserEntity> = authResult.body;
+
+      const postRaw = mockPostRaw(user);
+      const post = await createPost(postRepository, postRaw);
+
+      const params = {
+        startDate: subDays(new Date(), 1),
+        endDate: addDays(new Date(), 1),
+        limit: 10,
+        offset: -1,
+        sortingField: 'createdAt',
+        sortingDirection: 'desc',
+        authorId: user.id,
+        published: true,
+      };
+
+      // when
+      const res = await withHeadersIncludeAdminToken(
+        req.get(`${rootApiPath}`).query(params),
+      ).expect(422);
+
+      // then
+      expectResponseFailed(res);
+    });
+
+    it('failed - invalid sorting direction (400)', async () => {
+      // given
+      const authResult = await withHeadersIncludeAdminToken(
+        req.get('/auth/me'),
+      ).expect(200);
+
+      const user: Partial<UserEntity> = authResult.body;
+
+      const postRaw = mockPostRaw(user);
+      const post = await createPost(postRepository, postRaw);
+
+      const params = {
+        startDate: subDays(new Date(), 1),
+        endDate: addDays(new Date(), 1),
+        limit: 10,
+        offset: 0,
+        sortingField: 'createdAt',
+        sortingDirection: 'direction',
+        authorId: user.id,
+        published: true,
+      };
+
+      // when
+      const res = await withHeadersIncludeAdminToken(
+        req.get(`${rootApiPath}`).query(params),
+      ).expect(400);
+
+      // then
+      expectResponseFailed(res);
+    });
+
+    it('failed - invalid sorting field (422)', async () => {
+      // given
+      const authResult = await withHeadersIncludeAdminToken(
+        req.get('/auth/me'),
+      ).expect(200);
+
+      const user: Partial<UserEntity> = authResult.body;
+
+      const postRaw = mockPostRaw(user);
+      const post = await createPost(postRepository, postRaw);
+
+      const params = {
+        startDate: subDays(new Date(), 1),
+        endDate: addDays(new Date(), 1),
+        limit: 10,
+        offset: 0,
+        sortingField: 'field',
+        sortingDirection: 'desc',
+        authorId: user.id,
+        published: true,
+      };
+
+      // when
+      const res = await withHeadersIncludeAdminToken(
+        req.get(`${rootApiPath}`).query(params),
+      ).expect(422);
+
+      // then
+      expectResponseFailed(res);
     });
   });
 });

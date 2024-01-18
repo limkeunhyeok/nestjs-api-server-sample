@@ -18,6 +18,7 @@ import { Role, UserEntity } from 'src/modules/users/user.entity';
 import { UserModule } from 'src/modules/users/user.module';
 import { getDbConfig } from 'src/typeorm/db.config';
 import * as request from 'supertest';
+import { expectResponseFailed } from 'test/expectation/common';
 import { expectPostResponseSucceed } from 'test/expectation/post';
 import { fetchUserTokenAndHeaders, withHeadersBy } from 'test/lib/utils';
 import { createPost, mockPostRaw } from 'test/mockup/post';
@@ -112,6 +113,27 @@ describe('Post API Test', () => {
       // then
       const body = res.body;
       expectPostResponseSucceed(body);
+    });
+
+    it('failed - not found user entity (404)', async () => {
+      // given
+      const authResult = await withHeadersIncludeAdminToken(
+        req.get('/auth/me'),
+      ).expect(200);
+
+      const user: Partial<UserEntity> = authResult.body;
+
+      const postRaw = mockPostRaw(user);
+      const post = await createPost(postRepository, postRaw);
+      const nonExistentId = 2 ** 31 - 1;
+
+      // when
+      const res = await withHeadersIncludeAdminToken(
+        req.get(`${rootApiPath}/${nonExistentId}`),
+      ).expect(404);
+
+      // then
+      expectResponseFailed(res);
     });
   });
 });

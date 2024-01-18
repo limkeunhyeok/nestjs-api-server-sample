@@ -18,6 +18,7 @@ import { Role, UserEntity } from 'src/modules/users/user.entity';
 import { UserModule } from 'src/modules/users/user.module';
 import { getDbConfig } from 'src/typeorm/db.config';
 import * as request from 'supertest';
+import { expectResponseFailed } from 'test/expectation/common';
 import { expectPostResponseSucceed } from 'test/expectation/post';
 import { fetchUserTokenAndHeaders, withHeadersBy } from 'test/lib/utils';
 import { mockCreatePostDto } from 'test/mockup/post';
@@ -102,6 +103,76 @@ describe('Post API Test', () => {
       // then
       const body = res.body;
       expectPostResponseSucceed(body);
+    });
+
+    it('failed - required title (400)', async () => {
+      // given
+      const params = mockCreatePostDto();
+      delete params.title;
+
+      // when
+      const res = await withHeadersIncludeMemberToken(
+        req.post(`${rootApiPath}`).send(params),
+      ).expect(400);
+
+      // then
+      expectResponseFailed(res);
+    });
+
+    it('failed - required contents (400)', async () => {
+      // given
+      const params = mockCreatePostDto();
+      delete params.contents;
+
+      // when
+      const res = await withHeadersIncludeMemberToken(
+        req.post(`${rootApiPath}`).send(params),
+      ).expect(400);
+
+      // then
+      expectResponseFailed(res);
+    });
+
+    it('failed - required published (400)', async () => {
+      // given
+      const params = mockCreatePostDto();
+      delete params.published;
+
+      // when
+      const res = await withHeadersIncludeMemberToken(
+        req.post(`${rootApiPath}`).send(params),
+      ).expect(400);
+
+      // then
+      expectResponseFailed(res);
+    });
+
+    it('failed - invalid title (400)', async () => {
+      // given
+      const params = mockCreatePostDto();
+      params.title = 'a'.repeat(101);
+
+      // when
+      const res = await withHeadersIncludeMemberToken(
+        req.post(`${rootApiPath}`).send(params),
+      ).expect(400);
+
+      // then
+      expectResponseFailed(res);
+    });
+
+    it('failed - invalid published (400)', async () => {
+      // given
+      const params = mockCreatePostDto();
+      const published = 'TRUE';
+
+      // when
+      const res = await withHeadersIncludeMemberToken(
+        req.post(`${rootApiPath}`).send({ ...params, published }),
+      ).expect(400);
+
+      // then
+      expectResponseFailed(res);
     });
   });
 });

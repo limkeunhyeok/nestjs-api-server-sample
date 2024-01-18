@@ -25,14 +25,14 @@ export class AuthController {
   @Post('/verify-password')
   async verifyPassword(
     @Body() dto: VerifyPasswordDto,
-    @UserInToken() userId: number,
+    @UserInToken('userId') userId: number,
   ) {
     return await this.authService.verifyPassword(userId, dto);
   }
 
   @ApiBearerAuth('accessToken')
   @Get('/me')
-  async getMe(@UserInToken() userId: number) {
+  async getMe(@UserInToken('userId') userId: number) {
     return await this.authService.getMe(userId);
   }
 }

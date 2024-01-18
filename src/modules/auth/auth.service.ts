@@ -3,10 +3,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { serverConfig } from 'src/config';
 import { createToken } from 'src/libs/token';
-import { DataSource } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
+import { Transactional } from 'typeorm-transactional';
 import { UserEntity } from '../users/user.entity';
 import { UserService } from '../users/user.service';
 import { SignInDto } from './dto/sign-in.dto';
@@ -16,29 +18,30 @@ import { VerifyPasswordDto } from './dto/verify-password.dto';
 @Injectable()
 export class AuthService {
   constructor(
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
     private readonly datasource: DataSource,
     private readonly userService: UserService,
   ) {}
 
+  @Transactional()
   async signIn({ email, password }: SignInDto) {
-    const user = await this.datasource.manager.transaction(async (manager) => {
-      const userEntity = await manager.findOneBy(UserEntity, { email });
+    const userEntity = await this.userRepository.findOneBy({ email });
 
-      if (!userEntity) {
-        throw new BadRequestException('Incorrect email or password.');
-      }
+    if (!userEntity) {
+      throw new BadRequestException('Incorrect email or password.');
+    }
 
-      if (!bcrypt.compareSync(password, userEntity.password)) {
-        throw new BadRequestException('Incorrect email or password.');
-      }
+    if (!bcrypt.compareSync(password, userEntity.password)) {
+      throw new BadRequestException('Incorrect email or password.');
+    }
 
-      userEntity.latestTryLoginDate = new Date();
+    userEntity.latestTryLoginDate = new Date();
 
-      return await manager.save(UserEntity, userEntity);
-    });
+    await this.userRepository.save(userEntity);
 
     const accessToken = createToken(
-      { userId: user.id, role: user.role },
+      { userId: userEntity.id, role: userEntity.role },
       serverConfig.secretKey,
     );
 
@@ -56,16 +59,15 @@ export class AuthService {
     return { accessToken };
   }
 
+  @Transactional()
   async verifyPassword(userId: number, { confirmPassword }: VerifyPasswordDto) {
-    const user = await this.datasource.manager.transaction(async (manager) => {
-      return await manager.findOneBy(UserEntity, { id: userId });
-    });
+    const userEntity = await this.userRepository.findOneBy({ id: userId });
 
-    if (!user) {
+    if (!userEntity) {
       throw new NotFoundException('Not found user entity.');
     }
 
-    const isSuccess = bcrypt.compareSync(confirmPassword, user.password);
+    const isSuccess = bcrypt.compareSync(confirmPassword, userEntity.password);
 
     const message = isSuccess
       ? 'Password verified successfully.'

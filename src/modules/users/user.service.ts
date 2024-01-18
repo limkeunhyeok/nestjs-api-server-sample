@@ -3,37 +3,42 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { serverConfig } from 'src/config';
 import { pagingResponse } from 'src/libs/paging';
 import { getDateRange } from 'src/libs/range';
-import { DataSource } from 'typeorm';
+import { Repository } from 'typeorm';
+import { Transactional } from 'typeorm-transactional';
 import { UserEntity } from './user.entity';
 import { UserQuery } from './user.interface';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly datasource: DataSource) {}
+  constructor(
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
+  ) {}
 
+  @Transactional()
   async create(
     userInfo: Pick<UserEntity, 'email' | 'password' | 'role'>,
   ): Promise<Omit<UserEntity, 'password'>> {
-    const user = await this.datasource.manager.transaction(async (manager) => {
-      const hasUser = await manager.findOneBy(UserEntity, {
-        email: userInfo.email,
-      });
-
-      if (hasUser) {
-        throw new BadRequestException('Email is already exists.');
-      }
-
-      const userEntity = this.generateEntity(userInfo);
-      return await manager.save(UserEntity, userEntity);
+    const hasUser = await this.userRepository.findOneBy({
+      email: userInfo.email,
     });
 
-    return this.toJson(user);
+    if (hasUser) {
+      throw new BadRequestException('Email is already exists.');
+    }
+
+    const userEntity = await this.userRepository.save(
+      this.generateEntity(userInfo),
+    );
+    return this.toJson(userEntity);
   }
 
+  @Transactional()
   async getByQuery(query: UserQuery) {
     const {
       startDate,
@@ -45,68 +50,56 @@ export class UserService {
       ...userInfo
     } = query;
 
-    const [users, total] = await this.datasource.manager.transaction(
-      async (manager) => {
-        const range = getDateRange(startDate, endDate);
+    const range = getDateRange(startDate, endDate);
 
-        const [userEntities, total] = await manager.findAndCount(UserEntity, {
-          where: {
-            ...range,
-            ...userInfo,
-          },
-          skip: offset,
-          take: limit,
-          order: { [sortingField]: sortingDirection },
-        });
-
-        const users = userEntities.map((uesrEntity) => this.toJson(uesrEntity));
-        return [users, total];
+    const [userEntities, total] = await this.userRepository.findAndCount({
+      where: {
+        ...range,
+        ...userInfo,
       },
-    );
+      skip: offset,
+      take: limit,
+      order: { [sortingField]: sortingDirection },
+    });
+
+    const users = userEntities.map((userEntity) => this.toJson(userEntity));
+
     return pagingResponse({ total, limit, offset, data: users });
   }
 
+  @Transactional()
   async getById(id: number) {
-    const userEntity = await this.datasource.manager.transaction(
-      async (manager) => {
-        return manager.findOneBy(UserEntity, { id });
-      },
-    );
+    const userEntity = await this.userRepository.findOneBy({ id });
 
     if (!userEntity) {
       throw new NotFoundException('Not found user entity.');
     }
+
     return this.toJson(userEntity);
   }
 
+  @Transactional()
   async updateById(id: number, userInfo: Partial<UserEntity>) {
-    const userEntity = await this.datasource.manager.transaction(
-      async (manager) => {
-        const userEntity = await manager.findOneBy(UserEntity, { id });
+    let userEntity = await this.userRepository.findOneBy({ id });
 
-        if (!userEntity) {
-          throw new NotFoundException('Not found user entity.');
-        }
+    if (!userEntity) {
+      throw new NotFoundException('Not found user entity.');
+    }
 
-        return await manager.save(UserEntity, { ...userEntity, ...userInfo });
-      },
-    );
+    userEntity = await this.userRepository.save({ ...userEntity, ...userInfo });
 
     return this.toJson(userEntity);
   }
 
+  @Transactional()
   async deleteById(id: number) {
-    const userEntity = await this.datasource.manager.transaction(
-      async (manager) => {
-        const userEntity = await manager.findOneBy(UserEntity, { id });
+    const userEntity = await this.userRepository.findOneBy({ id });
 
-        if (!userEntity) {
-          throw new NotFoundException('Not found user entity.');
-        }
+    if (!userEntity) {
+      throw new NotFoundException('Not found user entity.');
+    }
 
-        return await manager.remove(UserEntity, userEntity);
-      },
-    );
+    await this.userRepository.remove(userEntity);
 
     return this.toJson({ ...userEntity, id });
   }

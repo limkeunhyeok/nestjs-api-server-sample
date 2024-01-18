@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
+import { addTransactionalDataSource } from 'typeorm-transactional';
 import { HealthCheckModule } from './common/health-check/health-check.module';
 import { AuthMiddleware } from './common/middlewares/auth.middleware';
 import { HttpLoggingMiddleware } from './common/middlewares/http-logging.middleware';
@@ -20,7 +21,17 @@ import { initializeData } from './typeorm/initialize';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot(getDbConfig([UserEntity, PostEntity])),
+    TypeOrmModule.forRootAsync({
+      useFactory() {
+        return getDbConfig([UserEntity, PostEntity]);
+      },
+      async dataSourceFactory(options) {
+        if (!options) {
+          throw new Error('Invalid options passed.');
+        }
+        return addTransactionalDataSource(new DataSource(options));
+      },
+    }),
     UserModule,
     AuthModule,
     HealthCheckModule,

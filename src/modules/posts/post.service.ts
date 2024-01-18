@@ -1,21 +1,26 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { pagingResponse } from 'src/libs/paging';
 import { getDateRange } from 'src/libs/range';
-import { DataSource } from 'typeorm';
+import { Repository } from 'typeorm';
+import { Transactional } from 'typeorm-transactional';
 import { PostEntity } from './post.entity';
 import { PostInfo, PostQuery } from './post.interface';
 
 @Injectable()
 export class PostService {
-  constructor(private readonly datasource: DataSource) {}
+  constructor(
+    @InjectRepository(PostEntity)
+    private readonly postRepository: Repository<PostEntity>,
+  ) {}
 
+  @Transactional()
   async create(userId: number, postInfo: PostInfo) {
-    return await this.datasource.manager.transaction(async (manager) => {
-      const postEntity = this.generateEntity(userId, postInfo);
-      return await manager.save(PostEntity, postEntity);
-    });
+    const postEntity = this.generateEntity(userId, postInfo);
+    return await this.postRepository.save(postEntity);
   }
 
+  @Transactional()
   async getByQuery(query: PostQuery) {
     const {
       startDate,
@@ -27,32 +32,23 @@ export class PostService {
       ...postInfo
     } = query;
 
-    const [posts, total] = await this.datasource.manager.transaction(
-      async (manager) => {
-        const range = getDateRange(startDate, endDate);
-
-        const [postEntities, total] = await manager.findAndCount(PostEntity, {
-          where: {
-            ...range,
-            ...postInfo,
-          },
-          skip: offset,
-          take: limit,
-          order: { [sortingField]: sortingDirection },
-        });
-
-        return [postEntities, total];
+    const range = getDateRange(startDate, endDate);
+    const [postEntities, total] = await this.postRepository.findAndCount({
+      where: {
+        ...range,
+        ...postInfo,
       },
-    );
-    return pagingResponse({ total, limit, offset, data: posts });
+      skip: offset,
+      take: limit,
+      order: { [sortingField]: sortingDirection },
+    });
+
+    return pagingResponse({ total, limit, offset, data: postEntities });
   }
 
+  @Transactional()
   async getById(id: number) {
-    const postEntity = await this.datasource.manager.transaction(
-      async (manager) => {
-        return manager.findOneBy(PostEntity, { id });
-      },
-    );
+    const postEntity = await this.postRepository.findOneBy({ id });
 
     if (!postEntity) {
       throw new NotFoundException('Not found post entity.');
@@ -60,34 +56,26 @@ export class PostService {
     return postEntity;
   }
 
+  @Transactional()
   async updateById(id: number, postInfo: Partial<PostEntity>) {
-    const postEntity = await this.datasource.manager.transaction(
-      async (manager) => {
-        const postEntity = await manager.findOneBy(PostEntity, { id });
+    const postEntity = await this.postRepository.findOneBy({ id });
 
-        if (!postEntity) {
-          throw new NotFoundException('Not found post entity.');
-        }
+    if (!postEntity) {
+      throw new NotFoundException('Not found post entity.');
+    }
 
-        return await manager.save(PostEntity, { ...postEntity, ...postInfo });
-      },
-    );
-
-    return postEntity;
+    return await this.postRepository.save({ ...postEntity, ...postInfo });
   }
 
+  @Transactional()
   async deleteById(id: number) {
-    const postEntity = await this.datasource.manager.transaction(
-      async (manager) => {
-        const postEntity = await manager.findOneBy(PostEntity, { id });
+    const postEntity = await this.postRepository.findOneBy({ id });
 
-        if (!postEntity) {
-          throw new NotFoundException('Not found post entity.');
-        }
+    if (!postEntity) {
+      throw new NotFoundException('Not found post entity.');
+    }
 
-        return await manager.remove(PostEntity, postEntity);
-      },
-    );
+    await this.postRepository.remove(postEntity);
 
     return { ...postEntity, id };
   }

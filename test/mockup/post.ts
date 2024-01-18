@@ -15,7 +15,7 @@ export function mockPostRaw(user: Partial<UserEntity>, published = true) {
   const now = new Date();
 
   return {
-    title: faker.lorem.sentence(),
+    title: faker.lorem.sentence().slice(0, 100),
     contents: faker.lorem.text(),
     published,
     authorId: user.id,

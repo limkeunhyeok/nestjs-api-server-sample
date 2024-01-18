@@ -21,13 +21,27 @@ import { expectResponseFailed } from 'test/expectation/common';
 import { expectUserResponseSucceed } from 'test/expectation/user';
 import { fetchUserTokenAndHeaders, withHeadersBy } from 'test/lib/utils';
 import { createUser } from 'test/mockup/user';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
+import {
+  addTransactionalDataSource,
+  initializeTransactionalContext,
+} from 'typeorm-transactional';
 
 @Module({
   imports: [
     HealthCheckModule,
     AuthModule,
-    TypeOrmModule.forRoot(getDbConfig([UserEntity, PostEntity])),
+    TypeOrmModule.forRootAsync({
+      useFactory() {
+        return getDbConfig([UserEntity, PostEntity]);
+      },
+      async dataSourceFactory(options) {
+        if (!options) {
+          throw new Error('Invalid options passed.');
+        }
+        return addTransactionalDataSource(new DataSource(options));
+      },
+    }),
     UserModule,
   ],
 })
@@ -48,6 +62,8 @@ describe('User API Test', () => {
 
   let adminTokenHeaders: any;
   let withHeadersIncludeAdminToken: any;
+
+  initializeTransactionalContext();
 
   beforeAll(async () => {
     testingModule = await Test.createTestingModule({

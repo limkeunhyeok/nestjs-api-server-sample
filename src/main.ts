@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import { initializeTransactionalContext } from 'typeorm-transactional';
 import { AppModule } from './app.module';
 import { ApiDocsModule } from './common/api-docs/api-docs.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -7,6 +8,8 @@ import { serverConfig } from './config';
 import { LogCategory, logger } from './libs/logger';
 
 async function bootstrap() {
+  initializeTransactionalContext();
+
   const app = await NestFactory.create(AppModule);
 
   app.useGlobalPipes(new DtoValidationPipe());

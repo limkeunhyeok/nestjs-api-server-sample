@@ -17,7 +17,7 @@ export function mockUserRaw(role: Role = Role.MEMBER) {
 }
 
 export function extractUserCreationParams(
-  userRaw: Omit<UserEntity, 'id' | 'version' | 'posts'>,
+  userRaw: Omit<UserEntity, 'id' | 'version' | 'posts' | 'comments'>,
 ) {
   return {
     email: userRaw.email,

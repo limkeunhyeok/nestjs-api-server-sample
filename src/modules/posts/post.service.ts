@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { isBoolean } from 'class-validator';
 import { pagingResponse } from 'src/libs/paging';
 import { getDateRange } from 'src/libs/range';
 import { Repository } from 'typeorm';
@@ -85,10 +86,11 @@ export class PostService {
 
     postEntity.title = postInfo.title;
     postEntity.contents = postInfo.contents;
+    postEntity.published = postInfo.published;
     postEntity.authorId = userId;
 
-    if (postInfo.published === true || postInfo.published === false) {
-      postEntity.published = postInfo.published;
+    if (!isBoolean(postInfo.published)) {
+      postEntity.published = true;
     }
     return postEntity;
   }

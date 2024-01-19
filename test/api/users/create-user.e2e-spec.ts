@@ -12,6 +12,7 @@ import { HealthCheckModule } from 'src/common/health-check/health-check.module';
 import { AuthMiddleware } from 'src/common/middlewares/auth.middleware';
 import { DtoValidationPipe } from 'src/common/pipes/dto-validation.pipe';
 import { AuthModule } from 'src/modules/auth/auth.module';
+import { CommentEntity } from 'src/modules/comments/comment.entity';
 import { PostEntity } from 'src/modules/posts/post.entity';
 import { Role, UserEntity } from 'src/modules/users/user.entity';
 import { UserModule } from 'src/modules/users/user.module';
@@ -37,7 +38,7 @@ import {
     AuthModule,
     TypeOrmModule.forRootAsync({
       useFactory() {
-        return getDbConfig([UserEntity, PostEntity]);
+        return getDbConfig([UserEntity, PostEntity, CommentEntity]);
       },
       async dataSourceFactory(options) {
         if (!options) {

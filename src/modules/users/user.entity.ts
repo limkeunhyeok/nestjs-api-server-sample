@@ -1,5 +1,6 @@
 import { CustomEntity } from 'src/typeorm/custom.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { CommentEntity } from '../comments/comment.entity';
 import { PostEntity } from '../posts/post.entity';
 
 export const Role = {
@@ -29,4 +30,7 @@ export class UserEntity extends CustomEntity {
 
   @OneToMany(() => PostEntity, (post) => post.author)
   posts: PostEntity[];
+
+  @OneToMany(() => CommentEntity, (comment) => comment.author)
+  comments: CommentEntity[];
 }

@@ -1,5 +1,5 @@
+import { isEmptyObject } from 'src/libs/validator';
 import { UserEntity } from 'src/modules/users/user.entity';
-import { isEmptyObject } from 'test/lib/utils';
 
 export function expectUserResponseSucceed(
   result: Partial<UserEntity>,

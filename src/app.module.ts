@@ -12,6 +12,7 @@ import { HealthCheckModule } from './common/health-check/health-check.module';
 import { AuthMiddleware } from './common/middlewares/auth.middleware';
 import { HttpLoggingMiddleware } from './common/middlewares/http-logging.middleware';
 import { AuthModule } from './modules/auth/auth.module';
+import { CommentEntity } from './modules/comments/comment.entity';
 import { PostEntity } from './modules/posts/post.entity';
 import { PostModule } from './modules/posts/post.module';
 import { UserEntity } from './modules/users/user.entity';
@@ -23,7 +24,7 @@ import { initializeData } from './typeorm/initialize';
   imports: [
     TypeOrmModule.forRootAsync({
       useFactory() {
-        return getDbConfig([UserEntity, PostEntity]);
+        return getDbConfig([UserEntity, PostEntity, CommentEntity]);
       },
       async dataSourceFactory(options) {
         if (!options) {

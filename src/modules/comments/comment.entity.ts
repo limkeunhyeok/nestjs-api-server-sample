@@ -4,19 +4,15 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { CommentEntity } from '../comments/comment.entity';
+import { PostEntity } from '../posts/post.entity';
 import { UserEntity } from '../users/user.entity';
 
-@Entity('post')
-export class PostEntity extends CustomEntity {
+@Entity('comment')
+export class CommentEntity extends CustomEntity {
   @PrimaryGeneratedColumn()
   id: number;
-
-  @Column({ type: 'varchar', length: 100 })
-  title: string;
 
   @Column({ type: 'text' })
   contents: string;
@@ -27,10 +23,14 @@ export class PostEntity extends CustomEntity {
   @Column({ type: 'int' })
   authorId: number;
 
+  @Column({ type: 'int' })
+  postId: number;
+
+  @ManyToOne(() => PostEntity, (post) => post.id, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'postId' })
+  post: PostEntity;
+
   @ManyToOne(() => UserEntity, (user) => user.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'authorId' })
   author: UserEntity;
-
-  @OneToMany(() => CommentEntity, (comment) => comment.post)
-  comments: CommentEntity[];
 }

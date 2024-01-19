@@ -8,10 +8,6 @@ export interface Headers {
   token?: string;
 }
 
-export function isEmptyObject(obj: any): boolean {
-  return obj && Object.keys(obj).length === 0 && obj.constructor === Object;
-}
-
 export function setHeaders(
   req: request.Test,
   headers: Headers,

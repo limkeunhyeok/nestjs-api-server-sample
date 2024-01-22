@@ -14,3 +14,13 @@ export class UpdatePostByIdDto {
   @IsBoolean()
   published?: boolean;
 }
+
+export class UpdateCommentByIdDto {
+  @IsOptional()
+  @IsString()
+  contents?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  published?: boolean;
+}

@@ -150,20 +150,6 @@ describe('Post API Test', () => {
       expectResponseFailed(res);
     });
 
-    it('failed - required published (400)', async () => {
-      // given
-      const params = mockCreatePostDto();
-      delete params.published;
-
-      // when
-      const res = await withHeadersIncludeMemberToken(
-        req.post(`${rootApiPath}`).send(params),
-      ).expect(400);
-
-      // then
-      expectResponseFailed(res);
-    });
-
     it('failed - invalid title (400)', async () => {
       // given
       const params = mockCreatePostDto();

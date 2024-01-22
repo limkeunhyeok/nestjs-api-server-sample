@@ -14,3 +14,15 @@ export class GetPostsByQueryDto extends CommonQueryDto {
   @IsBoolean()
   published?: boolean;
 }
+
+export class GetCommentsByQueryDto extends CommonQueryDto {
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  authorId?: number;
+
+  @IsOptional()
+  @TransformAndValidateBoolean()
+  @IsBoolean()
+  published?: boolean;
+}

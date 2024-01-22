@@ -13,9 +13,9 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UserInToken } from 'src/common/decorators/user.decorator';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { Role } from '../users/user.entity';
-import { CreatePostDto } from './dto/create.dto';
-import { GetPostsByQueryDto } from './dto/get.dto';
-import { UpdatePostByIdDto } from './dto/update.dto';
+import { CreateCommentDto, CreatePostDto } from './dto/create.dto';
+import { GetCommentsByQueryDto, GetPostsByQueryDto } from './dto/get.dto';
+import { UpdateCommentByIdDto, UpdatePostByIdDto } from './dto/update.dto';
 import { PostService } from './post.service';
 
 @ApiTags('posts')
@@ -26,33 +26,93 @@ export class PostController {
   constructor(private readonly postService: PostService) {}
 
   @Post()
-  async create(
+  async createPost(
     @Body() dto: CreatePostDto,
     @UserInToken('userId') userId: number,
   ) {
-    return await this.postService.create(userId, dto);
+    return await this.postService.createPost(userId, dto);
   }
 
   @Get()
-  async getByQuery(@Query() query: GetPostsByQueryDto) {
-    return await this.postService.getByQuery(query);
+  async getPostsByQuery(@Query() query: GetPostsByQueryDto) {
+    return await this.postService.getPostsByQuery(query);
   }
 
   @Get('/:postId')
-  async getById(@Param('postId') postId: number) {
-    return await this.postService.getById(postId);
+  async getPostById(@Param('postId') postId: number) {
+    return await this.postService.getPostById(postId);
   }
 
   @Put('/:postId')
-  async updateById(
+  async updatePostById(
+    @UserInToken('userId') userId: number,
     @Param('postId') postId: number,
     @Body() dto: UpdatePostByIdDto,
   ) {
-    return await this.postService.updateById(postId, dto);
+    return await this.postService.updatePostById(userId, postId, dto);
   }
 
   @Delete('/:postId')
-  async deleteById(@Param('postId') postId: number) {
-    return await this.postService.deleteById(postId);
+  async deletePostById(
+    @UserInToken('userId') userId: number,
+    @UserInToken('role') role: Role,
+    @Param('postId') postId: number,
+  ) {
+    return await this.postService.deletePostById(userId, role, postId);
+  }
+
+  @Post('/:postId/comments')
+  async createComment(
+    @UserInToken('userId') userId: number,
+    @Param('postId') postId: number,
+    @Body() dto: CreateCommentDto,
+  ) {
+    return await this.postService.createComment(userId, postId, dto);
+  }
+
+  @Get('/:postId/comments')
+  async getCommentsByQuery(
+    @Param('postId') postId: number,
+    @Query() query: GetCommentsByQueryDto,
+  ) {
+    return await this.postService.getCommentsByQuery(postId, query);
+  }
+
+  @Get('/:postId/comments/:commentId')
+  async getCommentById(
+    @Param('postId') postId: number,
+    @Param('commentId') commentId: number,
+  ) {
+    return await this.postService.getCommentById(postId, commentId);
+  }
+
+  @Put('/:postId/comments/:commentId')
+  async updateCommentById(
+    @UserInToken('userId') userId: number,
+    @Param('postId') postId: number,
+    @Param('commentId') commentId: number,
+    @Body() dto: UpdateCommentByIdDto,
+  ) {
+    return await this.postService.updateCommentById(
+      userId,
+      postId,
+      commentId,
+      dto,
+    );
+  }
+
+  @Delete('/:postId/comments/:commentId')
+  async deleteCommentById(
+    @UserInToken('userId') userId: number,
+    @UserInToken('role') role: Role,
+    @Param('postId') postId: number,
+    @Param('commentId') commentId: number,
+  ) {
+    return await this.postService.deleteCommentById(
+      userId,
+      role,
+      postId,
+      commentId,
+    );
   }
 }

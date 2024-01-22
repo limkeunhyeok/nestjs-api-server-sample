@@ -7,7 +7,10 @@ export interface CommentInfo {
 }
 
 export interface CommentQuery
-  extends Pick<FindOptionsWhere<CommentEntity>, 'authorId' | 'postId'> {
+  extends Pick<
+    FindOptionsWhere<CommentEntity>,
+    'authorId' | 'postId' | 'published'
+  > {
   startDate?: Date;
   endDate?: Date;
   limit?: number;

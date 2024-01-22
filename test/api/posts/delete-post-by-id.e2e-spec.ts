@@ -23,6 +23,7 @@ import { expectResponseFailed } from 'test/expectation/common';
 import { expectPostResponseSucceed } from 'test/expectation/post';
 import { fetchUserTokenAndHeaders, withHeadersBy } from 'test/lib/utils';
 import { createPost, mockPostRaw } from 'test/mockup/post';
+import { createUser } from 'test/mockup/user';
 import { DataSource, Repository } from 'typeorm';
 import {
   addTransactionalDataSource,
@@ -148,6 +149,22 @@ describe('Post API Test', () => {
       const res = await withHeadersIncludeMemberToken(
         req.delete(`${rootApiPath}/${nonExistentId}`),
       ).expect(404);
+
+      // then
+      expectResponseFailed(res);
+    });
+
+    it('failed - access id denied (403)', async () => {
+      // given
+      const user: Partial<UserEntity> = await createUser(userRepository);
+
+      const postRaw = mockPostRaw(user);
+      const post = await createPost(postRepository, postRaw);
+
+      // when
+      const res = await withHeadersIncludeMemberToken(
+        req.delete(`${rootApiPath}/${post.id}`),
+      ).expect(403);
 
       // then
       expectResponseFailed(res);

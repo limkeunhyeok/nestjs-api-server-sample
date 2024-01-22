@@ -94,7 +94,7 @@ export class PostService {
       throw new NotFoundException('Not found post entity.');
     }
 
-    if (postEntity.authorId !== userId || role !== Role.ADMIN) {
+    if (postEntity.authorId !== userId && role === Role.MEMBER) {
       throw new ForbiddenException('Access is denied.');
     }
 
@@ -177,7 +177,7 @@ export class PostService {
       );
     }
 
-    if (comment.authorId !== userId || role !== Role.ADMIN) {
+    if (comment.authorId !== userId && role === Role.MEMBER) {
       throw new ForbiddenException('Access is denied.');
     }
 

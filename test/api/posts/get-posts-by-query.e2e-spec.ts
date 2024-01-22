@@ -146,8 +146,8 @@ describe('Post API Test', () => {
       expectPagingResponseSucceed(res);
 
       const body = res.body;
-      for (const post of body.data) {
-        expectPostResponseSucceed(post);
+      for (const data of body.data) {
+        expectPostResponseSucceed(data, post);
       }
     });
 

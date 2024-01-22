@@ -13,15 +13,17 @@ import { AuthMiddleware } from 'src/common/middlewares/auth.middleware';
 import { DtoValidationPipe } from 'src/common/pipes/dto-validation.pipe';
 import { AuthModule } from 'src/modules/auth/auth.module';
 import { CommentEntity } from 'src/modules/comments/comment.entity';
+import { CommentModule } from 'src/modules/comments/comment.module';
 import { PostEntity } from 'src/modules/posts/post.entity';
 import { PostModule } from 'src/modules/posts/post.module';
 import { Role, UserEntity } from 'src/modules/users/user.entity';
 import { UserModule } from 'src/modules/users/user.module';
 import { getDbConfig } from 'src/typeorm/db.config';
 import * as request from 'supertest';
+import { expectCommentResponseSucceed } from 'test/expectation/comment';
 import { expectResponseFailed } from 'test/expectation/common';
-import { expectPostResponseSucceed } from 'test/expectation/post';
 import { fetchUserTokenAndHeaders, withHeadersBy } from 'test/lib/utils';
+import { mockCreateCommentDto } from 'test/mockup/comment';
 import { createPost, mockPostRaw } from 'test/mockup/post';
 import { DataSource, Repository } from 'typeorm';
 import {
@@ -46,6 +48,7 @@ import {
     }),
     UserModule,
     PostModule,
+    CommentModule,
   ],
 })
 class TestModule implements NestModule {
@@ -53,22 +56,23 @@ class TestModule implements NestModule {
     consumer
       .apply(AuthMiddleware)
       .forRoutes(
-        { path: '/posts/*', method: RequestMethod.GET },
+        { path: '/posts/*/comments', method: RequestMethod.POST },
         { path: '/auth/me', method: RequestMethod.GET },
       );
   }
 }
 
-describe('Post API Test', () => {
+describe('Comment API Test', () => {
   let app: INestApplication;
   let req: request.SuperTest<request.Test>;
 
   let testingModule: TestingModule;
   let userRepository: Repository<UserEntity>;
   let postRepository: Repository<PostEntity>;
+  let commentRepository: Repository<CommentEntity>;
 
-  let adminTokenHeaders: any;
-  let withHeadersIncludeAdminToken: any;
+  let memberTokenHeaders: any;
+  let withHeadersIncludeMemberToken: any;
 
   initializeTransactionalContext();
 
@@ -90,30 +94,34 @@ describe('Post API Test', () => {
     postRepository = testingModule.get<Repository<PostEntity>>(
       getRepositoryToken(PostEntity),
     );
+    commentRepository = testingModule.get<Repository<CommentEntity>>(
+      getRepositoryToken(CommentEntity),
+    );
 
     req = request(app.getHttpServer());
 
-    adminTokenHeaders = await fetchUserTokenAndHeaders(
+    memberTokenHeaders = await fetchUserTokenAndHeaders(
       req,
       userRepository,
-      Role.ADMIN,
+      Role.MEMBER,
     );
-    withHeadersIncludeAdminToken = withHeadersBy(adminTokenHeaders);
+    withHeadersIncludeMemberToken = withHeadersBy(memberTokenHeaders);
   });
 
   afterAll(async () => {
     await postRepository.delete({});
     await userRepository.delete({});
+    await commentRepository.delete({});
 
     await app.close();
   });
 
-  describe('GET /posts/:id', () => {
+  describe('POST /posts/:postId/comments', () => {
     const rootApiPath = '/posts';
 
-    it('success - get post by id (200)', async () => {
+    it('success - create comment (201)', async () => {
       // given
-      const authResult = await withHeadersIncludeAdminToken(
+      const authResult = await withHeadersIncludeMemberToken(
         req.get('/auth/me'),
       ).expect(200);
 
@@ -122,19 +130,69 @@ describe('Post API Test', () => {
       const postRaw = mockPostRaw(user);
       const post = await createPost(postRepository, postRaw);
 
+      const params = mockCreateCommentDto();
+
       // when
-      const res = await withHeadersIncludeAdminToken(
-        req.get(`${rootApiPath}/${post.id}`),
-      ).expect(200);
+      const res = await withHeadersIncludeMemberToken(
+        req.post(`${rootApiPath}/${post.id}/comments`).send(params),
+      ).expect(201);
 
       // then
       const body = res.body;
-      expectPostResponseSucceed(body);
+      expectCommentResponseSucceed(body, params);
+    });
+
+    it('failed - required contents (400)', async () => {
+      // given
+      const authResult = await withHeadersIncludeMemberToken(
+        req.get('/auth/me'),
+      ).expect(200);
+
+      const user: Partial<UserEntity> = authResult.body;
+
+      const postRaw = mockPostRaw(user);
+      const post = await createPost(postRepository, postRaw);
+
+      const params = mockCreateCommentDto();
+      delete params.contents;
+
+      // when
+      const res = await withHeadersIncludeMemberToken(
+        req.post(`${rootApiPath}/${post.id}/comments`).send(params),
+      ).expect(400);
+
+      // then
+      expectResponseFailed(res);
+    });
+
+    it('failed - invalid published (400)', async () => {
+      // given
+      const authResult = await withHeadersIncludeMemberToken(
+        req.get('/auth/me'),
+      ).expect(200);
+
+      const user: Partial<UserEntity> = authResult.body;
+
+      const postRaw = mockPostRaw(user);
+      const post = await createPost(postRepository, postRaw);
+
+      const params = mockCreateCommentDto();
+      const published = 'TRUE';
+
+      // when
+      const res = await withHeadersIncludeMemberToken(
+        req
+          .post(`${rootApiPath}/${post.id}/comments`)
+          .send({ ...params, published }),
+      ).expect(400);
+
+      // then
+      expectResponseFailed(res);
     });
 
     it('failed - not found post entity (404)', async () => {
       // given
-      const authResult = await withHeadersIncludeAdminToken(
+      const authResult = await withHeadersIncludeMemberToken(
         req.get('/auth/me'),
       ).expect(200);
 
@@ -142,11 +200,13 @@ describe('Post API Test', () => {
 
       const postRaw = mockPostRaw(user);
       const post = await createPost(postRepository, postRaw);
+
+      const params = mockCreateCommentDto();
       const nonExistentId = 2 ** 31 - 1;
 
       // when
-      const res = await withHeadersIncludeAdminToken(
-        req.get(`${rootApiPath}/${nonExistentId}`),
+      const res = await withHeadersIncludeMemberToken(
+        req.post(`${rootApiPath}/${nonExistentId}/comments`).send(params),
       ).expect(404);
 
       // then

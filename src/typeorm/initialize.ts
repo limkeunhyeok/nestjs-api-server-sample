@@ -19,7 +19,7 @@ export const initializeData = async (instance: DataSource) => {
       const userEntity = new UserEntity();
 
       userEntity.email = 'admin@example.com';
-      userEntity.password = bcrypt.hashSync('password', 10);
+      userEntity.password = bcrypt.hashSync('password', serverConfig.saltRound);
       userEntity.role = Role.ADMIN;
       userEntity.latestTryLoginDate = new Date();
 

@@ -26,13 +26,13 @@ jobs:
         run: pwd
 
       - name: check ls
-        run: cd ../ && ls -al
+        run: cd ../../ && ls -al
 
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./deployment/dev
-          file: Dockerfile.dev
+          context: .
+          file: ./deployment/dev/Dockerfile.dev
           push: true
           tags: chungdaeking/nestjs-api-server-sample:develop
 
@@ -51,7 +51,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./deployment/prod
-          file: Dockerfile.prod
+          context: .
+          file: ./deployment/prod/Dockerfile.prod
           push: true
           tags: chungdaeking/nestjs-api-server-sample:latest

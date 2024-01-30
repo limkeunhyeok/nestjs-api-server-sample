@@ -23,8 +23,8 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          path: deployment/dev
-          dockerfile: Dockerfile.dev
+          context: deployment/dev
+          file: Dockerfile.dev
           push: true
           tags: chungdaeking/nestjs-api-server-sample:develop
 
@@ -43,7 +43,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          path: deployment/prod
-          dockerfile: Dockerfile.prod
+          context: deployment/prod
+          file: Dockerfile.prod
           push: true
           tags: chungdaeking/nestjs-api-server-sample:latest

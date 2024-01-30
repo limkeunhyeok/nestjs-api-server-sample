@@ -2,10 +2,12 @@ name: ci
 
 on:
   push:
-    - develop
-    - main
-  tags:
-    - v*
+    branches:
+      - main
+      - develop
+      - 'feature/*'
+    tags:
+      - v*
 
 jobs:
   build-dev:

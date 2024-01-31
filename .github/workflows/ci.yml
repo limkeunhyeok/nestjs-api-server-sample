@@ -39,7 +39,7 @@ jobs:
         run: |
           if [ "${{ steps.is_feature.outputs.is_feature }}" == "1" ]; then
             echo "This is a feature branch. Skipping build and push."
-            exit 0
+            exit 1
           fi
 
           echo "BRANCH_NAME=${{ steps.branch_name.outputs.branch }}"
@@ -53,10 +53,11 @@ jobs:
             echo "TAG=${{ steps.branch_name.outputs.branch }}"
           fi
 
-          echo "::set-output name=env::${ENV}"
-          echo "::set-output name=tag::${TAG}"
+          echo "env=${ENV}" >> "$GITHUB_OUTPUT"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
 
       - name: Build and push
+        if: failure()
         uses: docker/build-push-action@v5
         with:
           file: ./deployment/${{ steps.set_variables.outputs.env }}/Dockerfile.${{ steps.set_variables.outputs.env }}

@@ -28,7 +28,6 @@ jobs:
       - name: Get Branch Name
         id: branch_name
         run: echo "branch=${GITHUB_REF#refs/heads/}" >> "$GITHUB_OUTPUT"
-        # run: echo "::set-output name=branch::${GITHUB_REF#refs/heads/}"
 
       - name: Check if Feature Branch
         id: is_feature
@@ -39,7 +38,7 @@ jobs:
         run: |
           if [ "${{ steps.is_feature.outputs.is_feature }}" == "1" ]; then
             echo "This is a feature branch. Skipping build and push."
-            exit 1
+            exit 0
           fi
 
           echo "BRANCH_NAME=${{ steps.branch_name.outputs.branch }}"
@@ -57,7 +56,7 @@ jobs:
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
 
       - name: Build and push
-        if: failure()
+        if: "${{ steps.is_feature.outputs.is_feature }}" == "1"
         uses: docker/build-push-action@v5
         with:
           file: ./deployment/${{ steps.set_variables.outputs.env }}/Dockerfile.${{ steps.set_variables.outputs.env }}

@@ -25,12 +25,42 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Get Branch Name
+        id: branch_name
+        run: echo "::set-output name=branch::${GITHUB_REF#refs/heads/}"
+
+      - name: Check if Feature Branch
+        id: is_feature
+        run: echo "::set-output name=is_feature::$(echo ${{ steps.branch_name.outputs.branch }} | grep -c '^feature/')"
+
+      - name: Set Variables
+        id: set_variables
+        run: |
+          if [ "${{ steps.is_feature.outputs.is_feature }}" == "1" ]; then
+            echo "This is a feature branch. Skipping build and push."
+            exit 0
+          fi
+
+          echo "BRANCH_NAME=${{ steps.branch_name.outputs.branch }}"
+
+          # You can set different tags based on branch name or other conditions
+          if [ "${{ steps.branch_name.outputs.branch }}" == "main" ]; then
+            echo "ENV=prod"
+            echo "TAG=latest"
+          else
+            echo "ENV=dev"
+            echo "TAG=${{ steps.branch_name.outputs.branch }}"
+          fi
+
+          echo "::set-output name=env::${ENV}"
+          echo "::set-output name=tag::${TAG}"
+
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          file: ./deployment/dev/Dockerfile.dev
+          file: ./deployment/${{ steps.set_variables.outputs.env }}/Dockerfile.${{ steps.set_variables.outputs.env }}
           push: true
-          tags: chungdaeking/nestjs-api-server-sample:develop
+          tags: chungdaeking/nestjs-api-server-sample:${{ steps.set_variables.outputs.tag }}
 
   build-prod:
     runs-on: ubuntu-latest

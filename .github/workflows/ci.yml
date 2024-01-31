@@ -10,7 +10,7 @@ on:
       - v*
 
 jobs:
-  build-dev:
+  build-and push:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

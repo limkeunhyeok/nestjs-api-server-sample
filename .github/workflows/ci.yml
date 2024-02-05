@@ -44,12 +44,15 @@ jobs:
 
           # You can set different tags based on branch name or other conditions
           if [ "${{ steps.branch_name.outputs.branch }}" == "main" ]; then
-            echo "ENV=prod"
-            echo "TAG=latest"
+            ENV=prod
+            TAG=latest
           else
-            echo "ENV=dev"
-            echo "TAG=${{ steps.branch_name.outputs.branch }}"
+            ENV=dev
+            TAG=${{ steps.branch_name.outputs.branch }}
           fi
+
+          echo "ENV=$ENV"
+          echo "TAG=$TAG"
 
           echo "env=${ENV}" >> "$GITHUB_OUTPUT"
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"

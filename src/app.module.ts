@@ -2,15 +2,16 @@ import {
   MiddlewareConsumer,
   Module,
   NestModule,
-  OnModuleInit,
-  RequestMethod,
+  RequestMethod
 } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { addTransactionalDataSource } from 'typeorm-transactional';
 import { HealthCheckModule } from './common/health-check/health-check.module';
 import { AuthMiddleware } from './common/middlewares/auth.middleware';
 import { HttpLoggingMiddleware } from './common/middlewares/http-logging.middleware';
+import { ServerEnv, ServerEnvValidation } from './configurations/server.config';
 import { AuthModule } from './modules/auth/auth.module';
 import { CommentEntity } from './modules/comments/comment.entity';
 import { PostEntity } from './modules/posts/post.entity';
@@ -18,13 +19,17 @@ import { PostModule } from './modules/posts/post.module';
 import { UserEntity } from './modules/users/user.entity';
 import { UserModule } from './modules/users/user.module';
 import { getDbConfig } from './typeorm/db.config';
-import { initializeData } from './typeorm/initialize';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: `.env.${process.env.NODE_ENV ?? 'dev'}`,
+      validationSchema: ServerEnvValidation,
+    }),
     TypeOrmModule.forRootAsync({
-      useFactory() {
-        return getDbConfig([UserEntity, PostEntity, CommentEntity]);
+      useFactory(configService: ConfigService<ServerEnv, true>) {
+        return getDbConfig(configService, [UserEntity, PostEntity, CommentEntity]);
       },
       async dataSourceFactory(options) {
         if (!options) {
@@ -41,7 +46,7 @@ import { initializeData } from './typeorm/initialize';
   controllers: [],
   providers: [],
 })
-export class AppModule implements NestModule, OnModuleInit {
+export class AppModule implements NestModule {
   constructor(private readonly datasource: DataSource) {}
 
   configure(consumer: MiddlewareConsumer) {
@@ -55,9 +60,5 @@ export class AppModule implements NestModule, OnModuleInit {
         { path: '/health-check/(.*)', method: RequestMethod.GET },
       )
       .forRoutes({ path: '*', method: RequestMethod.ALL });
-  }
-
-  async onModuleInit() {
-    await initializeData(this.datasource);
   }
 }

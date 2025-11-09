@@ -3,8 +3,9 @@ import {
   NestMiddleware,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NextFunction, Request, Response } from 'express';
-import { serverConfig } from 'src/config';
+import { ServerEnv } from 'src/configurations/server.config';
 import { TokenPayload, verifyToken } from 'src/libs/token';
 import { Role } from 'src/modules/users/user.entity';
 
@@ -24,13 +25,18 @@ const isRoleIncluded = (role: string) => {
 
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
+  constructor(private readonly configService: ConfigService<ServerEnv, true>) {}
+
   async use(req: RequestWithUser, res: Response, next: NextFunction) {
     const authHeaders = req.headers.authorization;
 
     if (authHeaders && authHeaders.split(' ')[1]) {
       const token = authHeaders.split(' ')[1];
 
-      const decoded: TokenPayload = verifyToken(token, serverConfig.secretKey);
+      const decoded: TokenPayload = verifyToken(
+        token,
+        this.configService.get('ACCESS_TOKEN_SECRET'),
+      );
 
       if (!isRoleIncluded(decoded.role)) {
         throw new UnauthorizedException(`${decoded.role} is not a valid role.`);

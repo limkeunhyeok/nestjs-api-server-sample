@@ -1,24 +1,28 @@
+import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { serverConfig } from 'src/config';
+import { ServerEnv } from 'src/configurations/server.config';
 import { EntitySchema, MixedList } from 'typeorm';
 
 // entities: MixedList<Function | string | EntitySchema>
 export const getDbConfig = (
+  configService: ConfigService<ServerEnv, true>,
   entities: MixedList<Function | string | EntitySchema>,
 ): TypeOrmModuleOptions => {
   return {
     type: 'postgres',
-    host: serverConfig.dbHost,
-    port: serverConfig.dbPort,
-    database: serverConfig.dbName,
-    username: serverConfig.dbUser,
-    password: serverConfig.dbPass,
+    host: configService.get('DB_HOST'),
+    port: configService.get('DB_PORT'),
+    database: configService.get('DB_NAME'),
+    username: configService.get('DB_USER'),
+    password: configService.get('DB_PASS'),
     synchronize:
-      serverConfig.nodeEnv === 'prod' || serverConfig.nodeEnv === 'test'
+      configService.get('NODE_ENV') === 'prod' ||
+      configService.get('NODE_ENV') === 'test'
         ? false
         : true,
     logging:
-      serverConfig.nodeEnv === 'prod' || serverConfig.nodeEnv === 'test'
+      configService.get('NODE_ENV') === 'prod' ||
+      configService.get('NODE_ENV') === 'test'
         ? false
         : true,
     entities,

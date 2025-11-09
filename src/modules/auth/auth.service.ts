@@ -3,11 +3,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import { serverConfig } from 'src/config';
+import { ServerEnv } from 'src/configurations/server.config';
 import { createToken } from 'src/libs/token';
-import { DataSource, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
 import { UserEntity } from '../users/user.entity';
 import { UserService } from '../users/user.service';
@@ -20,8 +21,8 @@ export class AuthService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
-    private readonly datasource: DataSource,
     private readonly userService: UserService,
+    private readonly configService: ConfigService<ServerEnv, true>
   ) {}
 
   @Transactional()
@@ -42,7 +43,7 @@ export class AuthService {
 
     const accessToken = createToken(
       { userId: userEntity.id, role: userEntity.role },
-      serverConfig.secretKey,
+      this.configService.get('ACCESS_TOKEN_SECRET'),
     );
 
     return { accessToken };
@@ -53,7 +54,7 @@ export class AuthService {
 
     const accessToken = createToken(
       { userId: user.id, role: user.role },
-      serverConfig.secretKey,
+      this.configService.get('ACCESS_TOKEN_SECRET'),
     );
 
     return { accessToken };

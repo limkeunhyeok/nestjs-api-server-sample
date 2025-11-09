@@ -3,9 +3,10 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import { serverConfig } from 'src/config';
+import { ServerEnv } from 'src/configurations/server.config';
 import { pagingResponse } from 'src/libs/paging';
 import { getDateRange } from 'src/libs/range';
 import { Repository } from 'typeorm';
@@ -18,6 +19,7 @@ export class UserService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+    private readonly configService: ConfigService<ServerEnv, true>
   ) {}
 
   @Transactional()
@@ -112,7 +114,7 @@ export class UserService {
     userEntity.email = userInfo.email;
     userEntity.password = bcrypt.hashSync(
       userInfo.password,
-      serverConfig.saltRound,
+      this.configService.get('SALT_ROUND'),
     );
     userEntity.role = userInfo.role;
     userEntity.latestTryLoginDate = new Date();

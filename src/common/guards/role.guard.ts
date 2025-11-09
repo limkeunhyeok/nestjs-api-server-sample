@@ -6,9 +6,9 @@ import {
   Type,
   mixin,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { Observable } from 'rxjs';
 import { Role } from 'src/modules/users/user.entity';
+import { RequestWithUser } from '../middlewares/auth.middleware';
 
 export const RoleGuard = (roles: Role[]): Type<CanActivate> => {
   @Injectable()
@@ -20,8 +20,14 @@ export const RoleGuard = (roles: Role[]): Type<CanActivate> => {
         return true;
       }
 
-      const req: Request = context.switchToHttp().getRequest();
-      const { role } = req['user'];
+      const req: RequestWithUser = context.switchToHttp().getRequest();
+
+      const user = req.user as {
+        userId: number;
+        role: Role;
+      };
+
+      const { role } = user;
 
       if (!roles.includes(role)) {
         throw new ForbiddenException('Access is denied.');

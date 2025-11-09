@@ -3,7 +3,7 @@ import { CommentEntity } from './comment.entity';
 
 export interface CommentInfo {
   contents: string;
-  published?: boolean;
+  published: boolean;
 }
 
 export interface CommentQuery
@@ -13,8 +13,8 @@ export interface CommentQuery
   > {
   startDate?: Date;
   endDate?: Date;
-  limit?: number;
-  offset?: number;
-  sortingField?: string;
-  sortingDirection?: FindOptionsOrderValue;
+  limit: number;
+  offset: number;
+  sortingField: string;
+  sortingDirection: FindOptionsOrderValue;
 }

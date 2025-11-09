@@ -28,18 +28,18 @@ export class CommonQueryDto {
   @Type(() => Number)
   @IsNumber()
   @IsOptional()
-  limit?: number = 10000;
+  limit: number = 10000;
 
   @Type(() => Number)
   @IsNumber()
   @IsOptional()
-  offset?: number = 0;
+  offset: number = 0;
 
   @IsString()
   @IsOptional()
-  sortingField?: string = 'createdAt';
+  sortingField: string = 'createdAt';
 
   @IsEnum(SortingDirection)
   @IsOptional()
-  sortingDirection?: SortingDirection = SortingDirection.DESC;
+  sortingDirection: SortingDirection = SortingDirection.DESC;
 }

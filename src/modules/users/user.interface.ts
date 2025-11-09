@@ -10,8 +10,8 @@ export interface UserInfo {
 export interface UserQuery extends Pick<FindOptionsWhere<UserEntity>, 'role'> {
   startDate?: Date;
   endDate?: Date;
-  limit?: number;
-  offset?: number;
-  sortingField?: string;
-  sortingDirection?: FindOptionsOrderValue;
+  limit: number;
+  offset: number;
+  sortingField: string;
+  sortingDirection: FindOptionsOrderValue;
 }

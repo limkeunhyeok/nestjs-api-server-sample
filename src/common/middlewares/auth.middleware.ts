@@ -8,6 +8,13 @@ import { serverConfig } from 'src/config';
 import { TokenPayload, verifyToken } from 'src/libs/token';
 import { Role } from 'src/modules/users/user.entity';
 
+export interface RequestWithUser extends Request {
+  user?: {
+    userId: number;
+    role: Role;
+  };
+}
+
 const isRoleIncluded = (role: string) => {
   if (Object.values(Role).includes(role as Role)) {
     return true;
@@ -17,7 +24,7 @@ const isRoleIncluded = (role: string) => {
 
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
-  async use(req: Request, res: Response, next: NextFunction) {
+  async use(req: RequestWithUser, res: Response, next: NextFunction) {
     const authHeaders = req.headers.authorization;
 
     if (authHeaders && authHeaders.split(' ')[1]) {

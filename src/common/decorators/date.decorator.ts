@@ -20,8 +20,13 @@ export class IsBeforeDateConstraint implements ValidatorConstraintInterface {
     value: Date,
     args?: ValidationArguments,
   ): boolean | Promise<boolean> {
+    if (!args) return false;
+
+    const obj = args.object as Record<string, any>;
     const [relatedPropertyName] = args.constraints;
-    return comparedStartAndEnd(value, args.object[relatedPropertyName]);
+    const relatedValue = obj[relatedPropertyName];
+
+    return comparedStartAndEnd(value, relatedValue);
   }
 
   defaultMessage(validationArguments?: ValidationArguments): string {

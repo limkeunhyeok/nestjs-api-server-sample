@@ -10,7 +10,12 @@ import { validate } from 'class-validator';
 
 @Injectable()
 export class DtoValidationPipe implements PipeTransform<any> {
-  async transform(value: any, { metatype }: ArgumentMetadata) {
+  async transform(
+    value: any,
+    metadata: ArgumentMetadata, // metadata 전체 받음
+  ) {
+    const { metatype } = metadata;
+
     if (!metatype || !this.toValidate(metatype)) {
       return value;
     }
@@ -26,8 +31,8 @@ export class DtoValidationPipe implements PipeTransform<any> {
     return converted;
   }
 
-  private toValidate(metatype): boolean {
-    const types = [String, Boolean, Number, Array, Object];
+  private toValidate(metatype: Function): boolean {
+    const types: Array<Function> = [String, Boolean, Number, Array, Object];
     return !types.includes(metatype);
   }
 }

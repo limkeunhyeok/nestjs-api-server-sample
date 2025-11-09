@@ -10,7 +10,7 @@ export class CreatePostDto {
 
   @IsOptional()
   @IsBoolean()
-  published?: boolean;
+  published: boolean = true;
 }
 
 export class CreateCommentDto {
@@ -19,5 +19,5 @@ export class CreateCommentDto {
 
   @IsOptional()
   @IsBoolean()
-  published?: boolean;
+  published: boolean = true;
 }

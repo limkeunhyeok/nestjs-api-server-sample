@@ -114,7 +114,7 @@ export class UserService {
     userEntity.email = userInfo.email;
     userEntity.password = bcrypt.hashSync(
       userInfo.password,
-      this.configService.get('SALT_ROUND'),
+      this.configService.get<number>('SALT_ROUND'),
     );
     userEntity.role = userInfo.role;
     userEntity.latestTryLoginDate = new Date();

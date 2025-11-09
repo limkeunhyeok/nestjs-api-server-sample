@@ -1,4 +1,4 @@
-import { CustomEntity } from 'src/typeorm/custom.entity';
+import { CustomEntity } from 'src/common/databases/custom.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Relation } from 'typeorm';
 import { CommentEntity } from '../comments/comment.entity';
 import { PostEntity } from '../posts/post.entity';

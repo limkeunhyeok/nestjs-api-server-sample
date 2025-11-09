@@ -4,21 +4,18 @@ import {
   NestModule,
   RequestMethod
 } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
+import { DataSource, DataSourceOptions } from 'typeorm';
 import { addTransactionalDataSource } from 'typeorm-transactional';
 import { HealthCheckModule } from './common/health-check/health-check.module';
 import { AuthMiddleware } from './common/middlewares/auth.middleware';
 import { HttpLoggingMiddleware } from './common/middlewares/http-logging.middleware';
-import { ServerEnv, ServerEnvValidation } from './configurations/server.config';
+import { ServerEnvValidation } from './configurations/server.config';
+import { TypeOrmConfigService } from './configurations/typeorm.config';
 import { AuthModule } from './modules/auth/auth.module';
-import { CommentEntity } from './modules/comments/comment.entity';
-import { PostEntity } from './modules/posts/post.entity';
 import { PostModule } from './modules/posts/post.module';
-import { UserEntity } from './modules/users/user.entity';
 import { UserModule } from './modules/users/user.module';
-import { getDbConfig } from './typeorm/db.config';
 
 @Module({
   imports: [
@@ -28,10 +25,8 @@ import { getDbConfig } from './typeorm/db.config';
       validationSchema: ServerEnvValidation,
     }),
     TypeOrmModule.forRootAsync({
-      useFactory(configService: ConfigService<ServerEnv, true>) {
-        return getDbConfig(configService, [UserEntity, PostEntity, CommentEntity]);
-      },
-      async dataSourceFactory(options) {
+      useClass: TypeOrmConfigService,
+      dataSourceFactory: async (options?: DataSourceOptions) => {
         if (!options) {
           throw new Error('Invalid options passed.');
         }

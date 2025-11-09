@@ -1,4 +1,4 @@
-import { CustomEntity } from 'src/typeorm/custom.entity';
+import { CustomEntity } from 'src/common/databases/custom.entity';
 import {
   Column,
   Entity,

@@ -43,7 +43,7 @@ export class AuthService {
 
     const accessToken = createToken(
       { userId: userEntity.id, role: userEntity.role },
-      this.configService.get('ACCESS_TOKEN_SECRET'),
+      this.configService.get<string>('ACCESS_TOKEN_SECRET'),
     );
 
     return { accessToken };
@@ -54,7 +54,7 @@ export class AuthService {
 
     const accessToken = createToken(
       { userId: user.id, role: user.role },
-      this.configService.get('ACCESS_TOKEN_SECRET'),
+      this.configService.get<string>('ACCESS_TOKEN_SECRET'),
     );
 
     return { accessToken };

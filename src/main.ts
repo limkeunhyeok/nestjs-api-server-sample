@@ -19,8 +19,8 @@ async function bootstrap() {
   app.useGlobalPipes(new DtoValidationPipe());
   app.useGlobalFilters(new AllExceptionsFilter());
 
-  const nodeEnv = configService.get('NODE_ENV');
-  const port = configService.get('PORT')
+  const nodeEnv = configService.get<string>('NODE_ENV');
+  const port = configService.get<number>('PORT')
 
   if (nodeEnv !== 'prod') {
     ApiDocsModule.register(app, {

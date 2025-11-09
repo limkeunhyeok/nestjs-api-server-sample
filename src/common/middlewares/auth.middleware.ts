@@ -35,7 +35,7 @@ export class AuthMiddleware implements NestMiddleware {
 
       const decoded: TokenPayload = verifyToken(
         token,
-        this.configService.get('ACCESS_TOKEN_SECRET'),
+        this.configService.get<string>('ACCESS_TOKEN_SECRET'),
       );
 
       if (!isRoleIncluded(decoded.role)) {

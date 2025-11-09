@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { WinstonModule } from 'nest-winston';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { addTransactionalDataSource } from 'typeorm-transactional';
 import { HealthCheckModule } from './common/health-check/health-check.module';
@@ -13,6 +14,7 @@ import { AuthMiddleware } from './common/middlewares/auth.middleware';
 import { HttpLoggingMiddleware } from './common/middlewares/http-logging.middleware';
 import { ServerEnvValidation } from './configurations/server.config';
 import { TypeOrmConfigService } from './configurations/typeorm.config';
+import { WinstonConfigService } from './configurations/winston.config';
 import { AuthModule } from './modules/auth/auth.module';
 import { PostModule } from './modules/posts/post.module';
 import { UserModule } from './modules/users/user.module';
@@ -33,6 +35,9 @@ import { UserModule } from './modules/users/user.module';
         return addTransactionalDataSource(new DataSource(options));
       },
     }),
+    WinstonModule.forRootAsync({
+      useClass: WinstonConfigService,
+    }),
     UserModule,
     AuthModule,
     HealthCheckModule,
@@ -42,8 +47,6 @@ import { UserModule } from './modules/users/user.module';
   providers: [],
 })
 export class AppModule implements NestModule {
-  constructor(private readonly datasource: DataSource) {}
-
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(HttpLoggingMiddleware)

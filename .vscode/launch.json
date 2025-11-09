@@ -6,8 +6,8 @@
       "type": "node",
       "request": "launch",
       "name": "Debug Nest Framework",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "start:debug"],
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["start:debug"],
       "autoAttachChildProcesses": true,
       "restart": true,
       "sourceMaps": true,
@@ -18,13 +18,24 @@
       "type": "node",
       "request": "launch",
       "name": "Debug Nest Framework E2E Test",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "test:e2e"],
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["test:e2e"],
       "autoAttachChildProcesses": true,
       "restart": true,
       "sourceMaps": true,
       "stopOnEntry": false,
       "console": "integratedTerminal"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug TypeScript",
+      "runtimeArgs": ["-r", "ts-node/register"],
+      "args": ["${file}"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"]
     }
   ]
 }

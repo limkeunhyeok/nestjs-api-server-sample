@@ -19,8 +19,8 @@ export const getDbConfig = (entities: any): TypeOrmModuleOptions => {
         ? false
         : true,
     entities,
-    migrationsRun: true,
-    migrations: [__dirname + '/**/migrations/*{.ts,.js}'],
-    metadataTableName: 'migrations',
+    // migrationsRun: true,
+    // migrations: [__dirname + '/**/migrations/*{.ts,.js}'],
+    // metadataTableName: 'migrations',
   };
 };

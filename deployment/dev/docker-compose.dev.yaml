@@ -20,7 +20,7 @@ services:
       - postgres
 
   postgres:
-    container_name: postgres
+    container_name: postgresdb
     image: postgres:15
     environment:
       POSTGRES_USER: root

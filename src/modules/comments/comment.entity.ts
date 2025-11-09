@@ -5,6 +5,7 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Relation,
 } from 'typeorm';
 import { PostEntity } from '../posts/post.entity';
 import { UserEntity } from '../users/user.entity';
@@ -28,9 +29,9 @@ export class CommentEntity extends CustomEntity {
 
   @ManyToOne(() => PostEntity, (post) => post.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'postId' })
-  post: PostEntity;
+  post: Relation<PostEntity>;
 
   @ManyToOne(() => UserEntity, (user) => user.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'authorId' })
-  author: UserEntity;
+  author: Relation<UserEntity>;
 }

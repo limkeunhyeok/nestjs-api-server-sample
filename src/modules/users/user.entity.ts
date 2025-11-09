@@ -1,5 +1,5 @@
 import { CustomEntity } from 'src/typeorm/custom.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Relation } from 'typeorm';
 import { CommentEntity } from '../comments/comment.entity';
 import { PostEntity } from '../posts/post.entity';
 
@@ -29,8 +29,8 @@ export class UserEntity extends CustomEntity {
   latestTryLoginDate: Date;
 
   @OneToMany(() => PostEntity, (post) => post.author)
-  posts: PostEntity[];
+  posts: Relation<PostEntity[]>;
 
   @OneToMany(() => CommentEntity, (comment) => comment.author)
-  comments: CommentEntity[];
+  comments: Relation<CommentEntity[]>;
 }

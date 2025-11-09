@@ -1,8 +1,11 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { serverConfig } from 'src/config';
+import { EntitySchema, MixedList } from 'typeorm';
 
 // entities: MixedList<Function | string | EntitySchema>
-export const getDbConfig = (entities: any): TypeOrmModuleOptions => {
+export const getDbConfig = (
+  entities: MixedList<Function | string | EntitySchema>,
+): TypeOrmModuleOptions => {
   return {
     type: 'postgres',
     host: serverConfig.dbHost,

@@ -5,6 +5,7 @@ import { initializeTransactionalContext } from 'typeorm-transactional';
 import { AppModule } from './app.module';
 import { ApiDocsModule } from './common/api-docs/api-docs.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { TypeOrmExceptionFilter } from './common/filters/typeorm-exception.filter';
 import { ExtendedLogger } from './common/interfaces/extended-logger.interface';
 import { DtoValidationPipe } from './common/pipes/dto-validation.pipe';
 import { NodeEnv, ServerEnv } from './configurations/server.config';
@@ -21,7 +22,7 @@ async function bootstrap() {
   app.useLogger(logger);
 
   app.useGlobalPipes(new DtoValidationPipe(configService));
-  app.useGlobalFilters(new AllExceptionsFilter(logger));
+  app.useGlobalFilters(new AllExceptionsFilter(logger), new TypeOrmExceptionFilter(logger));
 
   const nodeEnv = configService.get<string>('NODE_ENV');
   const port = configService.get<number>('PORT')

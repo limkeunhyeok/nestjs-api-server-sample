@@ -12,6 +12,7 @@ import { addTransactionalDataSource } from 'typeorm-transactional';
 import { HealthCheckModule } from './common/health-check/health-check.module';
 import { AuthMiddleware } from './common/middlewares/auth.middleware';
 import { HttpLoggingMiddleware } from './common/middlewares/http-logging.middleware';
+import { IgnoreBrowserRequestMiddleware } from './common/middlewares/ignore-browser-request.middleware';
 import { ServerEnvValidation } from './configurations/server.config';
 import { TypeOrmConfigService } from './configurations/typeorm.config';
 import { WinstonConfigService } from './configurations/winston.config';
@@ -51,6 +52,8 @@ export class AppModule implements NestModule {
     consumer
       .apply(HttpLoggingMiddleware)
       .forRoutes({ path: '*', method: RequestMethod.ALL })
+      .apply(IgnoreBrowserRequestMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.GET })
       .apply(AuthMiddleware)
       .exclude(
         { path: '/auth/sign-in', method: RequestMethod.POST },

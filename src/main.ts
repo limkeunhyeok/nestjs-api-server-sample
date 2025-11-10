@@ -7,7 +7,7 @@ import { ApiDocsModule } from './common/api-docs/api-docs.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { ExtendedLogger } from './common/interfaces/extended-logger.interface';
 import { DtoValidationPipe } from './common/pipes/dto-validation.pipe';
-import { ServerEnv } from './configurations/server.config';
+import { NodeEnv, ServerEnv } from './configurations/server.config';
 
 async function bootstrap() {
   initializeTransactionalContext();
@@ -26,7 +26,7 @@ async function bootstrap() {
   const nodeEnv = configService.get<string>('NODE_ENV');
   const port = configService.get<number>('PORT')
 
-  if (nodeEnv !== 'prod') {
+  if (nodeEnv !== NodeEnv.PROD) {
     ApiDocsModule.register(app, {
       title: `Example ${nodeEnv} server`,
       description: `Example ${nodeEnv} server`,

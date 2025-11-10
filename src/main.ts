@@ -20,7 +20,7 @@ async function bootstrap() {
 
   app.useLogger(logger);
 
-  app.useGlobalPipes(new DtoValidationPipe());
+  app.useGlobalPipes(new DtoValidationPipe(configService));
   app.useGlobalFilters(new AllExceptionsFilter(logger));
 
   const nodeEnv = configService.get<string>('NODE_ENV');

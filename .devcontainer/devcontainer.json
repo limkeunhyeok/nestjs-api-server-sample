@@ -1,0 +1,58 @@
+{
+  "name": "Node.js & PostgreSQL Dev Environment",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "MS-CEINTL.vscode-language-pack-ko",
+        "eamodio.gitlens",
+        "yzhang.markdown-all-in-one"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit"
+        }
+      }
+    }
+  },
+
+  // 서비스에서 포트 읽어오기
+  "runServices": ["app", "db", "pgadmin"],
+
+  // 포트는 자동으로 감지됨
+  "forwardPorts": [],
+
+  "containerEnv": {
+    "PNPM_HOME": "/home/node/.local/share/pnpm",
+    "PATH": "/home/node/.local/share/pnpm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  },
+
+  "postCreateCommand": "pnpm install && pnpm add -g typescript@${TYPESCRIPT_VERSION:-5.9.3}",
+
+  "remoteUser": "node"
+  // "forwardPorts": [3000, 5432, 5050],
+
+  // "portsAttributes": {
+  //   "3000": {
+  //     "label": "Application",
+  //     "onAutoForward": "notify"
+  //   },
+  //   "5432": {
+  //     "label": "PostgreSQL"
+  //   },
+  //   "5050": {
+  //     "label": "pgAdmin"
+  //   }
+  // },
+
+  // "postCreateCommand": "pnpm install && pnpm add -g typescript@5.9.3",
+
+  // "remoteUser": "node"
+}

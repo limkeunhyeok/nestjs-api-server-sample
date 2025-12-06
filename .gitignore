@@ -36,3 +36,7 @@ lerna-debug.log*
 
 # Migrations
 /src/migrations
+
+.pnpm-store
+
+.env

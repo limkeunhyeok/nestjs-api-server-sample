@@ -6,3 +6,10 @@ dist
 
 .vscode
 .husky
+
+Dockerfile
+docker-compose.yml
+
+.env
+.env.*
+test

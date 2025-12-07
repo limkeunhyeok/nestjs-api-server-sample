@@ -2,13 +2,11 @@ import {
   MiddlewareConsumer,
   Module,
   NestModule,
-  RequestMethod
+  RequestMethod,
 } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WinstonModule } from 'nest-winston';
-import { DataSource, DataSourceOptions } from 'typeorm';
-import { addTransactionalDataSource } from 'typeorm-transactional';
 import { HealthCheckModule } from './common/health-check/health-check.module';
 import { AuthMiddleware } from './common/middlewares/auth.middleware';
 import { HttpLoggingMiddleware } from './common/middlewares/http-logging.middleware';
@@ -24,17 +22,11 @@ import { UserModule } from './modules/users/user.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: `.env.${process.env.NODE_ENV ?? 'dev'}`,
+      envFilePath: '.env',
       validationSchema: ServerEnvValidation,
     }),
     TypeOrmModule.forRootAsync({
       useClass: TypeOrmConfigService,
-      dataSourceFactory: async (options?: DataSourceOptions) => {
-        if (!options) {
-          throw new Error('Invalid options passed.');
-        }
-        return addTransactionalDataSource(new DataSource(options));
-      },
     }),
     WinstonModule.forRootAsync({
       useClass: WinstonConfigService,

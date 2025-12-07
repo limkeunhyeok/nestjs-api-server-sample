@@ -1,0 +1,44 @@
+version: '3.8'
+
+networks:
+  server-prod:
+
+services:
+  server:
+    container_name: api
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    env_file:
+      - ./.env
+    expose:
+      - ${PORT:-3000}
+    ports:
+      - '${PORT:-3000}:${PORT:-3000}'
+    restart: unless-stopped
+    networks:
+      - server-prod
+    depends_on:
+      - postgres
+
+  postgres:
+    container_name: postgres
+    image: postgres:18
+    env_file:
+      - ./.env
+    environment:
+      - POSTGRES_USER=${DB_USER:-root}
+      - POSTGRES_PASSWORD=${DB_PASS:-password}
+      - POSTGRES_DB=${DB_NAME:-mydb}
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    expose:
+      - ${DB_PORT:-5432}
+    ports:
+      - '${DB_PORT:-5432}:5432'
+    restart: unless-stopped
+    networks:
+      - server-prod
+
+volumes:
+  postgres-data:

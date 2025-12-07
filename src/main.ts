@@ -1,7 +1,11 @@
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-import { initializeTransactionalContext } from 'typeorm-transactional';
+import { DataSource } from 'typeorm';
+import {
+  addTransactionalDataSource,
+  initializeTransactionalContext,
+} from 'typeorm-transactional';
 import { AppModule } from './app.module';
 import { ApiDocsModule } from './common/api-docs/api-docs.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -15,17 +19,21 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
 
+  const dataSource = app.get(DataSource);
+  addTransactionalDataSource(dataSource);
+
   const logger = app.get<ExtendedLogger>(WINSTON_MODULE_NEST_PROVIDER);
-
-  const configService = app.get<ConfigService<ServerEnv, true>>(ConfigService);
-
   app.useLogger(logger);
 
+  const configService = app.get<ConfigService<ServerEnv, true>>(ConfigService);
   app.useGlobalPipes(new DtoValidationPipe(configService));
-  app.useGlobalFilters(new AllExceptionsFilter(logger), new TypeOrmExceptionFilter(logger));
+  app.useGlobalFilters(
+    new AllExceptionsFilter(logger),
+    new TypeOrmExceptionFilter(logger),
+  );
 
   const nodeEnv = configService.get<string>('NODE_ENV');
-  const port = configService.get<number>('PORT')
+  const port = configService.get<number>('PORT');
 
   if (nodeEnv !== NodeEnv.PROD) {
     ApiDocsModule.register(app, {

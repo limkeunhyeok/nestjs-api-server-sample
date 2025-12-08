@@ -1,5 +1,13 @@
+import { Exclude } from 'class-transformer';
 import { CustomEntity } from 'src/common/databases/custom.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Relation } from 'typeorm';
+import {
+  Column,
+  Entity,
+  Index,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  Relation,
+} from 'typeorm';
 import { CommentEntity } from '../comments/comment.entity';
 import { PostEntity } from '../posts/post.entity';
 
@@ -17,12 +25,17 @@ export class UserEntity extends CustomEntity {
   id: number;
 
   @Column({ type: 'varchar', unique: true })
+  @Index({ unique: true })
   email: string;
 
   @Column({ type: 'varchar' })
+  @Exclude({ toPlainOnly: true })
   password: string;
 
   @Column({ type: 'varchar' })
+  name: string;
+
+  @Column({ type: 'varchar', default: Role.MEMBER })
   role: Role;
 
   @Column({ type: 'timestamptz' })

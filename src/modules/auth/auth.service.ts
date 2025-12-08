@@ -22,7 +22,7 @@ export class AuthService {
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
     private readonly userService: UserService,
-    private readonly configService: ConfigService<ServerEnv, true>
+    private readonly configService: ConfigService<ServerEnv, true>,
   ) {}
 
   @Transactional()
@@ -50,7 +50,7 @@ export class AuthService {
   }
 
   async signUp({ email, password, role }: SignUpDto) {
-    const user = await this.userService.create({ email, password, role });
+    const user = await this.userService.createUser({ email, password, role });
 
     const accessToken = createToken(
       { userId: user.id, role: user.role },
@@ -78,6 +78,6 @@ export class AuthService {
   }
 
   async getMe(userId: number) {
-    return await this.userService.getById(userId);
+    return await this.userService.getUserById(userId);
   }
 }

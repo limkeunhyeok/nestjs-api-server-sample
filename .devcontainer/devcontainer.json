@@ -23,6 +23,10 @@
     }
   },
 
+  "mounts": [
+    "source=${env:HOME}/.gitconfig,target=/home/node/.gitconfig,type=bind"
+  ],
+
   // 서비스에서 포트 읽어오기
   "runServices": ["app", "db", "pgadmin"],
 

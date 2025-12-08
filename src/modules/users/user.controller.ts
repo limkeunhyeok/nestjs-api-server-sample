@@ -1,5 +1,6 @@
 import {
   Body,
+  ClassSerializerInterceptor,
   Controller,
   Delete,
   Get,
@@ -8,17 +9,21 @@ import {
   Put,
   Query,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { UserInToken } from 'src/common/decorators/user-in-token.decorator';
 import { RoleGuard } from 'src/common/guards/role.guard';
-import { CreateUserDto } from './dto/create.dto';
-import { GetUsersByQueryDto } from './dto/get.dto';
-import { UpdateUserByIdDto } from './dto/update.dto';
+import { TokenPayload } from 'src/libs/token';
+import { CreateUserDto } from './dto/create-user.dto';
+import { PaginateUsersDto } from './dto/paginate-user.dto';
+import { UpdateUserByIdDto } from './dto/update-user.dto';
 import { Role } from './user.entity';
 import { UserService } from './user.service';
 
 @ApiTags('users')
 @ApiBearerAuth('accessToken')
+@UseInterceptors(ClassSerializerInterceptor)
 @UseGuards(RoleGuard([Role.ADMIN]))
 @Controller('users')
 export class UserController {
@@ -26,29 +31,33 @@ export class UserController {
 
   @Post()
   async create(@Body() body: CreateUserDto) {
-    return await this.userService.create(body);
+    return await this.userService.createUser(body);
   }
 
   @Get()
-  async getByQuery(@Query() query: GetUsersByQueryDto) {
-    return await this.userService.getByQuery(query);
+  async paginate(@Query() query: PaginateUsersDto) {
+    return await this.userService.paginateUsers(query);
   }
 
   @Get('/:userId')
-  async getById(@Param('userId') userId: number) {
-    return await this.userService.getById(userId);
+  async getOneById(@Param('userId') userId: number) {
+    return await this.userService.getUserById(userId);
   }
 
   @Put('/:userId')
-  async updateById(
+  async update(
     @Param('userId') userId: number,
     @Body() body: UpdateUserByIdDto,
+    @UserInToken() payload: TokenPayload,
   ) {
-    return await this.userService.updateById(userId, body);
+    return await this.userService.updateUser(userId, body, payload);
   }
 
   @Delete('/:userId')
-  async deleteById(@Param('userId') userId: number) {
-    return await this.userService.deleteById(userId);
+  async delete(
+    @Param('userId') userId: number,
+    @UserInToken() payload: TokenPayload,
+  ) {
+    return await this.userService.deleteUser(userId, payload);
   }
 }

@@ -1,129 +1,182 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
+import { SortDirection } from 'src/common/dtos/paginate.dto';
 import { ServerEnv } from 'src/configurations/server.config';
-import { pagingResponse } from 'src/libs/paging';
+import { removeUndefined } from 'src/libs/object';
+import { PagingResponse, pagingResponse } from 'src/libs/paging';
 import { getDateRange } from 'src/libs/range';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Like, Repository } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
-import { UserEntity } from './user.entity';
-import { UserQuery } from './user.interface';
+import { Role, UserEntity } from './user.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
-    private readonly configService: ConfigService<ServerEnv, true>
+    private readonly configService: ConfigService<ServerEnv, true>,
   ) {}
 
   @Transactional()
-  async create(
-    userInfo: Pick<UserEntity, 'email' | 'password' | 'role'>,
-  ): Promise<Omit<UserEntity, 'password'>> {
+  async createUser(params: {
+    email: string;
+    password: string;
+    name: string;
+    role: Role;
+  }): Promise<UserEntity> {
     const hasUser = await this.userRepository.findOneBy({
-      email: userInfo.email,
+      email: params.email,
     });
 
     if (hasUser) {
       throw new BadRequestException('Email is already exists.');
     }
 
-    const userEntity = await this.userRepository.save(
-      this.generateEntity(userInfo),
+    const hash = await bcrypt.hash(
+      params.password,
+      this.configService.get<number>('SALT_ROUND'),
     );
-    return this.toJson(userEntity);
+
+    const createdUser = this.userRepository.create({
+      email: params.email,
+      password: hash,
+      role: params.role,
+      name: params.name,
+    });
+
+    return await this.userRepository.save(createdUser);
   }
 
   @Transactional()
-  async getByQuery(query: UserQuery) {
+  async paginateUsers(params: {
+    role?: Role;
+    name?: string;
+    startDate?: Date;
+    endDate?: Date;
+    limit: number;
+    offset: number;
+    sortField: string;
+    sortDirection: SortDirection;
+  }): Promise<PagingResponse<UserEntity>> {
     const {
+      role,
+      name,
       startDate,
       endDate,
       limit,
       offset,
-      sortingField,
-      sortingDirection,
-      ...userInfo
-    } = query;
+      sortField,
+      sortDirection,
+    } = params;
+
+    const query: FindOptionsWhere<UserEntity> = {};
 
     const range = getDateRange(startDate, endDate);
 
-    const [userEntities, total] = await this.userRepository.findAndCount({
-      where: {
-        ...range,
-        ...userInfo,
-      },
-      skip: offset,
-      take: limit,
-      order: { [sortingField]: sortingDirection },
-    });
+    if (params.role) {
+      query.role = role;
+    }
 
-    const users = userEntities.map((userEntity) => this.toJson(userEntity));
+    if (params.name) {
+      query.name = Like(`%${name}%`);
+    }
+
+    const [users, total] = await this.userRepository.findAndCount({
+      where: {
+        ...query,
+        ...range,
+      },
+      order: {
+        [sortField]: sortDirection,
+      },
+      skip: limit > 0 ? offset : undefined,
+      take: limit > 0 ? limit : undefined,
+    });
 
     return pagingResponse({ total, limit, offset, data: users });
   }
 
   @Transactional()
-  async getById(id: number) {
-    const userEntity = await this.userRepository.findOneBy({ id });
+  async getUserById(userId: number): Promise<UserEntity> {
+    const user = await this.userRepository.findOneBy({ id: userId });
 
-    if (!userEntity) {
+    if (!user) {
       throw new NotFoundException('Not found user entity.');
     }
 
-    return this.toJson(userEntity);
+    return user;
   }
 
   @Transactional()
-  async updateById(id: number, userInfo: Partial<UserEntity>) {
-    let userEntity = await this.userRepository.findOneBy({ id });
-
-    if (!userEntity) {
+  async getUserByEmail(email: string): Promise<UserEntity> {
+    const user = await this.userRepository.findOneBy({ email });
+    if (!user) {
       throw new NotFoundException('Not found user entity.');
     }
 
-    userEntity = await this.userRepository.save({ ...userEntity, ...userInfo });
-
-    return this.toJson(userEntity);
+    return user;
   }
 
   @Transactional()
-  async deleteById(id: number) {
-    const userEntity = await this.userRepository.findOneBy({ id });
+  async updateUser(
+    userId: number,
+    params: {
+      password?: string;
+      name?: string;
+      role?: Role;
+    },
+    userInToken: {
+      userId: number;
+      role: Role;
+    },
+  ): Promise<UserEntity> {
+    const user = await this.getUserById(userId);
 
-    if (!userEntity) {
-      throw new NotFoundException('Not found user entity.');
+    if (userInToken.role !== Role.ADMIN && userInToken.userId !== user.id) {
+      throw new ForbiddenException(
+        'You are not allowed to modify this resource.',
+      );
     }
 
-    await this.userRepository.remove(userEntity);
+    const updateFields = removeUndefined(params);
 
-    return this.toJson({ ...userEntity, id });
+    if (updateFields.password) {
+      const hash = await bcrypt.hash(
+        updateFields.password,
+        this.configService.get<number>('SALT_ROUND'),
+      );
+
+      updateFields.password = hash;
+    }
+
+    Object.assign(user, updateFields);
+
+    return await this.userRepository.save(user);
   }
 
-  private generateEntity(
-    userInfo: Pick<UserEntity, 'email' | 'password' | 'role'>,
-  ) {
-    const userEntity = new UserEntity();
+  @Transactional()
+  async deleteUser(
+    userId: number,
+    userInToken: {
+      userId: number;
+      role: Role;
+    },
+  ): Promise<UserEntity> {
+    const user = await this.getUserById(userId);
 
-    userEntity.email = userInfo.email;
-    userEntity.password = bcrypt.hashSync(
-      userInfo.password,
-      this.configService.get<number>('SALT_ROUND'),
-    );
-    userEntity.role = userInfo.role;
-    userEntity.latestTryLoginDate = new Date();
-    return userEntity;
-  }
+    if (userInToken.role !== Role.ADMIN && userInToken.userId !== user.id) {
+      throw new ForbiddenException(
+        'You are not allowed to modify this resource.',
+      );
+    }
 
-  private toJson(userEntity: UserEntity) {
-    const { password, ...userJson } = { ...userEntity };
-
-    return userJson;
+    return await this.userRepository.remove(user);
   }
 }

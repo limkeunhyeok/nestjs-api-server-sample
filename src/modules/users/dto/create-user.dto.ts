@@ -11,6 +11,10 @@ export class CreateUserDto {
   @Length(8, 15)
   password: string;
 
+  @IsString()
+  @MaxLength(15)
+  name: string;
+
   @IsEnum(RoleEnum)
   role: RoleEnum;
 }

@@ -1,9 +1,9 @@
 import { Type } from 'class-transformer';
 import { IsBoolean, IsNumber, IsOptional } from 'class-validator';
 import { TransformAndValidateBoolean } from 'src/common/decorators/boolean.decorator';
-import { CommonQueryDto } from 'src/common/dtos/common.dto';
+import { PaginateDto } from 'src/common/dtos/paginate.dto';
 
-export class GetPostsByQueryDto extends CommonQueryDto {
+export class GetPostsByQueryDto extends PaginateDto {
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
@@ -15,7 +15,7 @@ export class GetPostsByQueryDto extends CommonQueryDto {
   published?: boolean;
 }
 
-export class GetCommentsByQueryDto extends CommonQueryDto {
+export class GetCommentsByQueryDto extends PaginateDto {
   @IsOptional()
   @Type(() => Number)
   @IsNumber()

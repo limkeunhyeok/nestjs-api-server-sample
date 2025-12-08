@@ -1,14 +1,8 @@
 import { UnauthorizedException } from '@nestjs/common';
-import {
-  JwtPayload,
-  SignOptions,
-  VerifyOptions,
-  sign,
-  verify,
-} from 'jsonwebtoken';
+import { SignOptions, VerifyOptions, sign, verify } from 'jsonwebtoken';
 import { Role } from 'src/modules/users/user.entity';
 
-export interface TokenPayload extends JwtPayload {
+export interface TokenPayload {
   userId: number;
   role: Role;
 }

@@ -10,7 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { UserInToken } from 'src/common/decorators/user.decorator';
+import { UserInToken } from 'src/common/decorators/user-in-token.decorator';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { Role } from '../users/user.entity';
 import { CreateCommentDto, CreatePostDto } from './dto/create.dto';

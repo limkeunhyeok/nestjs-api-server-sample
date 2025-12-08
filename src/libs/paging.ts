@@ -1,8 +1,8 @@
-interface PagingResponse<T> {
+export interface PagingResponse<T> {
   total: number;
   limit: number;
   offset: number;
-  data: T;
+  data: T[];
 }
 
 export const pagingResponse = <T>({

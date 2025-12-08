@@ -8,12 +8,14 @@ import {
 } from 'class-validator';
 import { IsBeforeDate } from '../decorators/date.decorator';
 
-enum SortingDirection {
-  ASC = 'asc',
-  DESC = 'desc',
-}
+export const SortDirection = {
+  ASC: 'ASC',
+  DESC: 'DESC',
+} as const;
 
-export class CommonQueryDto {
+export type SortDirection = (typeof SortDirection)[keyof typeof SortDirection];
+
+export class PaginateDto {
   @Type(() => Date)
   @IsDate()
   @IsOptional()
@@ -37,9 +39,9 @@ export class CommonQueryDto {
 
   @IsString()
   @IsOptional()
-  sortingField: string = 'createdAt';
+  sortField: string = 'createdAt';
 
-  @IsEnum(SortingDirection)
+  @IsEnum(SortDirection)
   @IsOptional()
-  sortingDirection: SortingDirection = SortingDirection.DESC;
+  sortDirection: SortDirection = SortDirection.DESC;
 }

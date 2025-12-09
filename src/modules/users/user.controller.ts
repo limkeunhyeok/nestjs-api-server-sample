@@ -15,10 +15,10 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UserInToken } from 'src/common/decorators/user-in-token.decorator';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { TokenPayload } from 'src/libs/token';
+import { Role } from '../../common/constants/role.const';
 import { CreateUserDto } from './dto/create-user.dto';
 import { PaginateUsersDto } from './dto/paginate-user.dto';
 import { UpdateUserByIdDto } from './dto/update-user.dto';
-import { Role } from './user.entity';
 import { UserService } from './user.service';
 
 @ApiTags('users')

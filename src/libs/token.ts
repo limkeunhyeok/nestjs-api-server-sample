@@ -1,6 +1,6 @@
 import { UnauthorizedException } from '@nestjs/common';
 import { SignOptions, VerifyOptions, sign, verify } from 'jsonwebtoken';
-import { Role } from 'src/modules/users/user.entity';
+import { Role } from 'src/common/constants/role.const';
 
 export interface TokenPayload {
   userId: number;

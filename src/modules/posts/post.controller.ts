@@ -12,7 +12,7 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UserInToken } from 'src/common/decorators/user-in-token.decorator';
 import { RoleGuard } from 'src/common/guards/role.guard';
-import { Role } from '../users/user.entity';
+import { Role } from '../../common/constants/role.const';
 import { CreateCommentDto, CreatePostDto } from './dto/create.dto';
 import { GetCommentsByQueryDto, GetPostsByQueryDto } from './dto/get.dto';
 import { UpdateCommentByIdDto, UpdatePostByIdDto } from './dto/update.dto';

@@ -7,7 +7,7 @@ import {
   mixin,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import { Role } from 'src/modules/users/user.entity';
+import { Role } from 'src/common/constants/role.const';
 import { RequestWithUser } from '../middlewares/auth.middleware';
 
 export const RoleGuard = (roles: Role[]): Type<CanActivate> => {

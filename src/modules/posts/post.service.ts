@@ -10,10 +10,10 @@ import { pagingResponse } from 'src/libs/paging';
 import { getDateRange } from 'src/libs/range';
 import { Repository } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
+import { Role } from '../../common/constants/role.const';
 import { CommentEntity } from '../comments/comment.entity';
 import { CommentInfo, CommentQuery } from '../comments/comment.interface';
 import { CommentService } from '../comments/comment.service';
-import { Role } from '../users/user.entity';
 import { PostEntity } from './post.entity';
 import { PostInfo, PostQuery } from './post.interface';
 

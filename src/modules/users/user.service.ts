@@ -14,7 +14,8 @@ import { PagingResponse, pagingResponse } from 'src/libs/paging';
 import { getDateRange } from 'src/libs/range';
 import { FindOptionsWhere, Like, Repository } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
-import { Role, UserEntity } from './user.entity';
+import { Role } from '../../common/constants/role.const';
+import { UserEntity } from './user.entity';
 
 @Injectable()
 export class UserService {
@@ -178,5 +179,22 @@ export class UserService {
     }
 
     return await this.userRepository.remove(user);
+  }
+
+  async resetUserPassword(params: {
+    userId: number;
+    newPassword: string;
+  }): Promise<UserEntity> {
+    const { userId, newPassword } = params;
+
+    const user = await this.getUserById(userId);
+
+    const hash = await bcrypt.hash(
+      newPassword,
+      this.configService.get<number>('SALT_ROUND'),
+    );
+
+    user.password = hash;
+    return await this.userRepository.save(user);
   }
 }

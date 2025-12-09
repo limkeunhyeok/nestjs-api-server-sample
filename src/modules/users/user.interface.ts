@@ -1,5 +1,6 @@
 import { FindOptionsOrderValue, FindOptionsWhere } from 'typeorm';
-import { Role, UserEntity } from './user.entity';
+import { Role } from '../../common/constants/role.const';
+import { UserEntity } from './user.entity';
 
 export interface UserInfo {
   email: string;

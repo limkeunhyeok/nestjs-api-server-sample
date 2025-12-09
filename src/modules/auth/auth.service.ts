@@ -2,82 +2,247 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm';
+import { JwtService, TokenExpiredError } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import {
+  INVALID_AUTHORIZATION_HEADER_FORMAT,
+  INVALID_CREDENTIALS,
+  INVALID_EMAIL_OR_PASSWORD,
+  INVALID_OR_MALFORMED_TOKEN,
+  TOKEN_EXPIRED,
+  TOKEN_TYPE_MISMATCH,
+} from 'src/common/constants/exception-message.const';
+import { Role } from 'src/common/constants/role.const';
 import { ServerEnv } from 'src/configurations/server.config';
-import { createToken } from 'src/libs/token';
-import { Repository } from 'typeorm';
-import { Transactional } from 'typeorm-transactional';
+import { generateRandomString } from 'src/libs/string';
 import { UserEntity } from '../users/user.entity';
 import { UserService } from '../users/user.service';
-import { SignInDto } from './dto/sign-in.dto';
-import { SignUpDto } from './dto/sign-up.dto';
-import { VerifyPasswordDto } from './dto/verify-password.dto';
+import {
+  ACCESS_TOKEN_EXPIRES_IN,
+  AUTH_SCHEME_BEARER,
+  REFRESH_TOKEN_EXPIRES_IN,
+  TOKEN_TYPE_ACCESS,
+  TOKEN_TYPE_REFRESH,
+} from './auth.const';
+import {
+  AccessTokenPayload,
+  AuthTokens,
+  RefreshTokenPayload,
+} from './auth.interface';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(UserEntity)
-    private readonly userRepository: Repository<UserEntity>,
     private readonly userService: UserService,
+    private readonly jwtService: JwtService,
     private readonly configService: ConfigService<ServerEnv, true>,
   ) {}
 
-  @Transactional()
-  async signIn({ email, password }: SignInDto) {
-    const userEntity = await this.userRepository.findOneBy({ email });
+  async parseBearerToken(rawToken: string): Promise<AccessTokenPayload>;
+  async parseBearerToken(
+    rawToken: string,
+    options: {
+      isRefreshToken: true;
+    },
+  ): Promise<RefreshTokenPayload>;
+  async parseBearerToken(
+    rawToken: string,
+    options:
+      | {
+          isRefreshToken?: false;
+        }
+      | undefined,
+  ): Promise<AccessTokenPayload>;
+  async parseBearerToken(
+    rawToken: string,
+    options?: {
+      isRefreshToken?: boolean;
+    },
+  ): Promise<AccessTokenPayload | RefreshTokenPayload> {
+    const token = this.extractTokenFromBearer(rawToken);
 
-    if (!userEntity) {
-      throw new BadRequestException('Incorrect email or password.');
+    const isRefreshToken = options?.isRefreshToken ?? false;
+
+    try {
+      const secret = isRefreshToken
+        ? this.configService.get<string>('REFRESH_TOKEN_SECRET')
+        : this.configService.get<string>('ACCESS_TOKEN_SECRET');
+
+      const payload = await this.jwtService.verifyAsync<
+        AccessTokenPayload | RefreshTokenPayload
+      >(token, { secret });
+
+      if (isRefreshToken && payload.type !== TOKEN_TYPE_REFRESH) {
+        throw new UnauthorizedException(TOKEN_TYPE_MISMATCH);
+      }
+
+      if (!isRefreshToken && payload.type !== TOKEN_TYPE_ACCESS) {
+        throw new UnauthorizedException(TOKEN_TYPE_MISMATCH);
+      }
+
+      return payload;
+    } catch (error: unknown) {
+      if (error instanceof TokenExpiredError) {
+        throw new UnauthorizedException(TOKEN_EXPIRED);
+      }
+      throw new UnauthorizedException(INVALID_OR_MALFORMED_TOKEN);
     }
+  }
 
-    if (!bcrypt.compareSync(password, userEntity.password)) {
-      throw new BadRequestException('Incorrect email or password.');
-    }
+  async issueToken(
+    user: {
+      id: number;
+      role: Role;
+    },
+    options?: {
+      isRefreshToken?: boolean;
+    },
+  ): Promise<string> {
+    const isRefreshToken = options?.isRefreshToken ?? false;
 
-    userEntity.latestTryLoginDate = new Date();
+    const secret = isRefreshToken
+      ? this.configService.get<string>('REFRESH_TOKEN_SECRET')
+      : this.configService.get<string>('ACCESS_TOKEN_SECRET');
 
-    await this.userRepository.save(userEntity);
-
-    const accessToken = createToken(
-      { userId: userEntity.id, role: userEntity.role },
-      this.configService.get<string>('ACCESS_TOKEN_SECRET'),
+    return await this.jwtService.signAsync(
+      {
+        sub: user.id,
+        role: user.role,
+        type: isRefreshToken ? TOKEN_TYPE_REFRESH : TOKEN_TYPE_ACCESS,
+      },
+      {
+        secret,
+        expiresIn: isRefreshToken
+          ? REFRESH_TOKEN_EXPIRES_IN
+          : ACCESS_TOKEN_EXPIRES_IN,
+      },
     );
-
-    return { accessToken };
   }
 
-  async signUp({ email, password, role }: SignUpDto) {
-    const user = await this.userService.createUser({ email, password, role });
+  async authenticateUser(params: {
+    email: string;
+    password: string;
+  }): Promise<UserEntity> {
+    const { email, password } = params;
 
-    const accessToken = createToken(
-      { userId: user.id, role: user.role },
-      this.configService.get<string>('ACCESS_TOKEN_SECRET'),
-    );
+    let user: UserEntity;
 
-    return { accessToken };
-  }
-
-  @Transactional()
-  async verifyPassword(userId: number, { confirmPassword }: VerifyPasswordDto) {
-    const userEntity = await this.userRepository.findOneBy({ id: userId });
-
-    if (!userEntity) {
-      throw new NotFoundException('Not found user entity.');
+    try {
+      user = await this.userService.getUserByEmail(email);
+    } catch (error: unknown) {
+      if (error instanceof NotFoundException) {
+        throw new BadRequestException(INVALID_EMAIL_OR_PASSWORD);
+      }
+      throw error;
     }
 
-    const isSuccess = bcrypt.compareSync(confirmPassword, userEntity.password);
+    const isPasswordValid = await bcrypt.compare(password, user.password);
 
-    const message = isSuccess
-      ? 'Password verified successfully.'
-      : 'Incorrect password.';
+    if (!isPasswordValid) {
+      throw new BadRequestException(INVALID_EMAIL_OR_PASSWORD);
+    }
 
-    return { success: isSuccess, message };
+    return user;
   }
 
-  async getMe(userId: number) {
-    return await this.userService.getUserById(userId);
+  async loginUser(params: {
+    email: string;
+    password: string;
+  }): Promise<AuthTokens> {
+    const user = await this.authenticateUser(params);
+
+    const accessToken = await this.issueToken(user, { isRefreshToken: false });
+    const refreshToken = await this.issueToken(user, { isRefreshToken: true });
+
+    return { accessToken, refreshToken };
+  }
+
+  async registerUser(params: {
+    email: string;
+    password: string;
+    name: string;
+  }): Promise<AuthTokens> {
+    const user = await this.userService.createUser({
+      ...params,
+      role: Role.MEMBER,
+    });
+
+    const accessToken = await this.issueToken(user, { isRefreshToken: false });
+    const refreshToken = await this.issueToken(user, { isRefreshToken: true });
+
+    return {
+      accessToken,
+      refreshToken,
+    };
+  }
+
+  async getAuthorizedUserById(userId: number): Promise<UserEntity> {
+    try {
+      return await this.userService.getUserById(userId);
+    } catch (error: unknown) {
+      if (error instanceof NotFoundException) {
+        throw new UnauthorizedException(INVALID_CREDENTIALS);
+      }
+      throw error;
+    }
+  }
+
+  async refreshTokens(params: { refreshToken: string }): Promise<AuthTokens> {
+    const { refreshToken } = params;
+
+    const payload = await this.parseBearerToken(refreshToken, {
+      isRefreshToken: true,
+    });
+
+    const userId = payload.sub;
+
+    const user = await this.getAuthorizedUserById(userId);
+
+    const accessToken = await this.issueToken(user, { isRefreshToken: false });
+    const newRefreshToken = await this.issueToken(user, {
+      isRefreshToken: true,
+    });
+
+    return {
+      accessToken,
+      refreshToken: newRefreshToken,
+    };
+  }
+
+  async resetPassword(params: {
+    email: string;
+  }): Promise<{ newPassword: string }> {
+    const { email } = params;
+
+    const user = await this.userService.getUserByEmail(email);
+
+    const randomPassword = generateRandomString(8); // length = 8
+
+    await this.userService.resetUserPassword({
+      userId: user.id,
+      newPassword: randomPassword,
+    });
+
+    return { newPassword: randomPassword };
+  }
+
+  extractTokenFromBearer(rawToken: string): string {
+    if (!rawToken || typeof rawToken !== 'string') {
+      throw new UnauthorizedException(INVALID_AUTHORIZATION_HEADER_FORMAT);
+    }
+
+    const parts = rawToken.split(' ');
+    if (parts.length !== 2) {
+      throw new UnauthorizedException(INVALID_AUTHORIZATION_HEADER_FORMAT);
+    }
+
+    const [bearer, token] = parts;
+    if (bearer.toLowerCase() !== AUTH_SCHEME_BEARER) {
+      throw new UnauthorizedException(INVALID_AUTHORIZATION_HEADER_FORMAT);
+    }
+    return token;
   }
 }

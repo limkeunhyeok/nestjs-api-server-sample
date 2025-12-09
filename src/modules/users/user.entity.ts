@@ -8,16 +8,9 @@ import {
   PrimaryGeneratedColumn,
   Relation,
 } from 'typeorm';
+import { Role } from '../../common/constants/role.const';
 import { CommentEntity } from '../comments/comment.entity';
 import { PostEntity } from '../posts/post.entity';
-
-export const Role = {
-  ADMIN: 'admin',
-  MEMBER: 'member',
-  GUEST: 'guest',
-} as const;
-
-export type Role = (typeof Role)[keyof typeof Role];
 
 @Entity('user')
 export class UserEntity extends CustomEntity {

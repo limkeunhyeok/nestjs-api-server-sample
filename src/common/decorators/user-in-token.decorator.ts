@@ -1,11 +1,11 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { NullableType } from 'joi';
 import { isNil } from 'lodash';
-import { TokenPayload } from 'src/libs/token';
-import { RequestWithUser } from '../middlewares/auth.middleware';
+import { AccessTokenPayload } from 'src/modules/auth/auth.interface';
+import { RequestWithUser } from 'src/modules/auth/auth.middleware';
 
 export const UserInToken = createParamDecorator(
-  (data: NullableType<keyof TokenPayload>, context: ExecutionContext) => {
+  (data: NullableType<keyof AccessTokenPayload>, context: ExecutionContext) => {
     const ctx = context.switchToHttp();
 
     const request = ctx.getRequest<RequestWithUser>();

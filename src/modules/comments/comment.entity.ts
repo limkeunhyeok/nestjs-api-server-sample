@@ -21,12 +21,6 @@ export class CommentEntity extends CustomEntity {
   @Column({ type: 'boolean' })
   published: boolean;
 
-  @Column({ type: 'int' })
-  authorId: number;
-
-  @Column({ type: 'int' })
-  postId: number;
-
   @ManyToOne(() => PostEntity, (post) => post.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'postId' })
   post: Relation<PostEntity>;

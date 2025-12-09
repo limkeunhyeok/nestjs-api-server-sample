@@ -7,11 +7,10 @@ import {
   Post,
   Put,
   Query,
-  UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserInToken } from 'src/common/decorators/user-in-token.decorator';
-import { RoleGuard } from 'src/common/guards/role.guard';
 import { Role } from '../../common/constants/role.const';
 import { CreateCommentDto, CreatePostDto } from './dto/create.dto';
 import { GetCommentsByQueryDto, GetPostsByQueryDto } from './dto/get.dto';
@@ -20,7 +19,7 @@ import { PostService } from './post.service';
 
 @ApiTags('posts')
 @ApiBearerAuth('accessToken')
-@UseGuards(RoleGuard([Role.ADMIN, Role.MEMBER]))
+@Roles([Role.ADMIN, Role.MEMBER])
 @Controller('posts')
 export class PostController {
   constructor(private readonly postService: PostService) {}
@@ -28,7 +27,7 @@ export class PostController {
   @Post()
   async createPost(
     @Body() dto: CreatePostDto,
-    @UserInToken('userId') userId: number,
+    @UserInToken('sub') userId: number,
   ) {
     return await this.postService.createPost(userId, dto);
   }
@@ -45,7 +44,7 @@ export class PostController {
 
   @Put('/:postId')
   async updatePostById(
-    @UserInToken('userId') userId: number,
+    @UserInToken('sub') userId: number,
     @Param('postId') postId: number,
     @Body() dto: UpdatePostByIdDto,
   ) {
@@ -54,7 +53,7 @@ export class PostController {
 
   @Delete('/:postId')
   async deletePostById(
-    @UserInToken('userId') userId: number,
+    @UserInToken('sub') userId: number,
     @UserInToken('role') role: Role,
     @Param('postId') postId: number,
   ) {
@@ -63,7 +62,7 @@ export class PostController {
 
   @Post('/:postId/comments')
   async createComment(
-    @UserInToken('userId') userId: number,
+    @UserInToken('sub') userId: number,
     @Param('postId') postId: number,
     @Body() dto: CreateCommentDto,
   ) {
@@ -88,7 +87,7 @@ export class PostController {
 
   @Put('/:postId/comments/:commentId')
   async updateCommentById(
-    @UserInToken('userId') userId: number,
+    @UserInToken('sub') userId: number,
     @Param('postId') postId: number,
     @Param('commentId') commentId: number,
     @Body() dto: UpdateCommentByIdDto,
@@ -103,7 +102,7 @@ export class PostController {
 
   @Delete('/:postId/comments/:commentId')
   async deleteCommentById(
-    @UserInToken('userId') userId: number,
+    @UserInToken('sub') userId: number,
     @UserInToken('role') role: Role,
     @Param('postId') postId: number,
     @Param('commentId') commentId: number,

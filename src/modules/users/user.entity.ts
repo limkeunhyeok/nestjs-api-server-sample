@@ -31,8 +31,8 @@ export class UserEntity extends CustomEntity {
   @Column({ type: 'varchar', default: Role.MEMBER })
   role: Role;
 
-  @Column({ type: 'timestamptz' })
-  latestTryLoginDate: Date;
+  @Column({ type: 'timestamptz', nullable: true })
+  latestTryLoginDate?: Date;
 
   @OneToMany(() => PostEntity, (post) => post.author)
   posts: Relation<PostEntity[]>;

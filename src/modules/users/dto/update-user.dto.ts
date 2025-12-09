@@ -1,10 +1,10 @@
 import { IsEnum, IsOptional, IsString, Length } from 'class-validator';
-import { RoleEnum } from 'src/common/constants/enums/role.enum';
+import { Role } from 'src/common/constants/role.const';
 
 export class UpdateUserByIdDto {
   @IsOptional()
-  @IsEnum(RoleEnum)
-  role?: RoleEnum;
+  @IsEnum(Role)
+  role?: Role;
 
   @IsOptional()
   @IsString()

@@ -8,12 +8,11 @@ import {
   Post,
   Put,
   Query,
-  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserInToken } from 'src/common/decorators/user-in-token.decorator';
-import { RoleGuard } from 'src/common/guards/role.guard';
 import { TokenPayload } from 'src/libs/token';
 import { Role } from '../../common/constants/role.const';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -24,7 +23,7 @@ import { UserService } from './user.service';
 @ApiTags('users')
 @ApiBearerAuth('accessToken')
 @UseInterceptors(ClassSerializerInterceptor)
-@UseGuards(RoleGuard([Role.ADMIN]))
+@Roles([Role.ADMIN])
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}

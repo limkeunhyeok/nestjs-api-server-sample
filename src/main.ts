@@ -5,6 +5,7 @@ import { DataSource } from 'typeorm';
 import {
   addTransactionalDataSource,
   initializeTransactionalContext,
+  StorageDriver,
 } from 'typeorm-transactional';
 import { AppModule } from './app.module';
 import { ApiDocsModule } from './common/api-docs/api-docs.module';
@@ -15,7 +16,7 @@ import { DtoValidationPipe } from './common/pipes/dto-validation.pipe';
 import { NodeEnv, ServerEnv } from './configurations/server.config';
 
 async function bootstrap() {
-  initializeTransactionalContext();
+  initializeTransactionalContext({ storageDriver: StorageDriver.AUTO });
 
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
 

@@ -21,7 +21,7 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
       port: this.configService.get<number>('DB_PORT'),
       username: this.configService.get<string>('DB_USER'),
       password: this.configService.get<string>('DB_PASS'),
-      synchronize: false, // nodeEnv === NodeEnv.PROD ? false : true,
+      synchronize: nodeEnv === NodeEnv.PROD ? false : true,
       logging: nodeEnv === NodeEnv.PROD ? false : true,
       entities: [UserEntity, PostEntity, CommentEntity],
       namingStrategy: new SnakeNamingStrategy(),

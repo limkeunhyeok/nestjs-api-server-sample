@@ -38,8 +38,8 @@ export class PostService {
       endDate,
       limit,
       offset,
-      sortingField,
-      sortingDirection,
+      sortField: sortingField,
+      sortDirection: sortingDirection,
       ...postInfo
     } = query;
 

@@ -15,6 +15,6 @@ export interface CommentQuery
   endDate?: Date;
   limit: number;
   offset: number;
-  sortingField: string;
-  sortingDirection: FindOptionsOrderValue;
+  sortField: string;
+  sortDirection: FindOptionsOrderValue;
 }

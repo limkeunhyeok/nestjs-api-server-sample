@@ -25,9 +25,6 @@ export class PostEntity extends CustomEntity {
   @Column({ type: 'boolean' })
   published: boolean;
 
-  @Column({ type: 'int' })
-  authorId: number;
-
   @ManyToOne(() => UserEntity, (user) => user.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'authorId' })
   author: Relation<UserEntity>;

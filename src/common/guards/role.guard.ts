@@ -3,40 +3,51 @@ import {
   ExecutionContext,
   ForbiddenException,
   Injectable,
-  Type,
-  mixin,
+  UnauthorizedException,
 } from '@nestjs/common';
-import { Observable } from 'rxjs';
-import { Role } from 'src/common/constants/role.const';
-import { RequestWithUser } from '../middlewares/auth.middleware';
+import { Reflector } from '@nestjs/core';
+import { isNil } from 'lodash';
+import { AccessTokenPayload } from 'src/modules/auth/auth.interface';
+import { RequestWithUser } from 'src/modules/auth/auth.middleware';
+import {
+  FORBIDDEN_RESOURCE_MODIFICATION,
+  INVALID_CREDENTIALS,
+} from '../constants/exception-message.const';
+import { Role } from '../constants/role.const';
+import { Roles } from '../decorators/roles.decorator';
 
-export const RoleGuard = (roles: Role[]): Type<CanActivate> => {
-  @Injectable()
-  class UserGuard implements CanActivate {
-    canActivate(
-      context: ExecutionContext,
-    ): boolean | Promise<boolean> | Observable<boolean> {
-      if (!roles.length) {
-        return true;
-      }
+@Injectable()
+export class RolesGuard implements CanActivate {
+  constructor(private readonly reflector: Reflector) {}
 
-      const req: RequestWithUser = context.switchToHttp().getRequest();
+  canActivate(context: ExecutionContext): boolean {
+    const roles = this.reflector.get<Role[]>(Roles, context.getHandler());
 
-      const user = req.user as {
-        userId: number;
-        role: Role;
-      };
-
-      const { role } = user;
-
-      if (!roles.includes(role)) {
-        throw new ForbiddenException('Access is denied.');
-      }
-
+    // public
+    if (!roles) {
       return true;
     }
-  }
 
-  const guard = mixin(UserGuard);
-  return guard;
-};
+    const ctx = context.switchToHttp();
+
+    const request = ctx.getRequest<RequestWithUser>();
+
+    const user = request.user as AccessTokenPayload;
+
+    // Roles([]): 최소 로그인 필요
+    if (!roles.length && !isNil(user)) {
+      return true;
+    }
+
+    if (isNil(user)) {
+      throw new UnauthorizedException(INVALID_CREDENTIALS);
+    }
+
+    const hasRole = roles.includes(user.role);
+    if (!hasRole) {
+      throw new ForbiddenException(FORBIDDEN_RESOURCE_MODIFICATION);
+    }
+
+    return true;
+  }
+}

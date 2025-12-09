@@ -1,4 +1,5 @@
-import { FindOptionsOrderValue, FindOptionsWhere } from 'typeorm';
+import { SortDirection } from 'src/common/dtos/paginate.dto';
+import { FindOptionsWhere } from 'typeorm';
 import { PostEntity } from './post.entity';
 
 export interface PostInfo {
@@ -13,6 +14,6 @@ export interface PostQuery
   endDate?: Date;
   limit: number;
   offset: number;
-  sortingField: string;
-  sortingDirection: FindOptionsOrderValue;
+  sortField: string;
+  sortDirection: SortDirection;
 }

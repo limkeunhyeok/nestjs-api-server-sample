@@ -1,5 +1,5 @@
 import { IsEmail, IsEnum, IsString, Length, MaxLength } from 'class-validator';
-import { RoleEnum } from 'src/common/constants/enums/role.enum';
+import { Role } from 'src/common/constants/role.const';
 
 export class CreateUserDto {
   @IsString()
@@ -15,6 +15,6 @@ export class CreateUserDto {
   @MaxLength(15)
   name: string;
 
-  @IsEnum(RoleEnum)
-  role: RoleEnum;
+  @IsEnum(Role)
+  role: Role;
 }

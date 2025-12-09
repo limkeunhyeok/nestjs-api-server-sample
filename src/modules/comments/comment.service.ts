@@ -28,8 +28,8 @@ export class CommentService {
       endDate,
       limit,
       offset,
-      sortingField,
-      sortingDirection,
+      sortField: sortingField,
+      sortDirection: sortingDirection,
       ...commentInfo
     } = query;
 

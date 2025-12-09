@@ -5,8 +5,10 @@ import {
   RequestMethod,
 } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WinstonModule } from 'nest-winston';
+import { RolesGuard } from './common/guards/role.guard';
 import { HealthCheckModule } from './common/health-check/health-check.module';
 import { HttpLoggingMiddleware } from './common/middlewares/http-logging.middleware';
 import { IgnoreBrowserRequestMiddleware } from './common/middlewares/ignore-browser-request.middleware';
@@ -15,7 +17,6 @@ import { TypeOrmConfigService } from './configurations/typeorm.config';
 import { WinstonConfigService } from './configurations/winston.config';
 import { AuthMiddleware } from './modules/auth/auth.middleware';
 import { AuthModule } from './modules/auth/auth.module';
-import { PostModule } from './modules/posts/post.module';
 import { UserModule } from './modules/users/user.module';
 
 @Module({
@@ -34,10 +35,15 @@ import { UserModule } from './modules/users/user.module';
     UserModule,
     AuthModule,
     HealthCheckModule,
-    PostModule,
+    // PostModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

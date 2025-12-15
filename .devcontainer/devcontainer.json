@@ -40,7 +40,7 @@
 
   "postCreateCommand": "pnpm install && pnpm add -g typescript@${TYPESCRIPT_VERSION:-5.9.3}",
 
-  "remoteUser": "node"
+  "remoteUser": "root"
   // "forwardPorts": [3000, 5432, 5050],
 
   // "portsAttributes": {

@@ -1,5 +1,7 @@
-import { Role, UserEntity } from 'src/modules/users/user.entity';
+import { Role } from 'src/common/constants/role.const';
+import { UserEntity } from 'src/modules/users/user.entity';
 import request, { Response } from 'supertest';
+import TestAgent from 'supertest/lib/agent';
 import { extractSignInParams } from 'test/mockup/auth';
 import { createUser, mockUserRaw } from 'test/mockup/user';
 import { Repository } from 'typeorm';
@@ -36,13 +38,13 @@ export function getHeadersFrom(res: Response, headers: Headers = {}): Headers {
   };
 }
 
-export async function fetchHeaders(req: request.SuperTest<request.Test>) {
+export async function fetchHeaders(req: TestAgent) {
   const res = await req.get('/health-check/server').expect(200);
   return getHeadersFrom(res);
 }
 
 export async function fetchUserTokenAndHeaders(
-  req: request.SuperTest<request.Test>,
+  req: TestAgent,
   userRepository: Repository<UserEntity>,
   userType: Role = Role.MEMBER,
 ) {

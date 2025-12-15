@@ -3,6 +3,7 @@ import * as Joi from 'joi';
 export const NodeEnv = {
   DEV: 'dev',
   PROD: 'prod',
+  TEST: 'test',
 } as const;
 export type NodeEnv = (typeof NodeEnv)[keyof typeof NodeEnv];
 

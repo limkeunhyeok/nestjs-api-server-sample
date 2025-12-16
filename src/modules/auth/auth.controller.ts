@@ -40,8 +40,6 @@ export class AuthController {
     return await this.authService.getAuthorizedUserById(userId);
   }
 
-  @ApiBearerAuth('accessToken')
-  @Roles([])
   @Post('refresh')
   async refreshTokens(@Body() dto: RefreshTokensDto): Promise<AuthTokens> {
     return await this.authService.refreshTokens(dto);

@@ -13,5 +13,6 @@
         "tsconfig": "tsconfig.test.json"
       }
     ]
-  }
+  },
+  "globalTeardown": "<rootDir>/test/global-teardown.ts"
 }

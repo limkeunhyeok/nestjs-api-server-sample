@@ -46,6 +46,7 @@ export class AuthService {
     rawToken: string,
     options: {
       isRefreshToken: true;
+      isRawToken?: boolean;
     },
   ): Promise<RefreshTokenPayload>;
   async parseBearerToken(
@@ -53,6 +54,7 @@ export class AuthService {
     options:
       | {
           isRefreshToken?: false;
+          isRawToken?: boolean;
         }
       | undefined,
   ): Promise<AccessTokenPayload>;
@@ -60,9 +62,12 @@ export class AuthService {
     rawToken: string,
     options?: {
       isRefreshToken?: boolean;
+      isRawToken?: boolean;
     },
   ): Promise<AccessTokenPayload | RefreshTokenPayload> {
-    const token = this.extractTokenFromBearer(rawToken);
+    const token = options?.isRawToken
+      ? rawToken
+      : this.extractTokenFromBearer(rawToken);
 
     const isRefreshToken = options?.isRefreshToken ?? false;
 
@@ -195,6 +200,7 @@ export class AuthService {
 
     const payload = await this.parseBearerToken(refreshToken, {
       isRefreshToken: true,
+      isRawToken: true,
     });
 
     const userId = payload.sub;

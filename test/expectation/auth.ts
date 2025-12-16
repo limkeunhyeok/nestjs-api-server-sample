@@ -1,12 +1,8 @@
 export function expectTokenResponseSucceed(result) {
   expect(result).toHaveProperty('accessToken');
+  expect(result).toHaveProperty('refreshToken');
 }
 
-export function expectVerifyResponseSucceed(result, isSuccess?: boolean) {
-  expect(result).toHaveProperty('success');
-  expect(result).toHaveProperty('message');
-
-  if (isSuccess !== undefined) {
-    expect(result.success).toBe(isSuccess);
-  }
+export function expectForgotPasswordResponseSucceed(result) {
+  expect(result).toHaveProperty('newPassword');
 }

@@ -4,7 +4,8 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { UserEntity } from 'src/modules/users/user.entity';
 import * as request from 'supertest';
 import TestAgent from 'supertest/lib/agent';
-import { expectUserResponseSucceed } from 'test/expectation/user';
+import { expectForgotPasswordResponseSucceed } from 'test/expectation/auth';
+import { expectResponseFailed } from 'test/expectation/common';
 import { createTestApp } from 'test/lib/create-test-app';
 import { fetchHeaders, withHeadersBy } from 'test/lib/utils';
 import { extractSignInParams } from 'test/mockup/auth';
@@ -39,7 +40,7 @@ describe('Auth API Test', () => {
 
     req = request(app.getHttpServer());
 
-    userRaw = mockUserRaw();
+    userRaw = await mockUserRaw();
     await createUser(userRepository, userRaw);
 
     headers = await fetchHeaders(req);
@@ -50,25 +51,57 @@ describe('Auth API Test', () => {
     await app.close();
   });
 
-  describe('POST /auth/me', () => {
-    const rootApiPath = '/auth/me';
+  describe('POST /auth/forgot-password', () => {
+    const rootApiPath = '/auth/forgot-password';
 
-    it('should return authenticated user information', async () => {
+    it('should issue a new password successfully', async () => {
       // given
       const signInParams = extractSignInParams(userRaw);
-      const signInRes = await withHeaders(
-        req.post('/auth/login').send(signInParams),
-      ).expect(201);
 
-      const { accessToken } = signInRes.body;
-      withHeaders = withHeadersBy({ token: accessToken });
+      const params = {
+        email: signInParams.email,
+      };
 
       // when
-      const res = await withHeaders(req.get(`${rootApiPath}`)).expect(200);
+      const res = await withHeaders(
+        req.post(`${rootApiPath}`).send(params),
+      ).expect(201);
 
       // then
       const body = res.body;
-      expectUserResponseSucceed(body);
+      expectForgotPasswordResponseSucceed(body);
+    });
+
+    it('should return 400 when required email is missing', async () => {
+      // given
+      const signInParams = extractSignInParams(userRaw);
+
+      const params = {};
+
+      // when
+      const res = await withHeaders(
+        req.post(`${rootApiPath}`).send(params),
+      ).expect(400);
+
+      // then
+      expectResponseFailed(res);
+    });
+
+    it('should return 404 when email does not exist', async () => {
+      // given
+      const signInParams = extractSignInParams(userRaw);
+
+      const params = {
+        email: 'not-found@example.com',
+      };
+
+      // when
+      const res = await withHeaders(
+        req.post(`${rootApiPath}`).send(params),
+      ).expect(404);
+
+      // then
+      expectResponseFailed(res);
     });
   });
 });

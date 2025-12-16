@@ -13,13 +13,14 @@ import {
   extractUserCreationParams,
   mockUserRaw,
 } from 'test/mockup/user';
-import { DataSource, QueryRunner, Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 
 describe('Auth API Test', () => {
   let app: INestApplication;
   let module: TestingModule;
+  let dataSource: DataSource;
+
   let userRepository: Repository<UserEntity>;
-  let queryRunner: QueryRunner;
 
   let req: TestAgent;
 
@@ -32,13 +33,10 @@ describe('Auth API Test', () => {
     app = result.app;
     module = result.module;
 
+    dataSource = module.get(DataSource);
     userRepository = module.get<Repository<UserEntity>>(
       getRepositoryToken(UserEntity),
     );
-
-    const dataSource = module.get(DataSource);
-    queryRunner = dataSource.createQueryRunner();
-    await queryRunner.startTransaction();
 
     await app.init();
 
@@ -49,8 +47,6 @@ describe('Auth API Test', () => {
   });
 
   afterAll(async () => {
-    await queryRunner.rollbackTransaction();
-    await queryRunner.release();
     await app.close();
   });
 

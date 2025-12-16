@@ -57,7 +57,7 @@ export async function fetchUserTokenAndHeaders(
   const signInParams = extractSignInParams(userRaw);
 
   const res = await withHeaders(
-    req.post('/auth/sign-in').send(signInParams),
+    req.post('/auth/login').send(signInParams),
   ).expect(201);
 
   const headersWithToken = getHeadersFrom(res, {

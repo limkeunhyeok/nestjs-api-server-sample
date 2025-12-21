@@ -178,7 +178,11 @@ export class UserService {
       );
     }
 
-    return await this.userRepository.remove(user);
+    const deletedUser = { ...user };
+
+    await this.userRepository.remove(user); // remove 시, id에 undefined가 할당
+
+    return deletedUser;
   }
 
   async resetUserPassword(params: {

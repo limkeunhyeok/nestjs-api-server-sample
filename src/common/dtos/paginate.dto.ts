@@ -2,11 +2,12 @@ import { Type } from 'class-transformer';
 import {
   IsDate,
   IsEnum,
-  IsNumber,
+  IsInt,
   IsOptional,
   IsString,
+  Min,
 } from 'class-validator';
-import { IsBeforeDate } from '../decorators/date.decorator';
+import { IsBeforeDate } from '../decorators/is-date.decorator';
 
 export const SortDirection = {
   ASC: 'ASC',
@@ -28,12 +29,14 @@ export class PaginateDto {
   endDate?: Date;
 
   @Type(() => Number)
-  @IsNumber()
+  @IsInt()
+  @Min(0)
   @IsOptional()
   limit: number = 10000;
 
   @Type(() => Number)
-  @IsNumber()
+  @IsInt()
+  @Min(0)
   @IsOptional()
   offset: number = 0;
 

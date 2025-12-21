@@ -7,10 +7,11 @@ import {
 } from 'class-validator';
 import { isBefore } from 'date-fns';
 
-export const comparedStartAndEnd = (startDate: Date, endDate: Date) => {
-  if (startDate && endDate) {
+export const comparedStartAndEnd = (startDate: any, endDate: any) => {
+  if (startDate instanceof Date && endDate instanceof Date) {
     return isBefore(startDate, endDate);
   }
+
   return false;
 };
 
@@ -22,15 +23,30 @@ export class IsBeforeDateConstraint implements ValidatorConstraintInterface {
   ): boolean | Promise<boolean> {
     if (!args) return false;
 
-    const obj = args.object as Record<string, any>;
-    const [relatedPropertyName] = args.constraints;
+    const [relatedPropertyName] = args.constraints as [string];
+    const obj = args.object as Record<string, unknown>;
+
     const relatedValue = obj[relatedPropertyName];
 
     return comparedStartAndEnd(value, relatedValue);
   }
 
-  defaultMessage(validationArguments?: ValidationArguments): string {
-    return 'Date can not before.';
+  defaultMessage(args?: ValidationArguments): string {
+    if (!args) {
+      return 'require arguments.';
+    }
+
+    const [relatedPropertyName] = args.constraints as [string];
+    const property = args.property;
+    const value = args.value as unknown;
+    const obj = args.object as Record<string, unknown>;
+    const relatedValue = obj[relatedPropertyName];
+
+    if (!(value instanceof Date) || !(relatedValue instanceof Date)) {
+      return `${property} and ${relatedPropertyName} must be valid Date objects.`;
+    }
+
+    return `${property} (${value.toISOString()}) must be earlier than ${relatedPropertyName} (${relatedValue.toISOString()}).`;
   }
 }
 

@@ -14,6 +14,7 @@ export function expectUserResponseSucceed(
   expect(result).toHaveProperty('version');
 
   if (!isEmptyObject(userRaw)) {
+    expect(result.name).toBe(userRaw.name);
     expect(result.role).toBe(userRaw.role);
   }
 }

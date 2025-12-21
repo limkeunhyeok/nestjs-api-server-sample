@@ -13,12 +13,11 @@ import {
   extractUserCreationParams,
   mockUserRaw,
 } from 'test/mockup/user';
-import { DataSource, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 
 describe('Auth API Test', () => {
   let app: INestApplication;
   let module: TestingModule;
-  let dataSource: DataSource;
 
   let userRepository: Repository<UserEntity>;
 
@@ -33,7 +32,6 @@ describe('Auth API Test', () => {
     app = result.app;
     module = result.module;
 
-    dataSource = module.get(DataSource);
     userRepository = module.get<Repository<UserEntity>>(
       getRepositoryToken(UserEntity),
     );

@@ -1,4 +1,10 @@
-import { IsEnum, IsOptional, IsString, Length } from 'class-validator';
+import {
+  IsEnum,
+  IsOptional,
+  IsString,
+  Length,
+  MaxLength,
+} from 'class-validator';
 import { Role } from 'src/common/constants/role.const';
 
 export class UpdateUserByIdDto {
@@ -10,4 +16,9 @@ export class UpdateUserByIdDto {
   @IsString()
   @Length(8, 15)
   password?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(60)
+  name?: string;
 }

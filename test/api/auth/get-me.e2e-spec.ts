@@ -9,12 +9,11 @@ import { createTestApp } from 'test/lib/create-test-app';
 import { fetchHeaders, withHeadersBy } from 'test/lib/utils';
 import { extractSignInParams } from 'test/mockup/auth';
 import { createUser, mockUserRaw } from 'test/mockup/user';
-import { DataSource, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 
 describe('Auth API Test', () => {
   let app: INestApplication;
   let module: TestingModule;
-  let dataSource: DataSource;
 
   let userRepository: Repository<UserEntity>;
 
@@ -30,7 +29,6 @@ describe('Auth API Test', () => {
     app = result.app;
     module = result.module;
 
-    dataSource = module.get(DataSource);
     userRepository = module.get<Repository<UserEntity>>(
       getRepositoryToken(UserEntity),
     );

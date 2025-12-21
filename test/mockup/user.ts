@@ -25,6 +25,7 @@ export function extractUserCreationParams(
     email: userRaw.email,
     password: userRaw.password,
     name: userRaw.name,
+    role: userRaw.role,
   };
 }
 

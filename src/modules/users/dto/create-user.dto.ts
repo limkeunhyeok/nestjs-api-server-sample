@@ -1,4 +1,11 @@
-import { IsEmail, IsEnum, IsString, Length, MaxLength } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsOptional,
+  IsString,
+  Length,
+  MaxLength,
+} from 'class-validator';
 import { Role } from 'src/common/constants/role.const';
 
 export class CreateUserDto {
@@ -12,9 +19,10 @@ export class CreateUserDto {
   password: string;
 
   @IsString()
-  @MaxLength(15)
+  @MaxLength(60)
   name: string;
 
   @IsEnum(Role)
-  role: Role;
+  @IsOptional()
+  role: Role = Role.MEMBER;
 }

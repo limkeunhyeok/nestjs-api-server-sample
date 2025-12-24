@@ -1,181 +1,105 @@
 import {
-  CanActivate,
   ExecutionContext,
   ForbiddenException,
+  UnauthorizedException,
 } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { Role } from '../constants/role.const';
 import { RoleGuard } from './role.guard';
 
-describe('RoleGuard Unit Test', () => {
-  let roleGuard: ReturnType<typeof RoleGuard>;
+const mockExecutionContext = (user?: { role: any }): ExecutionContext =>
+  ({
+    getHandler: jest.fn(),
+    switchToHttp: () => ({
+      getRequest: () => ({ user }),
+    }),
+  }) as unknown as ExecutionContext;
 
-  let adminMemberGuard: CanActivate;
-  let adminGuard: CanActivate;
-  let memberGuard: CanActivate;
-  let emptyGuard: CanActivate;
+describe('RoleGuard Unit Test', () => {
+  let reflector: jest.Mocked<Reflector>;
+  let guard: RoleGuard;
+
+  beforeEach(() => {
+    reflector = {
+      get: jest.fn(),
+    } as unknown as jest.Mocked<Reflector>;
+  });
 
   describe('Admin, Member Guard', () => {
-    roleGuard = RoleGuard(['admin', 'member']);
-    adminMemberGuard = new roleGuard();
+    beforeEach(() => {
+      reflector.get.mockReturnValue([Role.ADMIN, Role.MEMBER]);
+      guard = new RoleGuard(reflector);
+    });
 
     it('should grant access to an admin user', () => {
-      const mockExecutionContext = {
-        switchToHttp: jest.fn().mockReturnValue({
-          getRequest: jest.fn().mockReturnValue({
-            user: {
-              role: 'admin',
-            },
-          }),
-        }),
-      } as unknown as ExecutionContext;
-
-      expect(adminMemberGuard.canActivate(mockExecutionContext)).toEqual(true);
+      const ctx = mockExecutionContext({ role: Role.ADMIN });
+      expect(guard.canActivate(ctx)).toBe(true);
     });
 
     it('should grant access to an member user', () => {
-      const mockExecutionContext = {
-        switchToHttp: jest.fn().mockReturnValue({
-          getRequest: jest.fn().mockReturnValue({
-            user: {
-              role: 'member',
-            },
-          }),
-        }),
-      } as unknown as ExecutionContext;
-
-      expect(adminMemberGuard.canActivate(mockExecutionContext)).toEqual(true);
+      const ctx = mockExecutionContext({ role: Role.MEMBER });
+      expect(guard.canActivate(ctx)).toBe(true);
     });
 
     it('should throw an error when the token lacks role information', () => {
-      const mockExecutionContext = {
-        switchToHttp: jest.fn().mockReturnValue({
-          getRequest: jest.fn().mockReturnValue({
-            user: {},
-          }),
-        }),
-      } as unknown as ExecutionContext;
-
-      expect(() => adminMemberGuard.canActivate(mockExecutionContext)).toThrow(
-        ForbiddenException,
-      );
+      const ctx = mockExecutionContext(undefined);
+      expect(() => guard.canActivate(ctx)).toThrow(UnauthorizedException);
     });
 
     it('should throw an error when the token contains an unrecognized role', () => {
-      const mockExecutionContext = {
-        switchToHttp: jest.fn().mockReturnValue({
-          getRequest: jest.fn().mockReturnValue({
-            user: {
-              role: 'role',
-            },
-          }),
-        }),
-      } as unknown as ExecutionContext;
-
-      expect(() => adminMemberGuard.canActivate(mockExecutionContext)).toThrow(
-        ForbiddenException,
-      );
+      const ctx = mockExecutionContext({ role: 'role' });
+      expect(() => guard.canActivate(ctx)).toThrow(ForbiddenException);
     });
   });
 
   describe('Admin Guard', () => {
-    roleGuard = RoleGuard(['admin']);
-    adminGuard = new roleGuard();
+    beforeEach(() => {
+      reflector.get.mockReturnValue([Role.ADMIN]);
+      guard = new RoleGuard(reflector);
+    });
 
     it('should grant access to an admin user', () => {
-      const mockExecutionContext = {
-        switchToHttp: jest.fn().mockReturnValue({
-          getRequest: jest.fn().mockReturnValue({
-            user: {
-              role: 'admin',
-            },
-          }),
-        }),
-      } as unknown as ExecutionContext;
-
-      expect(adminGuard.canActivate(mockExecutionContext)).toEqual(true);
+      const ctx = mockExecutionContext({ role: Role.ADMIN });
+      expect(guard.canActivate(ctx)).toBe(true);
     });
 
     it('should throw an error when the token contains a "member" role that is not granted access', () => {
-      const mockExecutionContext = {
-        switchToHttp: jest.fn().mockReturnValue({
-          getRequest: jest.fn().mockReturnValue({
-            user: {
-              role: 'member',
-            },
-          }),
-        }),
-      } as unknown as ExecutionContext;
-
-      expect(() => adminGuard.canActivate(mockExecutionContext)).toThrow(
-        ForbiddenException,
-      );
+      const ctx = mockExecutionContext({ role: Role.MEMBER });
+      expect(() => guard.canActivate(ctx)).toThrow(ForbiddenException);
     });
   });
 
   describe('Member Guard', () => {
-    roleGuard = RoleGuard(['member']);
-    memberGuard = new roleGuard();
+    beforeEach(() => {
+      reflector.get.mockReturnValue([Role.MEMBER]);
+      guard = new RoleGuard(reflector);
+    });
 
     it('should grant access to an member user', () => {
-      const mockExecutionContext = {
-        switchToHttp: jest.fn().mockReturnValue({
-          getRequest: jest.fn().mockReturnValue({
-            user: {
-              role: 'member',
-            },
-          }),
-        }),
-      } as unknown as ExecutionContext;
-
-      expect(memberGuard.canActivate(mockExecutionContext)).toEqual(true);
+      const ctx = mockExecutionContext({ role: Role.MEMBER });
+      expect(guard.canActivate(ctx)).toBe(true);
     });
 
     it('should throw an error when the token contains a "admin" role that is not granted access', () => {
-      const mockExecutionContext = {
-        switchToHttp: jest.fn().mockReturnValue({
-          getRequest: jest.fn().mockReturnValue({
-            user: {
-              role: 'admin',
-            },
-          }),
-        }),
-      } as unknown as ExecutionContext;
-
-      expect(() => memberGuard.canActivate(mockExecutionContext)).toThrow(
-        ForbiddenException,
-      );
+      const ctx = mockExecutionContext({ role: Role.ADMIN });
+      expect(() => guard.canActivate(ctx)).toThrow(ForbiddenException);
     });
   });
 
   describe('Empty Guard', () => {
-    roleGuard = RoleGuard([]);
-    emptyGuard = new roleGuard();
-
-    it('should allow access when an empty array is provided, indicating all roles are permitted', () => {
-      const mockExecutionContext = {
-        switchToHttp: jest.fn().mockReturnValue({
-          getRequest: jest.fn().mockReturnValue({
-            user: {
-              role: 'member',
-            },
-          }),
-        }),
-      } as unknown as ExecutionContext;
-
-      expect(emptyGuard.canActivate(mockExecutionContext)).toEqual(true);
+    beforeEach(() => {
+      reflector.get.mockReturnValue([]);
+      guard = new RoleGuard(reflector);
     });
 
     it('should allow access when an empty array is provided, indicating all roles are permitted', () => {
-      const mockExecutionContext = {
-        switchToHttp: jest.fn().mockReturnValue({
-          getRequest: jest.fn().mockReturnValue({
-            user: {
-              role: 'admin',
-            },
-          }),
-        }),
-      } as unknown as ExecutionContext;
+      const ctx = mockExecutionContext({ role: Role.MEMBER });
+      expect(guard.canActivate(ctx)).toBe(true);
+    });
 
-      expect(emptyGuard.canActivate(mockExecutionContext)).toEqual(true);
+    it('should allow access when an empty array is provided, indicating all roles are permitted', () => {
+      const ctx = mockExecutionContext({ role: Role.ADMIN });
+      expect(guard.canActivate(ctx)).toBe(true);
     });
   });
 });

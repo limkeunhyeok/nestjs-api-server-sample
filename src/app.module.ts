@@ -8,7 +8,7 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WinstonModule } from 'nest-winston';
-import { RolesGuard } from './common/guards/role.guard';
+import { RoleGuard } from './common/guards/role.guard';
 import { HealthCheckModule } from './common/health-check/health-check.module';
 import { HttpLoggingMiddleware } from './common/middlewares/http-logging.middleware';
 import { IgnoreBrowserRequestMiddleware } from './common/middlewares/ignore-browser-request.middleware';
@@ -42,7 +42,7 @@ import { UserModule } from './modules/users/user.module';
   providers: [
     {
       provide: APP_GUARD,
-      useClass: RolesGuard,
+      useClass: RoleGuard,
     },
   ],
 })

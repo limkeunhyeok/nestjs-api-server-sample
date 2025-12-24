@@ -12,8 +12,9 @@ import {
 } from 'src/common/constants/exception-message.const';
 import { Role } from 'src/common/constants/role.const';
 import { SortDirection } from 'src/common/dtos/paginate.dto';
+import { PaginationResponse } from 'src/common/interfaces/pagination.interface';
 import { removeUndefined } from 'src/libs/object';
-import { pagingResponse } from 'src/libs/paging';
+import { toPaginationResponse } from 'src/libs/pagination';
 import { getDateRange } from 'src/libs/range';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
@@ -36,7 +37,7 @@ export class CommentService {
     postId: number;
     contents: string;
     published: boolean;
-  }) {
+  }): Promise<CommentEntity> {
     const user = await this.userService.getUserById(params.userId);
     const post = await this.postService.getPostById(params.postId);
 
@@ -61,7 +62,7 @@ export class CommentService {
     offset: number;
     sortField: string;
     sortDirection: SortDirection;
-  }) {
+  }): Promise<PaginationResponse<CommentEntity>> {
     const {
       authorId,
       postId,
@@ -107,11 +108,19 @@ export class CommentService {
       relations: ['author', 'post'],
     });
 
-    return pagingResponse({ total, limit, offset, data: commentEntities });
+    return toPaginationResponse({
+      total,
+      limit,
+      offset,
+      data: commentEntities,
+    });
   }
 
   @Transactional()
-  async getCommentById(postId: number, commentId: number) {
+  async getCommentById(
+    postId: number,
+    commentId: number,
+  ): Promise<CommentEntity> {
     const post = await this.postService.getPostById(postId);
 
     const comment = await this.commentRepository.findOne({
@@ -144,7 +153,7 @@ export class CommentService {
       sub: number;
       role: Role;
     },
-  ) {
+  ): Promise<CommentEntity> {
     const comment = await this.getCommentById(postId, commentId);
 
     if (
@@ -169,7 +178,7 @@ export class CommentService {
       sub: number;
       role: Role;
     },
-  ) {
+  ): Promise<CommentEntity> {
     const comment = await this.getCommentById(postId, commentId);
 
     if (

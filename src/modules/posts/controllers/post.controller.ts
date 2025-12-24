@@ -13,11 +13,13 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserInToken } from 'src/common/decorators/user-in-token.decorator';
+import { PaginationResponse } from 'src/common/interfaces/pagination.interface';
 import { AccessTokenPayload } from 'src/modules/auth/auth.interface';
 import { Role } from '../../../common/constants/role.const';
 import { CreatePostDto } from '../dtos/create-post.dto';
 import { PaginatePostsDto } from '../dtos/paginate-posts.dto';
 import { UpdatePostDto } from '../dtos/update-post.dto';
+import { PostEntity } from '../entities/post.entity';
 import { PostService } from '../services/post.service';
 
 @ApiTags('posts')
@@ -32,7 +34,7 @@ export class PostController {
   async create(
     @Body() body: CreatePostDto,
     @UserInToken('sub') userId: number,
-  ) {
+  ): Promise<PostEntity> {
     return await this.postService.createPost({
       userId,
       ...body,
@@ -40,12 +42,14 @@ export class PostController {
   }
 
   @Get()
-  async paginate(@Query() query: PaginatePostsDto) {
+  async paginate(
+    @Query() query: PaginatePostsDto,
+  ): Promise<PaginationResponse<PostEntity>> {
     return await this.postService.paginatePosts(query);
   }
 
   @Get('/:postId')
-  async getOneById(@Param('postId') postId: number) {
+  async getOneById(@Param('postId') postId: number): Promise<PostEntity> {
     return await this.postService.getPostById(postId);
   }
 
@@ -54,7 +58,7 @@ export class PostController {
     @Param('postId') postId: number,
     @Body() body: UpdatePostDto,
     @UserInToken() payload: AccessTokenPayload,
-  ) {
+  ): Promise<PostEntity> {
     return await this.postService.updatePost(postId, body, payload);
   }
 
@@ -62,7 +66,7 @@ export class PostController {
   async delete(
     @Param('postId') postId: number,
     @UserInToken() payload: AccessTokenPayload,
-  ) {
+  ): Promise<PostEntity> {
     return await this.postService.deletePost(postId, payload);
   }
 }

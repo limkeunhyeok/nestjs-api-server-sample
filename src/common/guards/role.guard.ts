@@ -17,7 +17,7 @@ import { Role } from '../constants/role.const';
 import { Roles } from '../decorators/roles.decorator';
 
 @Injectable()
-export class RolesGuard implements CanActivate {
+export class RoleGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
@@ -45,6 +45,7 @@ export class RolesGuard implements CanActivate {
 
     const hasRole = roles.includes(user.role);
     if (!hasRole) {
+      console.log('??????????????', user);
       throw new ForbiddenException(FORBIDDEN_RESOURCE_MODIFICATION);
     }
 

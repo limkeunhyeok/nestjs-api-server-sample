@@ -9,7 +9,7 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-import { RolesGuard } from 'src/common/guards/role.guard';
+import { RoleGuard } from 'src/common/guards/role.guard';
 import { HealthCheckModule } from 'src/common/health-check/health-check.module';
 import { ServerEnvValidation } from 'src/configurations/server.config';
 import { AuthMiddleware } from 'src/modules/auth/auth.middleware';
@@ -45,7 +45,7 @@ const mockLogger: LoggerService = {
   providers: [
     {
       provide: APP_GUARD,
-      useClass: RolesGuard,
+      useClass: RoleGuard,
     },
     {
       provide: WINSTON_MODULE_NEST_PROVIDER,

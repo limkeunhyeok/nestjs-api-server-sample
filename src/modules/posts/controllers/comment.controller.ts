@@ -13,11 +13,13 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserInToken } from 'src/common/decorators/user-in-token.decorator';
+import { PaginationResponse } from 'src/common/interfaces/pagination.interface';
 import { AccessTokenPayload } from 'src/modules/auth/auth.interface';
 import { Role } from '../../../common/constants/role.const';
 import { CreateCommentDto } from '../dtos/create-comment.dto';
 import { PaginateCommentsDto } from '../dtos/paginate-comments.dto';
 import { UpdateCommentDto } from '../dtos/update-comment.dto';
+import { CommentEntity } from '../entities/comment.entity';
 import { CommentService } from '../services/comment.service';
 
 @ApiTags('posts')
@@ -33,7 +35,7 @@ export class CommentController {
     @Param('postId') postId: number,
     @Body() body: CreateCommentDto,
     @UserInToken('sub') userId: number,
-  ) {
+  ): Promise<CommentEntity> {
     return await this.commentService.createComment({
       userId,
       postId,
@@ -45,7 +47,7 @@ export class CommentController {
   async paginate(
     @Param('postId') postId: number,
     @Query() query: PaginateCommentsDto,
-  ) {
+  ): Promise<PaginationResponse<CommentEntity>> {
     return await this.commentService.paginateComments({
       postId,
       ...query,
@@ -56,7 +58,7 @@ export class CommentController {
   async getOneById(
     @Param('postId') postId: number,
     @Param('commentId') commentId: number,
-  ) {
+  ): Promise<CommentEntity> {
     return await this.commentService.getCommentById(postId, commentId);
   }
 
@@ -66,7 +68,7 @@ export class CommentController {
     @Param('commentId') commentId: number,
     @Body() body: UpdateCommentDto,
     @UserInToken() payload: AccessTokenPayload,
-  ) {
+  ): Promise<CommentEntity> {
     return await this.commentService.updateComment(
       postId,
       commentId,
@@ -80,7 +82,7 @@ export class CommentController {
     @Param('postId') postId: number,
     @Param('commentId') commentId: number,
     @UserInToken() payload: AccessTokenPayload,
-  ) {
+  ): Promise<CommentEntity> {
     return await this.commentService.deleteComment(postId, commentId, payload);
   }
 }

@@ -30,7 +30,3 @@ export const NOT_FOUND_RESOURCE = 'Resource not found.';
 // 409
 export const RESOURCE_NOT_ASSOCIATED =
   'The requested resource is not associated with the given parent resource.';
-
-// 500
-export const FAILED_TO_LOAD_CREATED_MOVIE = 'Failed to load created movie.';
-export const FAILED_TO_LOAD_UPDATED_MOVIE = 'Failed to load updated movie.';

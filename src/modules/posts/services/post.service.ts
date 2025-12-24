@@ -9,8 +9,9 @@ import {
   NOT_FOUND_RESOURCE,
 } from 'src/common/constants/exception-message.const';
 import { SortDirection } from 'src/common/dtos/paginate.dto';
+import { PaginationResponse } from 'src/common/interfaces/pagination.interface';
 import { removeUndefined } from 'src/libs/object';
-import { PagingResponse, pagingResponse } from 'src/libs/paging';
+import { toPaginationResponse } from 'src/libs/pagination';
 import { getDateRange } from 'src/libs/range';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
@@ -55,7 +56,7 @@ export class PostService {
     offset: number;
     sortField: string;
     sortDirection: SortDirection;
-  }): Promise<PagingResponse<PostEntity>> {
+  }): Promise<PaginationResponse<PostEntity>> {
     const {
       authorId,
       published,
@@ -94,7 +95,7 @@ export class PostService {
       relations: ['author'],
     });
 
-    return pagingResponse({ total, limit, offset, data: postEntities });
+    return toPaginationResponse({ total, limit, offset, data: postEntities });
   }
 
   @Transactional()

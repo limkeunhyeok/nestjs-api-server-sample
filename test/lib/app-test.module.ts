@@ -14,6 +14,7 @@ import { HealthCheckModule } from 'src/common/health-check/health-check.module';
 import { ServerEnvValidation } from 'src/configurations/server.config';
 import { AuthMiddleware } from 'src/modules/auth/auth.middleware';
 import { AuthModule } from 'src/modules/auth/auth.module';
+import { PostModule } from 'src/modules/posts/post.module';
 import { UserModule } from 'src/modules/users/user.module';
 import { TypeOrmConfigService } from './typeorm-test.config';
 
@@ -38,7 +39,7 @@ const mockLogger: LoggerService = {
     HealthCheckModule,
     UserModule,
     AuthModule,
-    // PostModule,
+    PostModule,
   ],
   controllers: [],
   providers: [

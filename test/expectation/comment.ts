@@ -1,5 +1,5 @@
 import { isEmptyObject } from 'src/libs/validator';
-import { CommentEntity } from 'src/modules/comments/comment.entity';
+import { CommentEntity } from 'src/modules/posts/entities/comment.entity';
 
 export function expectCommentResponseSucceed(
   result: Partial<CommentEntity>,
@@ -8,8 +8,8 @@ export function expectCommentResponseSucceed(
   expect(result).toHaveProperty('id');
   expect(result).toHaveProperty('contents');
   expect(result).toHaveProperty('published');
-  expect(result).toHaveProperty('authorId');
-  expect(result).toHaveProperty('postId');
+  expect(result).toHaveProperty('author');
+  expect(result).toHaveProperty('post');
   expect(result).toHaveProperty('createdAt');
   expect(result).toHaveProperty('updatedAt');
   expect(result).toHaveProperty('version');

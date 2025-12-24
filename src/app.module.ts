@@ -17,6 +17,7 @@ import { TypeOrmConfigService } from './configurations/typeorm.config';
 import { WinstonConfigService } from './configurations/winston.config';
 import { AuthMiddleware } from './modules/auth/auth.middleware';
 import { AuthModule } from './modules/auth/auth.module';
+import { PostModule } from './modules/posts/post.module';
 import { UserModule } from './modules/users/user.module';
 
 @Module({
@@ -35,7 +36,7 @@ import { UserModule } from './modules/users/user.module';
     UserModule,
     AuthModule,
     HealthCheckModule,
-    // PostModule,
+    PostModule,
   ],
   controllers: [],
   providers: [

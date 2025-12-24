@@ -13,11 +13,11 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserInToken } from 'src/common/decorators/user-in-token.decorator';
-import { TokenPayload } from 'src/libs/token';
 import { Role } from '../../common/constants/role.const';
-import { CreateUserDto } from './dto/create-user.dto';
-import { PaginateUsersDto } from './dto/paginate-user.dto';
-import { UpdateUserByIdDto } from './dto/update-user.dto';
+import { AccessTokenPayload } from '../auth/auth.interface';
+import { CreateUserDto } from './dtos/create-user.dto';
+import { PaginateUsersDto } from './dtos/paginate-user.dto';
+import { UpdateUserByIdDto } from './dtos/update-user.dto';
 import { UserService } from './user.service';
 
 @ApiTags('users')
@@ -47,7 +47,7 @@ export class UserController {
   async update(
     @Param('userId') userId: number,
     @Body() body: UpdateUserByIdDto,
-    @UserInToken() payload: TokenPayload,
+    @UserInToken() payload: AccessTokenPayload,
   ) {
     return await this.userService.updateUser(userId, body, payload);
   }
@@ -55,7 +55,7 @@ export class UserController {
   @Delete('/:userId')
   async delete(
     @Param('userId') userId: number,
-    @UserInToken() payload: TokenPayload,
+    @UserInToken() payload: AccessTokenPayload,
   ) {
     return await this.userService.deleteUser(userId, payload);
   }

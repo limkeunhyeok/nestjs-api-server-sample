@@ -12,12 +12,3 @@ export class CreatePostDto {
   @IsBoolean()
   published: boolean = true;
 }
-
-export class CreateCommentDto {
-  @IsString()
-  contents: string;
-
-  @IsOptional()
-  @IsBoolean()
-  published: boolean = true;
-}

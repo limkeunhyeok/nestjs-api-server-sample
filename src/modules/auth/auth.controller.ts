@@ -12,10 +12,10 @@ import { UserInToken } from 'src/common/decorators/user-in-token.decorator';
 import { UserEntity } from '../users/user.entity';
 import { AuthTokens } from './auth.interface';
 import { AuthService } from './auth.service';
-import { ForgotPasswordDto } from './dto/forgot-password.dto';
-import { LoginDto } from './dto/login.dto';
-import { RefreshTokensDto } from './dto/refresh-token.dto';
-import { RegisterDto } from './dto/register.dto';
+import { ForgotPasswordDto } from './dtos/forgot-password.dto';
+import { LoginDto } from './dtos/login.dto';
+import { RefreshTokensDto } from './dtos/refresh-token.dto';
+import { RegisterDto } from './dtos/register.dto';
 
 @ApiTags('auth')
 @Controller('auth')

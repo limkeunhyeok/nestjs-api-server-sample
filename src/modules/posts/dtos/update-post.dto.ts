@@ -1,21 +1,11 @@
 import { IsBoolean, IsOptional, IsString, Length } from 'class-validator';
 
-export class UpdatePostByIdDto {
+export class UpdatePostDto {
   @IsOptional()
   @IsString()
   @Length(1, 100)
   title?: string;
 
-  @IsOptional()
-  @IsString()
-  contents?: string;
-
-  @IsOptional()
-  @IsBoolean()
-  published?: boolean;
-}
-
-export class UpdateCommentByIdDto {
   @IsOptional()
   @IsString()
   contents?: string;

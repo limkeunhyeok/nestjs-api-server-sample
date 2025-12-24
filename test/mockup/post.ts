@@ -1,5 +1,5 @@
 import * as faker from 'faker';
-import { PostEntity } from 'src/modules/posts/post.entity';
+import { PostEntity } from 'src/modules/posts/entities/post.entity';
 import { UserEntity } from 'src/modules/users/user.entity';
 import { Repository } from 'typeorm';
 
@@ -18,7 +18,7 @@ export function mockPostRaw(user: Partial<UserEntity>, published = true) {
     title: faker.lorem.sentence().slice(0, 100),
     contents: faker.lorem.text(),
     published,
-    authorId: user.id,
+    author: user as UserEntity,
     createdAt: now,
     updatedAt: now,
   };

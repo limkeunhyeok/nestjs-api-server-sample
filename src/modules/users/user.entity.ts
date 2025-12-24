@@ -9,8 +9,8 @@ import {
   Relation,
 } from 'typeorm';
 import { Role } from '../../common/constants/role.const';
-import { CommentEntity } from '../comments/comment.entity';
-import { PostEntity } from '../posts/post.entity';
+import { CommentEntity } from '../posts/entities/comment.entity';
+import { PostEntity } from '../posts/entities/post.entity';
 
 @Entity('user')
 export class UserEntity extends CustomEntity {

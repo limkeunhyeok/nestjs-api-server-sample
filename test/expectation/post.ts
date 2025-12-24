@@ -1,5 +1,5 @@
 import { isEmptyObject } from 'src/libs/validator';
-import { PostEntity } from 'src/modules/posts/post.entity';
+import { PostEntity } from 'src/modules/posts/entities/post.entity';
 
 export function expectPostResponseSucceed(
   result: Partial<PostEntity>,
@@ -9,7 +9,7 @@ export function expectPostResponseSucceed(
   expect(result).toHaveProperty('title');
   expect(result).toHaveProperty('contents');
   expect(result).toHaveProperty('published');
-  expect(result).toHaveProperty('authorId');
+  expect(result).toHaveProperty('author');
   expect(result).toHaveProperty('createdAt');
   expect(result).toHaveProperty('updatedAt');
   expect(result).toHaveProperty('version');

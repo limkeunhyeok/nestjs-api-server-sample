@@ -7,6 +7,11 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
+import {
+  EMAIL_IS_ALREADY_REGISTERED,
+  FORBIDDEN_RESOURCE_MODIFICATION,
+  NOT_FOUND_RESOURCE,
+} from 'src/common/constants/exception-message.const';
 import { SortDirection } from 'src/common/dtos/paginate.dto';
 import { ServerEnv } from 'src/configurations/server.config';
 import { removeUndefined } from 'src/libs/object';
@@ -37,7 +42,7 @@ export class UserService {
     });
 
     if (hasUser) {
-      throw new BadRequestException('Email is already exists.');
+      throw new BadRequestException(EMAIL_IS_ALREADY_REGISTERED);
     }
 
     const hash = await bcrypt.hash(
@@ -81,11 +86,11 @@ export class UserService {
 
     const range = getDateRange(startDate, endDate);
 
-    if (params.role) {
+    if (role) {
       query.role = role;
     }
 
-    if (params.name) {
+    if (name) {
       query.name = Like(`%${name}%`);
     }
 
@@ -109,7 +114,7 @@ export class UserService {
     const user = await this.userRepository.findOneBy({ id: userId });
 
     if (!user) {
-      throw new NotFoundException('Not found user entity.');
+      throw new NotFoundException(NOT_FOUND_RESOURCE);
     }
 
     return user;
@@ -119,7 +124,7 @@ export class UserService {
   async getUserByEmail(email: string): Promise<UserEntity> {
     const user = await this.userRepository.findOneBy({ email });
     if (!user) {
-      throw new NotFoundException('Not found user entity.');
+      throw new NotFoundException(NOT_FOUND_RESOURCE);
     }
 
     return user;
@@ -134,16 +139,14 @@ export class UserService {
       role?: Role;
     },
     userInToken: {
-      userId: number;
+      sub: number;
       role: Role;
     },
   ): Promise<UserEntity> {
     const user = await this.getUserById(userId);
 
-    if (userInToken.role !== Role.ADMIN && userInToken.userId !== user.id) {
-      throw new ForbiddenException(
-        'You are not allowed to modify this resource.',
-      );
+    if (userInToken.role !== Role.ADMIN && userInToken.sub !== user.id) {
+      throw new ForbiddenException(FORBIDDEN_RESOURCE_MODIFICATION);
     }
 
     const updateFields = removeUndefined(params);
@@ -166,16 +169,14 @@ export class UserService {
   async deleteUser(
     userId: number,
     userInToken: {
-      userId: number;
+      sub: number;
       role: Role;
     },
   ): Promise<UserEntity> {
     const user = await this.getUserById(userId);
 
-    if (userInToken.role !== Role.ADMIN && userInToken.userId !== user.id) {
-      throw new ForbiddenException(
-        'You are not allowed to modify this resource.',
-      );
+    if (userInToken.role !== Role.ADMIN && userInToken.sub !== user.id) {
+      throw new ForbiddenException(FORBIDDEN_RESOURCE_MODIFICATION);
     }
 
     const deletedUser = { ...user };

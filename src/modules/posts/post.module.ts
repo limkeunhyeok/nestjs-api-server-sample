@@ -1,18 +1,17 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { CommentEntity } from '../comments/comment.entity';
-import { CommentModule } from '../comments/comment.module';
-import { PostController } from './post.controller';
-import { PostEntity } from './post.entity';
-import { PostService } from './post.service';
+import { UserModule } from '../users/user.module';
+import { CommentController } from './controllers/comment.controller';
+import { PostController } from './controllers/post.controller';
+import { CommentEntity } from './entities/comment.entity';
+import { PostEntity } from './entities/post.entity';
+import { CommentService } from './services/comment.service';
+import { PostService } from './services/post.service';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([PostEntity, CommentEntity]),
-    CommentModule,
-  ],
-  providers: [PostService],
-  controllers: [PostController],
-  exports: [PostService],
+  imports: [TypeOrmModule.forFeature([PostEntity, CommentEntity]), UserModule],
+  providers: [PostService, CommentService],
+  controllers: [PostController, CommentController],
+  exports: [PostService, CommentService],
 })
 export class PostModule {}

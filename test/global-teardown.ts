@@ -11,7 +11,7 @@ export default async function globalTeardown() {
 
   await client.connect();
 
-  // 🔥 FK 무시하고 전체 초기화 (Postgres)
+  // FK 무시하고 전체 초기화 (Postgres)
   await client.query(`
     DO $$ DECLARE
       r RECORD;

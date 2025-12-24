@@ -3,8 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm';
 import { SnakeNamingStrategy } from 'src/common/databases/snake-naming.strategy';
 import { ServerEnv } from 'src/configurations/server.config';
-import { CommentEntity } from 'src/modules/comments/comment.entity';
-import { PostEntity } from 'src/modules/posts/post.entity';
+import { CommentEntity } from 'src/modules/posts/entities/comment.entity';
+import { PostEntity } from 'src/modules/posts/entities/post.entity';
 import { UserEntity } from 'src/modules/users/user.entity';
 
 @Injectable()

@@ -26,8 +26,10 @@ export const FORBIDDEN_RESOURCE_MODIFICATION =
 
 // 404
 export const NOT_FOUND_RESOURCE = 'Resource not found.';
-export const GENRE_IDS_NOT_FOUND =
-  'One or more provided genre IDs do not exist.';
+
+// 409
+export const RESOURCE_NOT_ASSOCIATED =
+  'The requested resource is not associated with the given parent resource.';
 
 // 500
 export const FAILED_TO_LOAD_CREATED_MOVIE = 'Failed to load created movie.';

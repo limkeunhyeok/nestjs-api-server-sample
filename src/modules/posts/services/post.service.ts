@@ -5,9 +5,15 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
+  buildPostByIdCacheKey,
+  buildPostsPaginationCacheKey,
+} from 'src/common/cache/post.cache-key';
+import {
   FORBIDDEN_RESOURCE_MODIFICATION,
   NOT_FOUND_RESOURCE,
 } from 'src/common/constants/exception-message.const';
+import { CacheEvict } from 'src/common/decorators/cache-evict.decorator';
+import { Cacheable } from 'src/common/decorators/cacheable.decorator';
 import { SortDirection } from 'src/common/dtos/paginate.dto';
 import { PaginationResponse } from 'src/common/interfaces/pagination.interface';
 import { removeUndefined } from 'src/libs/object';
@@ -18,6 +24,7 @@ import { Transactional } from 'typeorm-transactional';
 import { Role } from '../../../common/constants/role.const';
 import { UserService } from '../../users/user.service';
 import { PostEntity } from '../entities/post.entity';
+import { getTTL } from '../utils/post.util';
 
 @Injectable()
 export class PostService {
@@ -27,6 +34,7 @@ export class PostService {
     private readonly userService: UserService,
   ) {}
 
+  @CacheEvict({ keysSetName: 'cacheKeys' })
   @Transactional()
   async createPost(params: {
     userId: number;
@@ -46,6 +54,10 @@ export class PostService {
     return await this.postRepository.save(createdPost);
   }
 
+  @Cacheable({
+    keyGenerator: (params) => buildPostsPaginationCacheKey(params),
+    ttl: (params) => getTTL(params),
+  })
   @Transactional()
   async paginatePosts(params: {
     authorId?: number;
@@ -98,6 +110,12 @@ export class PostService {
     return toPaginationResponse({ total, limit, offset, data: postEntities });
   }
 
+  @Cacheable<[number]>({
+    keyGenerator: (postId: number) => buildPostByIdCacheKey(postId),
+    ttl: 3600000, // 1시간
+    trackKeys: true,
+    keysSetName: 'cacheKeys',
+  })
   @Transactional()
   async getPostById(postId: number): Promise<PostEntity> {
     const postEntity = await this.postRepository.findOne({
@@ -112,6 +130,7 @@ export class PostService {
     return postEntity;
   }
 
+  @CacheEvict({ keysSetName: 'cacheKeys' })
   @Transactional()
   async updatePost(
     postId: number,
@@ -138,6 +157,7 @@ export class PostService {
     return await this.postRepository.save(post);
   }
 
+  @CacheEvict({ keysSetName: 'cacheKeys' })
   @Transactional()
   async deletePost(
     postId: number,

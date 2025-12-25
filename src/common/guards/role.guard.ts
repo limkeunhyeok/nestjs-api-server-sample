@@ -45,7 +45,6 @@ export class RoleGuard implements CanActivate {
 
     const hasRole = roles.includes(user.role);
     if (!hasRole) {
-      console.log('??????????????', user);
       throw new ForbiddenException(FORBIDDEN_RESOURCE_MODIFICATION);
     }
 

@@ -8,10 +8,16 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import {
+  buildUserByIdCacheKey,
+  buildUsersPaginationCacheKey,
+} from 'src/common/cache/user.cache-key';
+import {
   EMAIL_IS_ALREADY_REGISTERED,
   FORBIDDEN_RESOURCE_MODIFICATION,
   NOT_FOUND_RESOURCE,
 } from 'src/common/constants/exception-message.const';
+import { CacheEvict } from 'src/common/decorators/cache-evict.decorator';
+import { Cacheable } from 'src/common/decorators/cacheable.decorator';
 import { SortDirection } from 'src/common/dtos/paginate.dto';
 import { PaginationResponse } from 'src/common/interfaces/pagination.interface';
 import { ServerEnv } from 'src/configurations/server.config';
@@ -22,6 +28,7 @@ import { FindOptionsWhere, Like, Repository } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
 import { Role } from '../../common/constants/role.const';
 import { UserEntity } from './user.entity';
+import { getTTL } from './user.util';
 
 @Injectable()
 export class UserService {
@@ -31,6 +38,7 @@ export class UserService {
     private readonly configService: ConfigService<ServerEnv, true>,
   ) {}
 
+  @CacheEvict({ keysSetName: 'cacheKeys' })
   @Transactional()
   async createUser(params: {
     email: string;
@@ -61,6 +69,10 @@ export class UserService {
     return await this.userRepository.save(createdUser);
   }
 
+  @Cacheable({
+    keyGenerator: (params) => buildUsersPaginationCacheKey(params),
+    ttl: (params) => getTTL(params),
+  })
   @Transactional()
   async paginateUsers(params: {
     role?: Role;
@@ -110,6 +122,12 @@ export class UserService {
     return toPaginationResponse({ total, limit, offset, data: users });
   }
 
+  @Cacheable<[number]>({
+    keyGenerator: (userId: number) => buildUserByIdCacheKey(userId),
+    ttl: 3600000, // 1시간
+    trackKeys: true,
+    keysSetName: 'cacheKeys',
+  })
   @Transactional()
   async getUserById(userId: number): Promise<UserEntity> {
     const user = await this.userRepository.findOneBy({ id: userId });
@@ -131,6 +149,7 @@ export class UserService {
     return user;
   }
 
+  @CacheEvict({ keysSetName: 'cacheKeys' })
   @Transactional()
   async updateUser(
     userId: number,
@@ -166,6 +185,7 @@ export class UserService {
     return await this.userRepository.save(user);
   }
 
+  @CacheEvict({ keysSetName: 'cacheKeys' })
   @Transactional()
   async deleteUser(
     userId: number,

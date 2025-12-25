@@ -1,4 +1,6 @@
+import { CacheModule } from '@nestjs/cache-manager';
 import {
+  Global,
   LoggerService,
   MiddlewareConsumer,
   Module,
@@ -26,6 +28,18 @@ const mockLogger: LoggerService = {
   verbose: jest.fn(),
 };
 
+@Global()
+@Module({
+  providers: [
+    {
+      provide: WINSTON_MODULE_NEST_PROVIDER,
+      useValue: mockLogger, // 기존에 정의한 mockLogger
+    },
+  ],
+  exports: [WINSTON_MODULE_NEST_PROVIDER], // 반드시 export 해야 함
+})
+class GlobalTestLoggerModule {}
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -36,9 +50,15 @@ const mockLogger: LoggerService = {
     TypeOrmModule.forRootAsync({
       useClass: TypeOrmConfigService,
     }),
+    CacheModule.register({
+      isGlobal: true,
+      ttl: 5 * 60 * 1000, // 300s
+      max: 100,
+    }),
+    GlobalTestLoggerModule,
     HealthCheckModule,
-    UserModule,
     AuthModule,
+    UserModule,
     PostModule,
   ],
   controllers: [],
@@ -46,10 +66,6 @@ const mockLogger: LoggerService = {
     {
       provide: APP_GUARD,
       useClass: RoleGuard,
-    },
-    {
-      provide: WINSTON_MODULE_NEST_PROVIDER,
-      useValue: mockLogger,
     },
   ],
 })

@@ -1,3 +1,4 @@
+import { CacheModule } from '@nestjs/cache-manager';
 import {
   MiddlewareConsumer,
   Module,
@@ -32,6 +33,11 @@ import { UserModule } from './modules/users/user.module';
     }),
     WinstonModule.forRootAsync({
       useClass: WinstonConfigService,
+    }),
+    CacheModule.register({
+      isGlobal: true,
+      ttl: 5 * 60 * 1000, // 300s
+      max: 100,
     }),
     UserModule,
     AuthModule,

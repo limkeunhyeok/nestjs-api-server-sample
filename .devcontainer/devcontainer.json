@@ -3,7 +3,12 @@
   "dockerComposeFile": "docker-compose.yml",
   "service": "app",
   "workspaceFolder": "/workspace",
-
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/mikaello/devcontainer-features/modern-shell-utils:2": {},
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+    "ghcr.io/nils-geistmann/devcontainers-features/zsh:0": {}
+  },
   "customizations": {
     "vscode": {
       "extensions": [
@@ -11,13 +16,36 @@
         "esbenp.prettier-vscode",
         "MS-CEINTL.vscode-language-pack-ko",
         "eamodio.gitlens",
-        "yzhang.markdown-all-in-one"
+        "yzhang.markdown-all-in-one",
+        "mhutchie.git-graph",
+        "github.vscode-github-actions"
       ],
       "settings": {
         "editor.formatOnSave": true,
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.codeActionsOnSave": {
           "source.fixAll.eslint": "explicit"
+        },
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "bash",
+            "icon": "terminal-bash"
+          },
+          "zsh": {
+            "path": "zsh"
+          },
+          "fish": {
+            "path": "fish"
+          },
+          "tmux": {
+            "path": "tmux",
+            "icon": "terminal-tmux"
+          },
+          "pwsh": {
+            "path": "pwsh",
+            "icon": "terminal-powershell"
+          }
         }
       }
     }

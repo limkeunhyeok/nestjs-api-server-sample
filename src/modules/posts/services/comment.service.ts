@@ -6,11 +6,17 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
+  buildCommentByIdCacheKey,
+  buildCommentsPaginationCacheKey,
+} from 'src/common/cache/comment.cache-key';
+import {
   FORBIDDEN_RESOURCE_MODIFICATION,
   NOT_FOUND_RESOURCE,
   RESOURCE_NOT_ASSOCIATED,
 } from 'src/common/constants/exception-message.const';
 import { Role } from 'src/common/constants/role.const';
+import { CacheEvict } from 'src/common/decorators/cache-evict.decorator';
+import { Cacheable } from 'src/common/decorators/cacheable.decorator';
 import { SortDirection } from 'src/common/dtos/paginate.dto';
 import { PaginationResponse } from 'src/common/interfaces/pagination.interface';
 import { removeUndefined } from 'src/libs/object';
@@ -20,6 +26,7 @@ import { FindOptionsWhere, Repository } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
 import { UserService } from '../../users/user.service';
 import { CommentEntity } from '../entities/comment.entity';
+import { getTTL } from '../utils/comment.util';
 import { PostService } from './post.service';
 
 @Injectable()
@@ -31,6 +38,7 @@ export class CommentService {
     private readonly postService: PostService,
   ) {}
 
+  @CacheEvict({ keysSetName: 'cacheKeys' })
   @Transactional()
   async createComment(params: {
     userId: number;
@@ -51,6 +59,10 @@ export class CommentService {
     return await this.commentRepository.save(createdComment);
   }
 
+  @Cacheable({
+    keyGenerator: (params) => buildCommentsPaginationCacheKey(params),
+    ttl: (params) => getTTL(params),
+  })
   @Transactional()
   async paginateComments(params: {
     authorId?: number;
@@ -116,6 +128,13 @@ export class CommentService {
     });
   }
 
+  @Cacheable<[number, number]>({
+    keyGenerator: (postId: number, commentId: number) =>
+      buildCommentByIdCacheKey(commentId),
+    ttl: 3600000, // 1시간
+    trackKeys: true,
+    keysSetName: 'cacheKeys',
+  })
   @Transactional()
   async getCommentById(
     postId: number,
@@ -141,6 +160,7 @@ export class CommentService {
     return comment;
   }
 
+  @CacheEvict({ keysSetName: 'cacheKeys' })
   @Transactional()
   async updateComment(
     postId: number,
@@ -170,6 +190,7 @@ export class CommentService {
     return await this.commentRepository.save(comment);
   }
 
+  @CacheEvict({ keysSetName: 'cacheKeys' })
   @Transactional()
   async deleteComment(
     postId: number,

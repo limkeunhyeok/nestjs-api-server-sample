@@ -24,6 +24,10 @@ export interface ServerEnv {
   ADMIN_EMAIL?: string;
   ADMIN_PASSWORD?: string;
   ADMIN_NAME?: string;
+
+  REDIS_PORT: number;
+  REDIS_HOST: string;
+  REDIS_PASSWORD: string;
 }
 
 export const ServerEnvValidation = Joi.object({
@@ -45,4 +49,8 @@ export const ServerEnvValidation = Joi.object({
   ADMIN_EMAIL: Joi.string(),
   ADMIN_PASSWORD: Joi.string(),
   ADMIN_NAME: Joi.string(),
+
+  REDIS_PORT: Joi.number().required(),
+  REDIS_HOST: Joi.string().required(),
+  REDIS_PASSWORD: Joi.string().required(),
 });

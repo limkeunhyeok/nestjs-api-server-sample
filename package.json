@@ -26,6 +26,7 @@
     "seed:dev": "cross-env NODE_ENV=dev ts-node -r tsconfig-paths/register src/seeds/runner.ts"
   },
   "dependencies": {
+    "@keyv/redis": "^5.1.5",
     "@nestjs/axios": "^4.0.1",
     "@nestjs/cache-manager": "^3.1.0",
     "@nestjs/class-transformer": "^0.4.0",

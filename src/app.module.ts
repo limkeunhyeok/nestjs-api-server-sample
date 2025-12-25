@@ -13,6 +13,7 @@ import { RoleGuard } from './common/guards/role.guard';
 import { HealthCheckModule } from './common/health-check/health-check.module';
 import { HttpLoggingMiddleware } from './common/middlewares/http-logging.middleware';
 import { IgnoreBrowserRequestMiddleware } from './common/middlewares/ignore-browser-request.middleware';
+import { RedisConfigService } from './configurations/redis.config';
 import { ServerEnvValidation } from './configurations/server.config';
 import { TypeOrmConfigService } from './configurations/typeorm.config';
 import { WinstonConfigService } from './configurations/winston.config';
@@ -34,10 +35,9 @@ import { UserModule } from './modules/users/user.module';
     WinstonModule.forRootAsync({
       useClass: WinstonConfigService,
     }),
-    CacheModule.register({
+    CacheModule.registerAsync({
       isGlobal: true,
-      ttl: 5 * 60 * 1000, // 300s
-      max: 100,
+      useClass: RedisConfigService,
     }),
     UserModule,
     AuthModule,

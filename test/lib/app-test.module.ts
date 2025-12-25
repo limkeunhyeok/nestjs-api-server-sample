@@ -13,6 +13,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { HealthCheckModule } from 'src/common/health-check/health-check.module';
+import { RedisConfigService } from 'src/configurations/redis.config';
 import { ServerEnvValidation } from 'src/configurations/server.config';
 import { AuthMiddleware } from 'src/modules/auth/auth.middleware';
 import { AuthModule } from 'src/modules/auth/auth.module';
@@ -52,8 +53,7 @@ class GlobalTestLoggerModule {}
     }),
     CacheModule.register({
       isGlobal: true,
-      ttl: 5 * 60 * 1000, // 300s
-      max: 100,
+      useClass: RedisConfigService,
     }),
     GlobalTestLoggerModule,
     HealthCheckModule,

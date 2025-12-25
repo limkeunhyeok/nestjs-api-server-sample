@@ -61,9 +61,22 @@ services:
     networks:
       - devnet
 
+  redis:
+    container_name: redis
+    image: redis:8.4-alpine
+    command: redis-server --requirepass ${REDIS_PASSWORD} --appendonly yes
+    ports:
+      - '${REDIS_PORT}:${REDIS_PORT}'
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    networks:
+      - devnet
+
 volumes:
   postgres-data:
   pgadmin-data:
+  redis-data:
 
 networks:
   devnet:

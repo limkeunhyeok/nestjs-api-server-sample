@@ -2,15 +2,33 @@
 FROM node:24.11.1
 
 # Install basic tools
+# RUN apt-get update && apt-get install -y \
+#     git \
+#     curl \
+#     wget \
+#     vim \
+#     zsh \
+#     postgresql-client \
+#     locales \
+#     fonts-noto-cjk \
+#     && rm -rf /var/lib/apt/lists/*
+
 RUN apt-get update && apt-get install -y \
     git \
     curl \
     wget \
     vim \
     zsh \
-    postgresql-client \
     locales \
     fonts-noto-cjk \
+    gnupg2 \
+    lsb-release \
+    ca-certificates \
+    && curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql-keyring.gpg \
+    && echo "deb [signed-by=/usr/share/keyrings/postgresql-keyring.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update && apt-get install -y postgresql-client-18 \
+    && curl -o /usr/local/bin/mc https://dl.min.io/client/mc/release/linux-amd64/mc \
+    && chmod +x /usr/local/bin/mc \
     && rm -rf /var/lib/apt/lists/*
 
 # Generate UTF-8 locale

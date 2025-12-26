@@ -1,13 +1,21 @@
 import { spawnSync } from 'child_process';
+import * as path from 'path';
 
-// pnpm run seed:dev {target}
 const target = process.argv[2];
 
 if (!target) {
-  console.error('specify a seed name.');
+  console.error('Specify a seed name.');
   process.exit(1);
 }
 
-const cmd = `ts-node -r tsconfig-paths/register src/seeds/${target}.seed.ts`;
+const rootPath = path.resolve(__dirname, '../../');
+const tsconfigPath = path.join(rootPath, 'tsconfig.json');
 
-spawnSync(cmd, { stdio: 'inherit', shell: true });
+const cmd = `ts-node -r tsconfig-paths/register --project ${tsconfigPath} src/seeds/${target}.seed.ts`;
+
+spawnSync(cmd, {
+  stdio: 'inherit',
+  cwd: rootPath,
+  shell: true,
+  env: { ...process.env, NODE_ENV: 'dev' }, // 환경 변수 유지
+});

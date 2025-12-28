@@ -56,7 +56,16 @@
   ],
 
   // 서비스에서 포트 읽어오기
-  "runServices": ["app", "db", "pgadmin", "redis", "minio"],
+  "runServices": [
+    "app",
+    "db",
+    "pgadmin",
+    "redis",
+    "minio",
+    "elasticsearch",
+    "kibana",
+    "fluent-bit"
+  ],
 
   // 포트는 자동으로 감지됨
   "forwardPorts": [],

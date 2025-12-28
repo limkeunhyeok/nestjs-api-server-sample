@@ -82,7 +82,44 @@ services:
       MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD:-minioadmin}
     restart: 'no'
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.2.3
+    container_name: elasticsearch
+    environment:
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - discovery.type=single-node
+      - xpack.security.enabled=false # 테스트를 위해 보안 해제
+      - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
+    ports:
+      - '9200:9200'
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:9.2.3
+    container_name: kibana
+    ports:
+      - '5601:5601'
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+
+  fluent-bit:
+    image: fluent/fluent-bit:4.2.2
+    container_name: fluent-bit
+    ports:
+      - '24224:24224'
+      - '24224:24224/udp'
+    volumes:
+      - ./fluent-bit/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
+      - ./fluent-bit/parsers.conf:/fluent-bit/etc/parsers.conf
+      - postgres-logs:/var/log/postgresql:ro
+    depends_on:
+      - elasticsearch
+
 volumes:
   minio-data:
   redis-data:
   postgres-data:
+  postgres-logs:
+  es-data:

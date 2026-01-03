@@ -1,38 +1,37 @@
 name: pr check
 
-on: pull_request
+on:
+  pull_request:
+  push:
+    branches:
+      - develop
 
 jobs:
   lint:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [ 18.x ]
+        node-version: [24.x]
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v3
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+          cache: 'pnpm'
 
-      - name: npm cache
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-      - name: npm install
-        run: npm install
+      - name: Checking lint
+        run: pnpm run lint
 
-      - name: checking lint
-        run: npm run lint
-
-      - name: checking build
-        run: npm run build
+      - name: Checking build
+        run: pnpm run build

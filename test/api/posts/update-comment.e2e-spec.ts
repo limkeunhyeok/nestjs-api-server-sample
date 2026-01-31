@@ -10,11 +10,14 @@ import TestAgent from 'supertest/lib/agent';
 import { expectCommentResponseSucceed } from 'test/expectation/comment';
 import { expectResponseFailed } from 'test/expectation/common';
 import { createTestApp } from 'test/lib/create-test-app';
+import { TestService } from 'test/lib/test.service';
 import { fetchUserTokenAndHeaders, withHeadersBy } from 'test/lib/utils';
 import { createComment, mockCommentRaw } from 'test/mockup/comment';
 import { createPost, mockPostRaw } from 'test/mockup/post';
 import { createUser } from 'test/mockup/user';
 import { Repository } from 'typeorm';
+
+const globalAny: any = global;
 
 describe('Comment API Test', () => {
   let app: INestApplication;
@@ -46,6 +49,7 @@ describe('Comment API Test', () => {
     );
 
     await app.init();
+    globalAny.testApp = app;
 
     req = request(app.getHttpServer());
 
@@ -58,7 +62,15 @@ describe('Comment API Test', () => {
   });
 
   afterAll(async () => {
-    await app.close();
+    const testService = globalAny.testApp.get(TestService);
+    await testService.cleanDatabase();
+
+    console.log('Closing NestJS application...');
+    if (globalAny.testApp) {
+      await globalAny.testApp.close();
+      delete globalAny.testApp;
+    }
+    console.log('NestJS application closed.');
   });
 
   describe('PUT /posts/:postId/comments/:commentId', () => {

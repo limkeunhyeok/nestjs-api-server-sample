@@ -14,7 +14,7 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
   createTypeOrmOptions(): Promise<TypeOrmModuleOptions> | TypeOrmModuleOptions {
     return {
       type: 'postgres',
-      database: 'test_mydb',
+      database: this.configService.get<string>('DB_NAME'),
       host: this.configService.get<string>('DB_HOST'),
       port: this.configService.get<number>('DB_PORT'),
       username: this.configService.get<string>('DB_USER'),

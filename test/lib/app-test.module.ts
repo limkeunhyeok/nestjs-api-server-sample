@@ -19,6 +19,7 @@ import { AuthMiddleware } from 'src/modules/auth/auth.middleware';
 import { AuthModule } from 'src/modules/auth/auth.module';
 import { PostModule } from 'src/modules/posts/post.module';
 import { UserModule } from 'src/modules/users/user.module';
+import { TestService } from './test.service';
 import { TypeOrmConfigService } from './typeorm-test.config';
 
 const mockLogger: LoggerService = {
@@ -67,6 +68,7 @@ class GlobalTestLoggerModule {}
       provide: APP_GUARD,
       useClass: RoleGuard,
     },
+    TestService,
   ],
 })
 export class AppTestModule implements NestModule {

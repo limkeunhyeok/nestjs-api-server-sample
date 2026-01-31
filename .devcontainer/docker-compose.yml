@@ -71,7 +71,7 @@ services:
       - devnet
 
   redis:
-    container_name: redis
+    container_name: my-redis
     image: redis:8.4-alpine
     command: redis-server --requirepass ${REDIS_PASSWORD} --appendonly yes
     ports:
@@ -83,7 +83,7 @@ services:
       - devnet
 
   minio:
-    container_name: minio
+    container_name: my-minio
     image: minio/minio:latest
     ports:
       - '${MINIO_PORT}:${MINIO_PORT}' # API

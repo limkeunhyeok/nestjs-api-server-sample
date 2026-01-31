@@ -52,7 +52,8 @@
   },
 
   "mounts": [
-    "source=${env:HOME}/.gitconfig,target=/home/node/.gitconfig,type=bind"
+    "source=${env:HOME}/.gitconfig,target=/home/node/.gitconfig,type=bind",
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
   ],
 
   // 서비스에서 포트 읽어오기
@@ -72,7 +73,9 @@
 
   "containerEnv": {
     "PNPM_HOME": "/home/node/.local/share/pnpm",
-    "PATH": "/home/node/.local/share/pnpm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+    "PATH": "/home/node/.local/share/pnpm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "TESTCONTAINERS_RYUK_DISABLED": "true", // Testcontainers의 정리 담당 컨테이너(Ryuk / Reaper)를 아예 쓰지 말아라는 뜻. Docker-in-Docker 환경에서 호스트 ↔ Ryuk TCP 연결이 자주 깨짐.
+    "TESTCONTAINERS_HOST_OVERRIDE": "host.docker.internal"
   },
 
   "postCreateCommand": "pnpm install && pnpm add -g typescript@${TYPESCRIPT_VERSION:-5.9.3}",

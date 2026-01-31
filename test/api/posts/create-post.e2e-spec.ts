@@ -8,9 +8,12 @@ import TestAgent from 'supertest/lib/agent';
 import { expectResponseFailed } from 'test/expectation/common';
 import { expectPostResponseSucceed } from 'test/expectation/post';
 import { createTestApp } from 'test/lib/create-test-app';
+import { TestService } from 'test/lib/test.service';
 import { fetchUserTokenAndHeaders, withHeadersBy } from 'test/lib/utils';
 import { mockCreatePostDto } from 'test/mockup/post';
 import { Repository } from 'typeorm';
+
+const globalAny: any = global;
 
 describe('Post API Test', () => {
   let app: INestApplication;
@@ -34,6 +37,7 @@ describe('Post API Test', () => {
     );
 
     await app.init();
+    globalAny.testApp = app;
 
     req = request(app.getHttpServer());
 
@@ -46,7 +50,15 @@ describe('Post API Test', () => {
   });
 
   afterAll(async () => {
-    await app.close();
+    const testService = globalAny.testApp.get(TestService);
+    await testService.cleanDatabase();
+
+    console.log('Closing NestJS application...');
+    if (globalAny.testApp) {
+      await globalAny.testApp.close();
+      delete globalAny.testApp;
+    }
+    console.log('NestJS application closed.');
   });
 
   describe('POST /posts', () => {

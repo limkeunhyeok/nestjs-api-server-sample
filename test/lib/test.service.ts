@@ -23,8 +23,6 @@ export class TestService {
 
       await queryRunner.query(`SET session_replication_role = 'origin';`);
       await queryRunner.commitTransaction();
-
-      console.log('[TEST DATABASE]: Clean');
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw new Error(`ERROR: Cleaning test database: ${error}`);

@@ -1,14 +1,9 @@
-import { INestApplication } from '@nestjs/common';
-import { TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Role } from 'src/common/constants/role.const';
 import { UserEntity } from 'src/modules/users/user.entity';
-import * as request from 'supertest';
-import TestAgent from 'supertest/lib/agent';
 import { expectResponseFailed } from 'test/expectation/common';
 import { expectUserResponseSucceed } from 'test/expectation/user';
-import { createTestApp } from 'test/lib/create-test-app';
-import { TestService } from 'test/lib/test.service';
+import { initE2ETest } from 'test/lib/init-e2e-test';
 import { fetchUserTokenAndHeaders, withHeadersBy } from 'test/lib/utils';
 import {
   createUser,
@@ -17,33 +12,16 @@ import {
 } from 'test/mockup/user';
 import { Repository } from 'typeorm';
 
-const globalAny: any = global;
-
 describe('User API Test', () => {
-  let app: INestApplication;
-  let module: TestingModule;
-
   let userRepository: Repository<UserEntity>;
-
-  let req: TestAgent;
 
   let adminTokenHeaders: any;
   let withHeadersIncludeAdminToken: any;
 
-  beforeAll(async () => {
-    const result = await createTestApp();
-
-    app = result.app;
-    module = result.module;
-
+  const ctx = initE2ETest(async ({ module, req }) => {
     userRepository = module.get<Repository<UserEntity>>(
       getRepositoryToken(UserEntity),
     );
-
-    await app.init();
-    globalAny.testApp = app;
-
-    req = request(app.getHttpServer());
 
     adminTokenHeaders = await fetchUserTokenAndHeaders(
       req,
@@ -51,18 +29,6 @@ describe('User API Test', () => {
       Role.ADMIN,
     );
     withHeadersIncludeAdminToken = withHeadersBy(adminTokenHeaders);
-  });
-
-  afterAll(async () => {
-    const testService = globalAny.testApp.get(TestService);
-    await testService.cleanDatabase();
-
-    console.log('Closing NestJS application...');
-    if (globalAny.testApp) {
-      await globalAny.testApp.close();
-      delete globalAny.testApp;
-    }
-    console.log('NestJS application closed.');
   });
 
   describe('POST /users', () => {
@@ -75,7 +41,7 @@ describe('User API Test', () => {
 
       // when
       const res = await withHeadersIncludeAdminToken(
-        req.post(`${rootApiPath}`).send(params),
+        ctx.req.post(`${rootApiPath}`).send(params),
       ).expect(201);
 
       // then
@@ -92,7 +58,7 @@ describe('User API Test', () => {
 
       // when
       const res = await withHeadersIncludeAdminToken(
-        req.post(`${rootApiPath}`).send(params),
+        ctx.req.post(`${rootApiPath}`).send(params),
       ).expect(400);
 
       // then
@@ -108,7 +74,7 @@ describe('User API Test', () => {
 
       // when
       const res = await withHeadersIncludeAdminToken(
-        req.post(`${rootApiPath}`).send(params),
+        ctx.req.post(`${rootApiPath}`).send(params),
       ).expect(400);
 
       // then
@@ -124,7 +90,7 @@ describe('User API Test', () => {
 
       // when
       const res = await withHeadersIncludeAdminToken(
-        req.post(`${rootApiPath}`).send(params),
+        ctx.req.post(`${rootApiPath}`).send(params),
       ).expect(400);
 
       // then
@@ -140,7 +106,7 @@ describe('User API Test', () => {
 
       // when
       const res = await withHeadersIncludeAdminToken(
-        req.post(`${rootApiPath}`).send(params),
+        ctx.req.post(`${rootApiPath}`).send(params),
       ).expect(400);
 
       // then
@@ -156,7 +122,7 @@ describe('User API Test', () => {
 
       // when
       const res = await withHeadersIncludeAdminToken(
-        req.post(`${rootApiPath}`).send(params),
+        ctx.req.post(`${rootApiPath}`).send(params),
       ).expect(400);
 
       // then
@@ -172,7 +138,7 @@ describe('User API Test', () => {
 
       // when
       const res = await withHeadersIncludeAdminToken(
-        req.post(`${rootApiPath}`).send(params),
+        ctx.req.post(`${rootApiPath}`).send(params),
       ).expect(400);
 
       // then
@@ -188,7 +154,7 @@ describe('User API Test', () => {
 
       // when
       const res = await withHeadersIncludeAdminToken(
-        req.post(`${rootApiPath}`).send(params),
+        ctx.req.post(`${rootApiPath}`).send(params),
       ).expect(400);
 
       // then

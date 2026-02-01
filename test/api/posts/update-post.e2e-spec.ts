@@ -1,51 +1,29 @@
-import { INestApplication } from '@nestjs/common';
-import { TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Role } from 'src/common/constants/role.const';
 import { PostEntity } from 'src/modules/posts/entities/post.entity';
 import { UserEntity } from 'src/modules/users/user.entity';
-import * as request from 'supertest';
-import TestAgent from 'supertest/lib/agent';
 import { expectResponseFailed } from 'test/expectation/common';
 import { expectPostResponseSucceed } from 'test/expectation/post';
-import { createTestApp } from 'test/lib/create-test-app';
-import { TestService } from 'test/lib/test.service';
+import { initE2ETest } from 'test/lib/init-e2e-test';
 import { fetchUserTokenAndHeaders, withHeadersBy } from 'test/lib/utils';
 import { createPost, mockPostRaw } from 'test/mockup/post';
 import { createUser } from 'test/mockup/user';
 import { Repository } from 'typeorm';
 
-const globalAny: any = global;
-
 describe('Post API Test', () => {
-  let app: INestApplication;
-  let module: TestingModule;
-
   let userRepository: Repository<UserEntity>;
   let postRepository: Repository<PostEntity>;
-
-  let req: TestAgent;
 
   let memberTokenHeaders: any;
   let withHeadersIncludeMemberToken: any;
 
-  beforeAll(async () => {
-    const result = await createTestApp();
-
-    app = result.app;
-    module = result.module;
-
+  const ctx = initE2ETest(async ({ module, req }) => {
     userRepository = module.get<Repository<UserEntity>>(
       getRepositoryToken(UserEntity),
     );
     postRepository = module.get<Repository<PostEntity>>(
       getRepositoryToken(PostEntity),
     );
-
-    await app.init();
-    globalAny.testApp = app;
-
-    req = request(app.getHttpServer());
 
     memberTokenHeaders = await fetchUserTokenAndHeaders(
       req,
@@ -55,25 +33,13 @@ describe('Post API Test', () => {
     withHeadersIncludeMemberToken = withHeadersBy(memberTokenHeaders);
   });
 
-  afterAll(async () => {
-    const testService = globalAny.testApp.get(TestService);
-    await testService.cleanDatabase();
-
-    console.log('Closing NestJS application...');
-    if (globalAny.testApp) {
-      await globalAny.testApp.close();
-      delete globalAny.testApp;
-    }
-    console.log('NestJS application closed.');
-  });
-
   describe('PUT /posts/:id', () => {
     const rootApiPath = '/posts';
 
     it('should success update post successfully and return 200', async () => {
       // given
       const authResult = await withHeadersIncludeMemberToken(
-        req.get('/auth/me'),
+        ctx.req.get('/auth/me'),
       ).expect(200);
 
       const user: Partial<UserEntity> = authResult.body;
@@ -90,7 +56,7 @@ describe('Post API Test', () => {
 
       // when
       const res = await withHeadersIncludeMemberToken(
-        req.put(`${rootApiPath}/${post.id}`).send(params),
+        ctx.req.put(`${rootApiPath}/${post.id}`).send(params),
       ).expect(200);
 
       // then
@@ -101,7 +67,7 @@ describe('Post API Test', () => {
     it('should return 400 when title is invalid', async () => {
       // given
       const authResult = await withHeadersIncludeMemberToken(
-        req.get('/auth/me'),
+        ctx.req.get('/auth/me'),
       ).expect(200);
 
       const user: Partial<UserEntity> = authResult.body;
@@ -118,7 +84,7 @@ describe('Post API Test', () => {
 
       // when
       const res = await withHeadersIncludeMemberToken(
-        req.put(`${rootApiPath}/${post.id}`).send(params),
+        ctx.req.put(`${rootApiPath}/${post.id}`).send(params),
       ).expect(400);
 
       // then
@@ -128,7 +94,7 @@ describe('Post API Test', () => {
     it('should return 400 when published is invalid', async () => {
       // given
       const authResult = await withHeadersIncludeMemberToken(
-        req.get('/auth/me'),
+        ctx.req.get('/auth/me'),
       ).expect(200);
 
       const user: Partial<UserEntity> = authResult.body;
@@ -145,7 +111,7 @@ describe('Post API Test', () => {
 
       // when
       const res = await withHeadersIncludeMemberToken(
-        req.put(`${rootApiPath}/${post.id}`).send(params),
+        ctx.req.put(`${rootApiPath}/${post.id}`).send(params),
       ).expect(400);
 
       // then
@@ -155,7 +121,7 @@ describe('Post API Test', () => {
     it('should return 404 when post is not found', async () => {
       // given
       const authResult = await withHeadersIncludeMemberToken(
-        req.get('/auth/me'),
+        ctx.req.get('/auth/me'),
       ).expect(200);
 
       const user: Partial<UserEntity> = authResult.body;
@@ -173,7 +139,7 @@ describe('Post API Test', () => {
 
       // when
       const res = await withHeadersIncludeMemberToken(
-        req.put(`${rootApiPath}/${nonExistentId}`).send(params),
+        ctx.req.put(`${rootApiPath}/${nonExistentId}`).send(params),
       ).expect(404);
 
       // then
@@ -196,7 +162,7 @@ describe('Post API Test', () => {
 
       // when
       const res = await withHeadersIncludeMemberToken(
-        req.put(`${rootApiPath}/${post.id}`).send(params),
+        ctx.req.put(`${rootApiPath}/${post.id}`).send(params),
       ).expect(403);
 
       // then

@@ -14,7 +14,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserInToken } from 'src/common/decorators/user-in-token.decorator';
 import { PaginationResponse } from 'src/common/interfaces/pagination.interface';
-import { AccessTokenPayload } from 'src/modules/auth/auth.interface';
+import { AuthUser } from 'src/modules/auth/auth.interface';
 import { Role } from '../../../common/constants/role.const';
 import { CreateCommentDto } from '../dtos/create-comment.dto';
 import { PaginateCommentsDto } from '../dtos/paginate-comments.dto';
@@ -67,7 +67,7 @@ export class CommentController {
     @Param('postId') postId: number,
     @Param('commentId') commentId: number,
     @Body() body: UpdateCommentDto,
-    @UserInToken() payload: AccessTokenPayload,
+    @UserInToken() payload: AuthUser,
   ): Promise<CommentEntity> {
     return await this.commentService.updateComment(
       postId,
@@ -81,7 +81,7 @@ export class CommentController {
   async delete(
     @Param('postId') postId: number,
     @Param('commentId') commentId: number,
-    @UserInToken() payload: AccessTokenPayload,
+    @UserInToken() payload: AuthUser,
   ): Promise<CommentEntity> {
     return await this.commentService.deleteComment(postId, commentId, payload);
   }

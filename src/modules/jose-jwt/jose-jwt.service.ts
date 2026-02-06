@@ -1,15 +1,15 @@
 import { Inject, Injectable } from '@nestjs/common';
+import * as crypto from 'crypto';
 import {
   exportJWK,
   generateKeyPair,
   importJWK,
-  JWK,
   JWTPayload,
   jwtVerify,
   SignJWT,
 } from 'jose';
 import { JOSE_JWT_MODULE_OPTIONS } from './jose-jwt.const';
-import { JoseJwtModuleOptions } from './jose-jwt.interface';
+import { Es256Jwk, JoseJwtModuleOptions } from './jose-jwt.interface';
 
 @Injectable()
 export class JoseJwtService {
@@ -18,7 +18,7 @@ export class JoseJwtService {
     private readonly options: JoseJwtModuleOptions,
   ) {}
 
-  async sign(payload: JWTPayload): Promise<string> {
+  async sign(payload: JWTPayload, expiresIn: string | number): Promise<string> {
     const privateJwk = this.options.priKey;
 
     const privateKey = await importJWK(privateJwk, privateJwk.alg);
@@ -26,7 +26,7 @@ export class JoseJwtService {
     const jwt = await new SignJWT(payload)
       .setProtectedHeader({ alg: privateJwk.alg, typ: 'JWT' })
       .setIssuedAt()
-      .setExpirationTime('1d')
+      .setExpirationTime(expiresIn)
       .sign(privateKey);
 
     return jwt;
@@ -44,26 +44,32 @@ export class JoseJwtService {
     return payload;
   }
 
-  async generateEs256Jwk(): Promise<{
-    privateJwk: JWK;
-    publicJwk: JWK;
+  static async generateEs256Jwk(): Promise<{
+    privateJwk: Es256Jwk;
+    publicJwk: Es256Jwk;
   }> {
-    const { publicKey, privateKey } = await generateKeyPair('ES256', {
+    const alg = 'ES256';
+    const { publicKey, privateKey } = await generateKeyPair(alg, {
       extractable: true,
     });
 
     const privateJwk = await exportJWK(privateKey);
     const publicJwk = await exportJWK(publicKey);
 
-    privateJwk.kid = crypto.randomUUID();
-    publicJwk.kid = privateJwk.kid;
+    const kid = crypto.randomUUID();
+
+    privateJwk.alg = alg;
+    publicJwk.alg = alg;
+
+    privateJwk.kid = kid;
+    publicJwk.kid = kid;
 
     privateJwk.use = 'sig';
     publicJwk.use = 'sig';
 
     return {
-      privateJwk,
-      publicJwk,
+      privateJwk: privateJwk as Es256Jwk,
+      publicJwk: publicJwk as Es256Jwk,
     };
   }
 }

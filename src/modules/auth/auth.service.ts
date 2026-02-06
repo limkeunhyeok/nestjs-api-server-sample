@@ -4,9 +4,8 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { JwtService, TokenExpiredError } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { errors } from 'jose';
 import {
   INVALID_AUTHORIZATION_HEADER_FORMAT,
   INVALID_CREDENTIALS,
@@ -16,8 +15,8 @@ import {
   TOKEN_TYPE_MISMATCH,
 } from 'src/common/constants/exception-message.const';
 import { Role } from 'src/common/constants/role.const';
-import { ServerEnv } from 'src/configurations/server.config';
 import { generateRandomString } from 'src/libs/string';
+import { JoseJwtService } from '../jose-jwt/jose-jwt.service';
 import { UserEntity } from '../users/user.entity';
 import { UserService } from '../users/user.service';
 import {
@@ -37,8 +36,7 @@ import {
 export class AuthService {
   constructor(
     private readonly userService: UserService,
-    private readonly jwtService: JwtService,
-    private readonly configService: ConfigService<ServerEnv, true>,
+    private readonly joseJwtService: JoseJwtService,
   ) {}
 
   async parseBearerToken(rawToken: string): Promise<AccessTokenPayload>;
@@ -72,25 +70,21 @@ export class AuthService {
     const isRefreshToken = options?.isRefreshToken ?? false;
 
     try {
-      const secret = isRefreshToken
-        ? this.configService.get<string>('REFRESH_TOKEN_SECRET')
-        : this.configService.get<string>('ACCESS_TOKEN_SECRET');
+      const payload = await this.joseJwtService.verify(token);
 
-      const payload = await this.jwtService.verifyAsync<
-        AccessTokenPayload | RefreshTokenPayload
-      >(token, { secret });
-
-      if (isRefreshToken && payload.type !== TOKEN_TYPE_REFRESH) {
-        throw new UnauthorizedException(TOKEN_TYPE_MISMATCH);
+      if (isRefreshToken) {
+        if (payload.type !== TOKEN_TYPE_REFRESH) {
+          throw new UnauthorizedException(TOKEN_TYPE_MISMATCH);
+        }
+        return payload as RefreshTokenPayload;
       }
 
-      if (!isRefreshToken && payload.type !== TOKEN_TYPE_ACCESS) {
+      if (payload.type !== TOKEN_TYPE_ACCESS) {
         throw new UnauthorizedException(TOKEN_TYPE_MISMATCH);
       }
-
-      return payload;
+      return payload as AccessTokenPayload;
     } catch (error: unknown) {
-      if (error instanceof TokenExpiredError) {
+      if (error instanceof errors.JWTExpired) {
         throw new UnauthorizedException(TOKEN_EXPIRED);
       }
       throw new UnauthorizedException(INVALID_OR_MALFORMED_TOKEN);
@@ -108,23 +102,24 @@ export class AuthService {
   ): Promise<string> {
     const isRefreshToken = options?.isRefreshToken ?? false;
 
-    const secret = isRefreshToken
-      ? this.configService.get<string>('REFRESH_TOKEN_SECRET')
-      : this.configService.get<string>('ACCESS_TOKEN_SECRET');
+    const expiresIn = isRefreshToken
+      ? REFRESH_TOKEN_EXPIRES_IN
+      : ACCESS_TOKEN_EXPIRES_IN;
 
-    return await this.jwtService.signAsync(
-      {
-        sub: user.id,
-        role: user.role,
-        type: isRefreshToken ? TOKEN_TYPE_REFRESH : TOKEN_TYPE_ACCESS,
-      },
-      {
-        secret,
-        expiresIn: isRefreshToken
-          ? REFRESH_TOKEN_EXPIRES_IN
-          : ACCESS_TOKEN_EXPIRES_IN,
-      },
-    );
+    const payload: {
+      sub: string;
+      role?: Role;
+      type: typeof TOKEN_TYPE_ACCESS | typeof TOKEN_TYPE_REFRESH;
+    } = {
+      sub: user.id.toString(),
+      type: isRefreshToken ? TOKEN_TYPE_REFRESH : TOKEN_TYPE_ACCESS,
+    };
+
+    if (!isRefreshToken) {
+      payload.role = user.role;
+    }
+
+    return await this.joseJwtService.sign(payload, expiresIn);
   }
 
   async authenticateUser(params: {
@@ -203,7 +198,7 @@ export class AuthService {
       isRawToken: true,
     });
 
-    const userId = payload.sub;
+    const userId = Number(payload.sub);
 
     const user = await this.getAuthorizedUserById(userId);
 

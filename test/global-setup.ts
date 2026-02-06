@@ -27,12 +27,12 @@ export default async () => {
 
 /**
  "transformIgnorePatterns": [
-   "/node_modules/(?!(@paralleldrive/cuid2|@noble/hashes)/)"
+   "/node_modules/(?!(@paralleldrive/cuid2|@noble/hashes|Jose)/)"
  ]
 
  > 
  node_modules는 기본적으로 변환하지 않되,
-@paralleldrive/cuid2와 @noble/hashes만 예외로 변환해라
+@paralleldrive/cuid2와 @noble/hashes만 예외로 변환해라 + jose
 
 
 Jest는 기본적으로:

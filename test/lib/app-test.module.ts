@@ -13,10 +13,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { HealthCheckModule } from 'src/common/health-check/health-check.module';
+import { JoseJwtConfigService } from 'src/configurations/jose-jwt.config';
 import { RedisConfigService } from 'src/configurations/redis.config';
 import { ServerEnvValidation } from 'src/configurations/server.config';
 import { AuthMiddleware } from 'src/modules/auth/auth.middleware';
 import { AuthModule } from 'src/modules/auth/auth.module';
+import { JoseJwtModule } from 'src/modules/jose-jwt/jose-jwt.module';
 import { PostModule } from 'src/modules/posts/post.module';
 import { UserModule } from 'src/modules/users/user.module';
 import { TestService } from './test.service';
@@ -58,6 +60,10 @@ class GlobalTestLoggerModule {}
     }),
     GlobalTestLoggerModule,
     HealthCheckModule,
+    JoseJwtModule.registerAsync({
+      global: true,
+      useClass: JoseJwtConfigService,
+    }),
     AuthModule,
     UserModule,
     PostModule,

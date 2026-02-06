@@ -14,6 +14,13 @@ export const UserInToken = createParamDecorator(
       return undefined;
     }
 
-    return data ? request.user[data] : request.user;
+    if (data) {
+      return data === 'sub' ? Number(request.user[data]) : request.user[data];
+    }
+
+    return {
+      ...request.user,
+      sub: Number(request.user.sub),
+    };
   },
 );

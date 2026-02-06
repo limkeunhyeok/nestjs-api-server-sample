@@ -13,12 +13,14 @@ import { RoleGuard } from './common/guards/role.guard';
 import { HealthCheckModule } from './common/health-check/health-check.module';
 import { HttpLoggingMiddleware } from './common/middlewares/http-logging.middleware';
 import { IgnoreBrowserRequestMiddleware } from './common/middlewares/ignore-browser-request.middleware';
+import { JoseJwtConfigService } from './configurations/jose-jwt.config';
 import { RedisConfigService } from './configurations/redis.config';
 import { ServerEnvValidation } from './configurations/server.config';
 import { TypeOrmConfigService } from './configurations/typeorm.config';
 import { WinstonConfigService } from './configurations/winston.config';
 import { AuthMiddleware } from './modules/auth/auth.middleware';
 import { AuthModule } from './modules/auth/auth.module';
+import { JoseJwtModule } from './modules/jose-jwt/jose-jwt.module';
 import { PostModule } from './modules/posts/post.module';
 import { UserModule } from './modules/users/user.module';
 
@@ -38,6 +40,10 @@ import { UserModule } from './modules/users/user.module';
     CacheModule.registerAsync({
       isGlobal: true,
       useClass: RedisConfigService,
+    }),
+    JoseJwtModule.registerAsync({
+      global: true,
+      useClass: JoseJwtConfigService,
     }),
     UserModule,
     AuthModule,

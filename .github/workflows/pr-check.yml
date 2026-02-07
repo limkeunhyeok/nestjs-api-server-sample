@@ -16,20 +16,44 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
+      - name: Common Setup
+        uses: ./.github/actions/common-setup.yml
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
 
       - name: Checking lint
         run: pnpm run lint
 
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [24.x]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Common Setup
+        uses: ./.github/actions/common-setup.yml
+        with:
+          node-version: ${{ matrix.node-version }}
+
       - name: Checking build
         run: pnpm run build
+
+  test-e2e:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [24.x]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Common Setup
+        uses: ./.github/actions/common-setup.yml
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Run E2E Tests
+        run: pnpm run test:e2e

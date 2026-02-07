@@ -4,6 +4,8 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+packageExtensionsChecksum: sha256-vwrwkX6+973Wo5XOPZVubid/A/trPjyZzjUMGWykHn8=
+
 importers:
 
   .:
@@ -124,6 +126,9 @@ importers:
         specifier: ^11.1.8
         version: 11.1.8(@nestjs/common@11.1.8(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.8)(@nestjs/platform-express@11.1.8)
       '@testcontainers/postgresql':
+        specifier: ^11.11.0
+        version: 11.11.0
+      '@testcontainers/redis':
         specifier: ^11.11.0
         version: 11.11.0
       '@types/bcrypt':
@@ -1312,6 +1317,9 @@ packages:
 
   '@testcontainers/postgresql@11.11.0':
     resolution: {integrity: sha512-Og64I/h5LKLVvUTkAcLeTXfFcMhh3dCHCypN3Uzd+tQMd70SpCfQ0LCP9v/U+MS7JBRzU9EmqhUFkTOm4hyZWw==}
+
+  '@testcontainers/redis@11.11.0':
+    resolution: {integrity: sha512-IaDPNd1jRkshwJ69D7Nc3OTt5QQG1d4G1TZILSQ7gAVr4OqAJxoA9pV73ZvKIF/8LwxDDg136ApPlU9PcFtIKg==}
 
   '@tokenizer/inflate@0.2.7':
     resolution: {integrity: sha512-MADQgmZT1eKjp06jpI2yozxaU9uVs4GzzgSL+uEq7bVcJ9V1ZXQkeGNql1fsSI0gMy1vhvNTNbUqrx+pZfJVmg==}
@@ -6109,6 +6117,15 @@ snapshots:
       defer-to-connect: 2.0.1
 
   '@testcontainers/postgresql@11.11.0':
+    dependencies:
+      testcontainers: 11.11.0
+    transitivePeerDependencies:
+      - bare-abort-controller
+      - bare-buffer
+      - react-native-b4a
+      - supports-color
+
+  '@testcontainers/redis@11.11.0':
     dependencies:
       testcontainers: 11.11.0
     transitivePeerDependencies:

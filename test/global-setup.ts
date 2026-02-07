@@ -2,6 +2,8 @@ import {
   PostgreSqlContainer,
   StartedPostgreSqlContainer,
 } from '@testcontainers/postgresql';
+import { RedisContainer, StartedRedisContainer } from '@testcontainers/redis';
+
 const globalAny: any = global;
 
 export default async () => {
@@ -11,8 +13,17 @@ export default async () => {
       .withDatabase('test_mydb')
       .start();
   console.log('Postgres container started.');
+
+  console.log('Starting Redis container...');
+  const redisContainer: StartedRedisContainer = await new RedisContainer(
+    'redis:8.4-alpine',
+  ).start();
+  console.log('Redis container started.');
+
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   globalAny.__POSTGRES_CONTAINER__ = testContainer;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  globalAny.__REDIS_CONTAINER__ = redisContainer;
 
   // 환경 변수 설정 (기존에 TypeORM 세팅에 사용하던 키값들과 네이밍을 동일하게 할 것!)
   process.env.DB_TYPE = 'postgres';
@@ -21,6 +32,9 @@ export default async () => {
   process.env.DB_USER = testContainer.getUsername();
   process.env.DB_PASS = testContainer.getPassword();
   process.env.DB_NAME = testContainer.getDatabase();
+
+  process.env.REDIS_HOST = redisContainer.getHost();
+  process.env.REDIS_PORT = redisContainer.getPort().toString();
 
   console.log('Global setup completed.');
 };

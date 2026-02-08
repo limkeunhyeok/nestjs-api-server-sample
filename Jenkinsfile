@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = 'chungdaeking/nestjs-api-server-sample:latest'
+        IMAGE_NAME = 'chungdaeking/nestjs-api-server-sample:develop'
         CONTAINER_NAME = 'nestjs-api-server'
         PORT = '3101'
     }
@@ -32,17 +32,18 @@ pipeline {
 
         stage('Run Docker Container') {
             steps {
-                withCredentials([string(credentialsId: 'NEST_API_SERVER_ENV', variable: 'ENV_FILE')]) {
+                withCredentials([
+                    file(credentialsId: 'NEST_API_SERVER_ENV', variable: 'ENV_FILE')
+                ]) {
                     sh '''
-                    echo "$ENV_FILE" > .env
-
-                    docker run \\
-                        -e PORT=${PORT} \\
-                        --env-file .env \\
-                        -d \\
-                        --name ${CONTAINER_NAME} \\
-                        -p ${PORT}:${PORT} \\
-                        ${DOCKER_IMAGE}
+                    docker run \
+                        --network nestjs-api-server-sample_server-prod \
+                        --env-file $ENV_FILE \
+                        -e PORT=${PORT} \
+                        -d \
+                        --name ${CONTAINER_NAME} \
+                        -p ${PORT}:${PORT} \
+                        ${IMAGE_NAME}
                     '''
                 }
             }

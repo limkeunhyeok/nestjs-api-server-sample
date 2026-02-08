@@ -49,8 +49,8 @@ jobs:
       ACCESS_TOKEN_SECRET: test_access_token
       REFRESH_TOKEN_SECRET: test_refresh_token
       REDIS_PASSWORD: test_redis_password
-      JWT_PRIVATE_JWK: '{"kty":"EC","d":"kN45xM9XmZ9GjJ3_T_G55jJ56_t_45_x_23_y","crv":"P-256","x":"dummy_x","y":"dummy_y","alg":"ES256","kid":"test","use":"sig"}'
-      JWT_PUBLIC_JWK: '{"kty":"EC","crv":"P-256","x":"dummy_x","y":"dummy_y","alg":"ES256","kid":"test","use":"sig"}'
+      JWT_PRIVATE_JWK: '{"kty":"EC","x":"XMurRBkAiCnflVNVJ1Qr87V5x8CgKpeLiPhP1DHuPrs","y":"LFGRQY3xHXNwYYl5WujJq8lY57EIrNfkP-ZsHV93BJ0","crv":"P-256","d":"fgDcr-S-IzAYvhU04QwgzgmlLhmFH5Qp3tw5jX50W0A","alg":"ES256","kid":"88f9c6d1-627d-4de0-9889-8b8fc3263f29","use":"sig"}'
+      JWT_PUBLIC_JWK: '{"kty":"EC","x":"XMurRBkAiCnflVNVJ1Qr87V5x8CgKpeLiPhP1DHuPrs","y":"LFGRQY3xHXNwYYl5WujJq8lY57EIrNfkP-ZsHV93BJ0","crv":"P-256","alg":"ES256","kid":"88f9c6d1-627d-4de0-9889-8b8fc3263f29","use":"sig"}'
     strategy:
       matrix:
         node-version: [24.x]

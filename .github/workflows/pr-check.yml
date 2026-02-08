@@ -49,8 +49,8 @@ jobs:
       ACCESS_TOKEN_SECRET: test_access_token
       REFRESH_TOKEN_SECRET: test_refresh_token
       REDIS_PASSWORD: test_redis_password
-      JWT_PRIVATE_JWK: '{"kty":"EC","d":"kN45xM9XmZ9GjJ3_T_G55jJ56_t_45_x_23_y","crv":"P-256","x":"123","y":"456"}'
-      JWT_PUBLIC_JWK: '{"kty":"EC","crv":"P-256","x":"123","y":"456"}'
+      JWT_PRIVATE_JWK: '{"kty":"EC","d":"kN45xM9XmZ9GjJ3_T_G55jJ56_t_45_x_23_y","crv":"P-256","x":"dummy_x","y":"dummy_y","alg":"ES256","kid":"test","use":"sig"}'
+      JWT_PUBLIC_JWK: '{"kty":"EC","crv":"P-256","x":"dummy_x","y":"dummy_y","alg":"ES256","kid":"test","use":"sig"}'
     strategy:
       matrix:
         node-version: [24.x]

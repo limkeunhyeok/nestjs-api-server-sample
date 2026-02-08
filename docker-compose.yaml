@@ -130,6 +130,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - /usr/bin/docker:/usr/bin/docker
     restart: unless-stopped
+    environment:
+      - TZ=Asia/Seoul
     # docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
 
 volumes:

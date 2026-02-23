@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WinstonModule } from 'nest-winston';
 import { RoleGuard } from './common/guards/role.guard';
@@ -45,6 +46,12 @@ import { UserModule } from './modules/users/user.module';
       global: true,
       useClass: JoseJwtConfigService,
     }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 100,
+      },
+    ]),
     UserModule,
     AuthModule,
     HealthCheckModule,
@@ -55,6 +62,10 @@ import { UserModule } from './modules/users/user.module';
     {
       provide: APP_GUARD,
       useClass: RoleGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
   ],
 })
@@ -72,6 +83,7 @@ export class AppModule implements NestModule {
         { path: '/auth/refresh', method: RequestMethod.POST },
         { path: '/auth/forgot-password', method: RequestMethod.POST },
         { path: '/health-check/(.*)', method: RequestMethod.GET },
+        { path: '/.well-known/jwks.json', method: RequestMethod.GET },
       )
       .forRoutes({ path: '*', method: RequestMethod.ALL });
   }

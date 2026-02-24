@@ -1,44 +1,83 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import * as crypto from 'crypto';
 import {
+  createLocalJWKSet,
   exportJWK,
+  FlattenedJWSInput,
   generateKeyPair,
   importJWK,
+  JWSHeaderParameters,
   JWTPayload,
   jwtVerify,
-  SignJWT,
+  SignJWT
 } from 'jose';
 import { JOSE_JWT_MODULE_OPTIONS } from './jose-jwt.const';
 import { Es256Jwk, JoseJwtModuleOptions } from './jose-jwt.interface';
 
 @Injectable()
-export class JoseJwtService {
+export class JoseJwtService implements OnModuleInit {
+  private privateKey: CryptoKey | Uint8Array;
+  private localJWKSet: (
+    protectedHeader?: JWSHeaderParameters,
+    token?: FlattenedJWSInput,
+  ) => Promise<CryptoKey | Uint8Array>;
+  private publicJwk: Record<string, unknown>;
+
   constructor(
     @Inject(JOSE_JWT_MODULE_OPTIONS)
     private readonly options: JoseJwtModuleOptions,
   ) {}
 
+  async onModuleInit(): Promise<void> {
+    this.privateKey = (await importJWK(
+      this.options.priKey,
+      this.options.priKey.alg,
+    )) as CryptoKey;
+
+    const publicKey = (await importJWK(
+      this.options.pubKey,
+      this.options.pubKey.alg,
+    )) as CryptoKey;
+    const exported = await exportJWK(publicKey);
+
+    this.publicJwk = {
+      ...exported,
+      kid: this.options.pubKey.kid,
+      alg: this.options.pubKey.alg,
+      use: this.options.pubKey.use,
+      kty: this.options.pubKey.kty,
+    };
+
+    this.localJWKSet = createLocalJWKSet({
+      keys: [this.publicJwk as JsonWebKey],
+    });
+  }
+
+  getPublicJwk(): Record<string, unknown> {
+    return this.publicJwk;
+  }
+
+  getPublicJwks(): { keys: Record<string, unknown>[] } {
+    return { keys: [this.publicJwk] };
+  }
+
   async sign(payload: JWTPayload, expiresIn: string | number): Promise<string> {
-    const privateJwk = this.options.priKey;
-
-    const privateKey = await importJWK(privateJwk, privateJwk.alg);
-
     const jwt = await new SignJWT(payload)
-      .setProtectedHeader({ alg: privateJwk.alg, typ: 'JWT' })
+      .setProtectedHeader({
+        alg: this.options.priKey.alg,
+        kid: this.options.priKey.kid,
+        typ: 'JWT',
+      })
       .setIssuedAt()
       .setExpirationTime(expiresIn)
-      .sign(privateKey);
+      .sign(this.privateKey);
 
     return jwt;
   }
 
   async verify(token: string): Promise<JWTPayload> {
-    const publicJwk = this.options.pubKey;
-
-    const publicKey = await importJWK(publicJwk, publicJwk.alg);
-
-    const { payload } = await jwtVerify(token, publicKey, {
-      algorithms: [publicJwk.alg],
+    const { payload } = await jwtVerify(token, this.localJWKSet, {
+      algorithms: [this.options.pubKey.alg],
     });
 
     return payload;

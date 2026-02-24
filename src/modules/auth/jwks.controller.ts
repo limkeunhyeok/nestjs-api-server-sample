@@ -1,0 +1,16 @@
+import { Controller, Get, Header } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
+import { JoseJwtService } from '../jose-jwt/jose-jwt.service';
+
+@ApiTags('jwks')
+@Controller('.well-known')
+export class JwksController {
+  constructor(private readonly joseJwtService: JoseJwtService) {}
+
+  @Get('jwks.json')
+  @Header('Cache-Control', 'public, max-age=3600')
+  @Header('Content-Type', 'application/json')
+  getJwks(): { keys: Record<string, unknown>[] } {
+    return this.joseJwtService.getPublicJwks();
+  }
+}

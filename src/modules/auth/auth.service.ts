@@ -31,12 +31,14 @@ import {
   AuthTokens,
   RefreshTokenPayload,
 } from './auth.interface';
+import { TokenBlacklistService } from './token-blacklist.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userService: UserService,
     private readonly joseJwtService: JoseJwtService,
+    private readonly tokenBlacklistService: TokenBlacklistService,
   ) {}
 
   async parseBearerToken(rawToken: string): Promise<AccessTokenPayload>;
@@ -220,7 +222,7 @@ export class AuthService {
 
     const user = await this.userService.getUserByEmail(email);
 
-    const randomPassword = generateRandomString(8); // length = 8
+    const randomPassword = generateRandomString(8);
 
     await this.userService.resetUserPassword({
       userId: user.id,
@@ -228,6 +230,17 @@ export class AuthService {
     });
 
     return { newPassword: randomPassword };
+  }
+
+  async logout(rawToken: string): Promise<void> {
+    const token = this.extractTokenFromBearer(rawToken);
+    const payload = await this.parseBearerToken(rawToken);
+
+    const expirySeconds = payload.exp - Math.floor(Date.now() / 1000);
+
+    if (expirySeconds > 0) {
+      await this.tokenBlacklistService.blacklist(token, expirySeconds);
+    }
   }
 
   extractTokenFromBearer(rawToken: string): string {

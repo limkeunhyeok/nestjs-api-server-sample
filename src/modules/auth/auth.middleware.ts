@@ -8,8 +8,12 @@ import {
 import { NextFunction, Request, Response } from 'express';
 import { buildAuthAccessTokenCacheKey } from 'src/common/cache/auth.cache-key';
 import { MISSING_AUTHORIZATION_HEADER } from 'src/common/constants/exception-message.const';
+import { TOKEN_TYPE_DEV } from 'src/modules/auth/auth.const';
 import { AccessTokenPayload } from 'src/modules/auth/auth.interface';
 import { AuthService } from 'src/modules/auth/auth.service';
+import { ActiveUsersService } from './active-users.service';
+import { DevTokenService } from './dev-token.service';
+import { TokenBlacklistService } from './token-blacklist.service';
 
 export interface RequestWithUser extends Request {
   user?: AccessTokenPayload;
@@ -19,6 +23,9 @@ export interface RequestWithUser extends Request {
 export class AuthMiddleware implements NestMiddleware {
   constructor(
     private readonly authService: AuthService,
+    private readonly tokenBlacklistService: TokenBlacklistService,
+    private readonly devTokenService: DevTokenService,
+    private readonly activeUsersService: ActiveUsersService,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
@@ -31,13 +38,18 @@ export class AuthMiddleware implements NestMiddleware {
 
     const token = this.authService.extractTokenFromBearer(rawToken);
 
-    const tokenKey = buildAuthAccessTokenCacheKey(token);
+    const isBlacklisted = await this.tokenBlacklistService.isBlacklisted(token);
+    if (isBlacklisted) {
+      throw new UnauthorizedException('Token has been revoked.');
+    }
 
+    const tokenKey = buildAuthAccessTokenCacheKey(token);
     const cachePayload =
       await this.cacheManager.get<AccessTokenPayload>(tokenKey);
 
     if (cachePayload) {
       req.user = cachePayload;
+      await this.activeUsersService.trackUser(cachePayload.sub);
       return next();
     }
 
@@ -45,9 +57,19 @@ export class AuthMiddleware implements NestMiddleware {
       isRefreshToken: false,
     });
 
+    if ((payload as any).type === TOKEN_TYPE_DEV) {
+      const jti = (payload as any).jti;
+      if (!jti) {
+        throw new UnauthorizedException('Invalid dev token: missing jti.');
+      }
+      const isRevoked = await this.devTokenService.isDevTokenRevoked(jti);
+      if (isRevoked) {
+        throw new UnauthorizedException('Dev token has been revoked.');
+      }
+    }
+
     const expiryDate = new Date(payload.exp * 1000).getTime();
     const now = Date.now();
-
     const differenceInSeconds = (expiryDate - now) / 1000;
 
     await this.cacheManager.set(
@@ -57,6 +79,8 @@ export class AuthMiddleware implements NestMiddleware {
     );
 
     req.user = payload;
+
+    await this.activeUsersService.trackUser(payload.sub);
 
     return next();
   }

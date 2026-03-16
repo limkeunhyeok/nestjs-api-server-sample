@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm';
 import { SnakeNamingStrategy } from 'src/common/databases/snake-naming.strategy';
 import { ServerEnv } from 'src/configurations/server.config';
+import { DevTokenEntity } from 'src/modules/auth/dev-token.entity';
 import { CommentEntity } from 'src/modules/posts/entities/comment.entity';
 import { PostEntity } from 'src/modules/posts/entities/post.entity';
 import { UserEntity } from 'src/modules/users/user.entity';
@@ -21,7 +22,7 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
       password: this.configService.get<string>('DB_PASS'),
       synchronize: true,
       logging: false,
-      entities: [UserEntity, PostEntity, CommentEntity],
+      entities: [UserEntity, PostEntity, CommentEntity, DevTokenEntity],
       namingStrategy: new SnakeNamingStrategy(),
     };
   }

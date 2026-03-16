@@ -83,7 +83,7 @@ export class AppModule implements NestModule {
         { path: '/auth/refresh', method: RequestMethod.POST },
         { path: '/auth/forgot-password', method: RequestMethod.POST },
         { path: '/health-check/(.*)', method: RequestMethod.GET },
-        { path: '/.well-known/jwks.json', method: RequestMethod.GET },
+        { path: '/.well-known/(.*)', method: RequestMethod.GET },
       )
       .forRoutes({ path: '*', method: RequestMethod.ALL });
   }

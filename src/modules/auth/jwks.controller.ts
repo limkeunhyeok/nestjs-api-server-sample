@@ -1,9 +1,11 @@
 import { Controller, Get, Header } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { Public } from 'src/common/decorators/public.decorator';
 import { JoseJwtService } from '../jose-jwt/jose-jwt.service';
 
 @ApiTags('jwks')
-@Controller('.well-known')
+@Public()
+@Controller('/.well-known')
 export class JwksController {
   constructor(private readonly joseJwtService: JoseJwtService) {}
 

@@ -13,6 +13,14 @@ export class ActiveUsersService {
   async trackUser(userId: string | number): Promise<void> {
     const key = `${ACTIVE_USERS_KEY}:${userId}`;
     await this.cacheManager.set(key, Date.now(), ACTIVE_WINDOW_MS);
+
+    const indexKey = `${ACTIVE_USERS_KEY}:__index__`;
+    const index = await this.cacheManager.get<string[]>(indexKey) || [];
+    const idStr = userId.toString();
+    if (!index.includes(idStr)) {
+      index.push(idStr);
+      await this.cacheManager.set(indexKey, index); // No expiry or very long expiry
+    }
   }
 
   async getActiveUserCount(): Promise<number> {
@@ -21,15 +29,22 @@ export class ActiveUsersService {
   }
 
   async getActiveUserIds(): Promise<string[]> {
-    const store = (this.cacheManager as any).store ?? (this.cacheManager as any).stores?.[0];
+    const indexKey = `${ACTIVE_USERS_KEY}:__index__`;
+    const index = await this.cacheManager.get<string[]>(indexKey) || [];
 
-    if (typeof store.keys === 'function') {
-      const keys: string[] = await store.keys(`${ACTIVE_USERS_KEY}:*`);
-      return keys.map((key) => key.replace(`${ACTIVE_USERS_KEY}:`, ''));
+    const activeIds: string[] = [];
+    for (const userId of index) {
+      const active = await this.cacheManager.get(`${ACTIVE_USERS_KEY}:${userId}`);
+      if (active) {
+        activeIds.push(userId);
+      }
     }
 
-    const countKey = `${ACTIVE_USERS_KEY}:__index__`;
-    const index = await this.cacheManager.get<string[]>(countKey);
-    return index ?? [];
+    // Prune the index if some expired
+    if (activeIds.length !== index.length) {
+      await this.cacheManager.set(indexKey, activeIds);
+    }
+
+    return activeIds;
   }
 }

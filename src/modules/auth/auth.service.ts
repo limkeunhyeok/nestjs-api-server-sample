@@ -24,6 +24,7 @@ import {
   AUTH_SCHEME_BEARER,
   REFRESH_TOKEN_EXPIRES_IN,
   TOKEN_TYPE_ACCESS,
+  TOKEN_TYPE_DEV,
   TOKEN_TYPE_REFRESH,
 } from './auth.const';
 import {
@@ -81,11 +82,14 @@ export class AuthService {
         return payload as RefreshTokenPayload;
       }
 
-      if (payload.type !== TOKEN_TYPE_ACCESS) {
+      if (payload.type !== TOKEN_TYPE_ACCESS && payload.type !== TOKEN_TYPE_DEV) {
         throw new UnauthorizedException(TOKEN_TYPE_MISMATCH);
       }
       return payload as AccessTokenPayload;
-    } catch (error: unknown) {
+    } catch (error: any) {
+      if (error?.response?.statusCode || error instanceof UnauthorizedException) {
+        throw error;
+      }
       if (error instanceof errors.JWTExpired) {
         throw new UnauthorizedException(TOKEN_EXPIRED);
       }

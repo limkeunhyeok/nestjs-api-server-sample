@@ -1,19 +1,20 @@
 import {
-  CanActivate,
-  ExecutionContext,
-  ForbiddenException,
-  Injectable,
-  UnauthorizedException,
+    CanActivate,
+    ExecutionContext,
+    ForbiddenException,
+    Injectable,
+    UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { isNil } from 'lodash';
 import { AccessTokenPayload } from 'src/modules/auth/auth.interface';
 import { RequestWithUser } from 'src/modules/auth/auth.middleware';
 import {
-  FORBIDDEN_RESOURCE_MODIFICATION,
-  INVALID_CREDENTIALS,
+    FORBIDDEN_RESOURCE_MODIFICATION,
+    INVALID_CREDENTIALS,
 } from '../constants/exception-message.const';
 import { Role } from '../constants/role.const';
+import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { Roles } from '../decorators/roles.decorator';
 
 @Injectable()
@@ -21,9 +22,21 @@ export class RoleGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const roles = this.reflector.get<Role[]>(Roles, context.getHandler());
+    const isPublic = this.reflector.getAllAndOverride<boolean>(
+      IS_PUBLIC_KEY,
+      [context.getHandler(), context.getClass()],
+    );
 
-    // public
+    if (isPublic) {
+      return true;
+    }
+
+    const roles = this.reflector.getAllAndOverride<Role[]>(Roles, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    // public (no Roles explicitly provided, and no Public either indicates default public by the current logic, though typically no Roles means public if not strictly guarded)
     if (!roles) {
       return true;
     }
@@ -40,11 +53,13 @@ export class RoleGuard implements CanActivate {
     }
 
     if (isNil(user)) {
+      console.log('RoleGuard: INVALID_CREDENTIALS');
       throw new UnauthorizedException(INVALID_CREDENTIALS);
     }
 
     const hasRole = roles.includes(user.role);
     if (!hasRole) {
+      console.log('RoleGuard FORBIDDEN! roles required:', roles, 'user.role:', user.role);
       throw new ForbiddenException(FORBIDDEN_RESOURCE_MODIFICATION);
     }
 

@@ -38,9 +38,29 @@ export function getHeadersFrom(res: Response, headers: Headers = {}): Headers {
   };
 }
 
-export async function fetchHeaders(req: TestAgent) {
+export async function fetchHeaders(req: TestAgent, userRaw?: any) {
+  let token: string | undefined;
+
+  if (userRaw) {
+    const signInParams = extractSignInParams(userRaw);
+    const loginRes = await req.post('/auth/login').send(signInParams).expect(201);
+    token = loginRes.body.accessToken;
+  }
+
   const res = await req.get('/health-check/server').expect(200);
-  return getHeadersFrom(res);
+  return getHeadersFrom(res, { token });
+}
+
+export async function fetchHeadersByMember(
+  req: TestAgent,
+  userRaw: any,
+) {
+  const signInParams = extractSignInParams(userRaw);
+  const loginRes = await req.post('/auth/login').send(signInParams).expect(201);
+  const token = loginRes.body.accessToken;
+
+  const res = await req.get('/health-check/server').expect(200);
+  return getHeadersFrom(res, { token });
 }
 
 export async function fetchUserTokenAndHeaders(

@@ -30,9 +30,15 @@ export class AuthMiddleware implements NestMiddleware {
   ) {}
 
   async use(req: RequestWithUser, res: Response, next: NextFunction) {
+    // Exclude well-known completely in middleware as a fallback
+    if (req.path.startsWith('/.well-known')) {
+      return next();
+    }
+
     const rawToken = req.headers['authorization'];
 
     if (!rawToken) {
+      console.log('AuthMiddleware: MISSING_AUTHORIZATION_HEADER, path:', req.path, 'headers:', req.headers);
       throw new UnauthorizedException(MISSING_AUTHORIZATION_HEADER);
     }
 
@@ -40,6 +46,7 @@ export class AuthMiddleware implements NestMiddleware {
 
     const isBlacklisted = await this.tokenBlacklistService.isBlacklisted(token);
     if (isBlacklisted) {
+      console.log('AuthMiddleware: Token has been revoked.');
       throw new UnauthorizedException('Token has been revoked.');
     }
 

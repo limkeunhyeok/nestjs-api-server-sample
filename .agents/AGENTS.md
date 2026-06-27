@@ -96,3 +96,7 @@ AI 에이전트가 코드를 작성하거나 변경할 때 실수하기 쉬운 �
 - **제약**: 프로젝트의 어떤 레이어에서도 `@nestjs/common`에서 제공하는 `HttpException` 및 하위 예외 클래스(`BadRequestException`, `NotFoundException` 등)를 직접 `throw`하지 않습니다.
 - **수동 HTTP 예외 발급**: 컨트롤러, 미들웨어, 가드 등에서 명시적인 HTTP 오류(예: 400, 401 등)를 발생시켜야 하는 경우에는 오직 직접 정의된 `ApiException`만을 사용합니다.
 - **예외 매핑 표준화**: 모든 비즈니스 도메인 오류는 `BaseDomainException`으로 던져지고, 외부 HTTP 관련 오류는 `ApiException`으로 던져집니다. `AllExceptionsFilter`가 이 두 커스텀 예외를 수신하여 최종 HTTP API JSON Response로 일원화하여 매핑합니다.
+
+### 4.9. Git 관련 커밋 직접 실행 금지 (Git Command Restriction)
+- **제약**: 에이전트는 어떠한 경우에도 직접 `git add`, `git commit`, `git push` 등 버전을 관리하거나 커밋을 생성하는 명령을 터미널 도구(`run_command` 등)로 실행해서는 안 됩니다.
+- **역할**: Git 커밋 및 형상 관리는 오직 사용자가 수동으로 수행하며, 에이전트는 사용자가 요청할 때 한하여 커밋 메시지 추천 등의 텍스트 조력만 제공할 수 있습니다.

@@ -82,12 +82,18 @@ export class AuthService {
         return payload as RefreshTokenPayload;
       }
 
-      if (payload.type !== TOKEN_TYPE_ACCESS && payload.type !== TOKEN_TYPE_DEV) {
+      if (
+        payload.type !== TOKEN_TYPE_ACCESS &&
+        payload.type !== TOKEN_TYPE_DEV
+      ) {
         throw new UnauthorizedException(TOKEN_TYPE_MISMATCH);
       }
       return payload as AccessTokenPayload;
     } catch (error: any) {
-      if (error?.response?.statusCode || error instanceof UnauthorizedException) {
+      if (
+        error?.response?.statusCode ||
+        error instanceof UnauthorizedException
+      ) {
         throw error;
       }
       if (error instanceof errors.JWTExpired) {

@@ -1,11 +1,11 @@
 import {
-    Body,
-    Controller,
-    Delete,
-    Get,
-    Param,
-    ParseIntPipe,
-    Post,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Role } from 'src/common/constants/role.const';

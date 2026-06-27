@@ -1,9 +1,9 @@
+import { Injectable } from '@nestjs/common';
 import {
-  ConflictException,
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+  CommentConflictException,
+  CommentForbiddenException,
+  CommentNotFoundException,
+} from '../exceptions/comment.exception';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   buildCommentByIdCacheKey,
@@ -150,11 +150,11 @@ export class CommentService {
     });
 
     if (!comment) {
-      throw new NotFoundException(NOT_FOUND_RESOURCE);
+      throw new CommentNotFoundException(NOT_FOUND_RESOURCE);
     }
 
     if (post.id !== comment.post.id) {
-      throw new ConflictException(RESOURCE_NOT_ASSOCIATED);
+      throw new CommentConflictException(RESOURCE_NOT_ASSOCIATED);
     }
 
     return comment;
@@ -180,7 +180,7 @@ export class CommentService {
       userInToken.role !== Role.ADMIN &&
       userInToken.sub !== comment.author.id
     ) {
-      throw new ForbiddenException(FORBIDDEN_RESOURCE_MODIFICATION);
+      throw new CommentForbiddenException(FORBIDDEN_RESOURCE_MODIFICATION);
     }
 
     const updateFields = removeUndefined(params);
@@ -206,7 +206,7 @@ export class CommentService {
       userInToken.role !== Role.ADMIN &&
       userInToken.sub !== comment.author.id
     ) {
-      throw new ForbiddenException(FORBIDDEN_RESOURCE_MODIFICATION);
+      throw new CommentForbiddenException(FORBIDDEN_RESOURCE_MODIFICATION);
     }
 
     const deletedComment = { ...comment };

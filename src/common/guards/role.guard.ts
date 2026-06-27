@@ -1,17 +1,17 @@
 import {
-    CanActivate,
-    ExecutionContext,
-    ForbiddenException,
-    Injectable,
-    UnauthorizedException,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { isNil } from 'lodash';
 import { AccessTokenPayload } from 'src/modules/auth/auth.interface';
 import { RequestWithUser } from 'src/modules/auth/auth.middleware';
 import {
-    FORBIDDEN_RESOURCE_MODIFICATION,
-    INVALID_CREDENTIALS,
+  FORBIDDEN_RESOURCE_MODIFICATION,
+  INVALID_CREDENTIALS,
 } from '../constants/exception-message.const';
 import { Role } from '../constants/role.const';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
@@ -22,10 +22,10 @@ export class RoleGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const isPublic = this.reflector.getAllAndOverride<boolean>(
-      IS_PUBLIC_KEY,
-      [context.getHandler(), context.getClass()],
-    );
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
 
     if (isPublic) {
       return true;
@@ -59,7 +59,12 @@ export class RoleGuard implements CanActivate {
 
     const hasRole = roles.includes(user.role);
     if (!hasRole) {
-      console.log('RoleGuard FORBIDDEN! roles required:', roles, 'user.role:', user.role);
+      console.log(
+        'RoleGuard FORBIDDEN! roles required:',
+        roles,
+        'user.role:',
+        user.role,
+      );
       throw new ForbiddenException(FORBIDDEN_RESOURCE_MODIFICATION);
     }
 

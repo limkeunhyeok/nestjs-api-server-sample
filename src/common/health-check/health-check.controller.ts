@@ -1,10 +1,10 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import {
-    HealthCheck,
-    HealthCheckService,
-    HttpHealthIndicator,
-    TypeOrmHealthIndicator,
+  HealthCheck,
+  HealthCheckService,
+  HttpHealthIndicator,
+  TypeOrmHealthIndicator,
 } from '@nestjs/terminus';
 import { SkipThrottle } from '@nestjs/throttler';
 

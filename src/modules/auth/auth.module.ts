@@ -25,6 +25,11 @@ import { TokenBlacklistService } from './token-blacklist.service';
     ActiveUsersController,
     JwksController,
   ],
-  exports: [AuthService, TokenBlacklistService, DevTokenService, ActiveUsersService],
+  exports: [
+    AuthService,
+    TokenBlacklistService,
+    DevTokenService,
+    ActiveUsersService,
+  ],
 })
 export class AuthModule {}

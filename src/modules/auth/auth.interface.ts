@@ -1,6 +1,10 @@
 import { JWTPayload } from 'jose';
 import { Role } from 'src/common/constants/role.const';
-import { TOKEN_TYPE_ACCESS, TOKEN_TYPE_DEV, TOKEN_TYPE_REFRESH } from './auth.const';
+import {
+  TOKEN_TYPE_ACCESS,
+  TOKEN_TYPE_DEV,
+  TOKEN_TYPE_REFRESH,
+} from './auth.const';
 
 export interface AccessTokenPayload extends JWTPayload {
   sub: string;
@@ -36,4 +40,3 @@ export interface AuthUser extends Omit<AccessTokenPayload, 'sub'> {
   sub: number;
   role: Role;
 }
-

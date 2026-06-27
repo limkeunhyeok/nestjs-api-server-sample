@@ -38,7 +38,12 @@ export class AuthMiddleware implements NestMiddleware {
     const rawToken = req.headers['authorization'];
 
     if (!rawToken) {
-      console.log('AuthMiddleware: MISSING_AUTHORIZATION_HEADER, path:', req.path, 'headers:', req.headers);
+      console.log(
+        'AuthMiddleware: MISSING_AUTHORIZATION_HEADER, path:',
+        req.path,
+        'headers:',
+        req.headers,
+      );
       throw new UnauthorizedException(MISSING_AUTHORIZATION_HEADER);
     }
 

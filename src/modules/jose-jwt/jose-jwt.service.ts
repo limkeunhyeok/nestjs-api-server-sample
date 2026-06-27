@@ -9,7 +9,7 @@ import {
   JWSHeaderParameters,
   JWTPayload,
   jwtVerify,
-  SignJWT
+  SignJWT,
 } from 'jose';
 import { JOSE_JWT_MODULE_OPTIONS } from './jose-jwt.const';
 import { Es256Jwk, JoseJwtModuleOptions } from './jose-jwt.interface';

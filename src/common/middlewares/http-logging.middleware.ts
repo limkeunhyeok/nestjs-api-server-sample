@@ -6,7 +6,10 @@ import { ExtendedLogger } from '../interfaces/extended-logger.interface';
 
 @Injectable()
 export class HttpLoggingMiddleware implements NestMiddleware {
-  constructor(@Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: ExtendedLogger) {}
+  constructor(
+    @Inject(WINSTON_MODULE_NEST_PROVIDER)
+    private readonly logger: ExtendedLogger,
+  ) {}
 
   use(request: Request, response: Response, next: NextFunction) {
     const { originalUrl, method, query, ip, body } = request as Request<

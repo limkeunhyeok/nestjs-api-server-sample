@@ -1,8 +1,8 @@
+import { Injectable } from '@nestjs/common';
 import {
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+  PostForbiddenException,
+  PostNotFoundException,
+} from '../exceptions/post.exception';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   buildPostByIdCacheKey,
@@ -124,7 +124,7 @@ export class PostService {
     });
 
     if (!postEntity) {
-      throw new NotFoundException(NOT_FOUND_RESOURCE);
+      throw new PostNotFoundException(NOT_FOUND_RESOURCE);
     }
 
     return postEntity;
@@ -147,7 +147,7 @@ export class PostService {
     const post = await this.getPostById(postId);
 
     if (userInToken.role !== Role.ADMIN && userInToken.sub !== post.author.id) {
-      throw new ForbiddenException(FORBIDDEN_RESOURCE_MODIFICATION);
+      throw new PostForbiddenException(FORBIDDEN_RESOURCE_MODIFICATION);
     }
 
     const updateFields = removeUndefined(params);
@@ -169,7 +169,7 @@ export class PostService {
     const post = await this.getPostById(postId);
 
     if (userInToken.role !== Role.ADMIN && userInToken.sub !== post.author.id) {
-      throw new ForbiddenException(FORBIDDEN_RESOURCE_MODIFICATION);
+      throw new PostForbiddenException(FORBIDDEN_RESOURCE_MODIFICATION);
     }
 
     const deletedPost = { ...post };

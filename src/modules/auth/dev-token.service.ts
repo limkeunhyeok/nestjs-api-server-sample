@@ -1,8 +1,8 @@
+import { Injectable } from '@nestjs/common';
 import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+  DevTokenBadRequestException,
+  DevTokenNotFoundException,
+} from './exceptions/auth.exception';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as crypto from 'crypto';
@@ -30,7 +30,7 @@ export class DevTokenService {
   }): Promise<{ token: string; devToken: DevTokenEntity }> {
     const nodeEnv = this.configService.get<string>('NODE_ENV');
     if (nodeEnv === NodeEnv.PROD) {
-      throw new BadRequestException(
+      throw new DevTokenBadRequestException(
         'Dev tokens cannot be created in production environment.',
       );
     }
@@ -76,11 +76,11 @@ export class DevTokenService {
     const devToken = await this.devTokenRepository.findOne({ where: { id } });
 
     if (!devToken) {
-      throw new NotFoundException(`Dev token with id ${id} not found.`);
+      throw new DevTokenNotFoundException(`Dev token with id ${id} not found.`);
     }
 
     if (devToken.revokedAt) {
-      throw new BadRequestException(
+      throw new DevTokenBadRequestException(
         `Dev token with id ${id} is already revoked.`,
       );
     }

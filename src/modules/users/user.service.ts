@@ -1,9 +1,9 @@
+import { Injectable } from '@nestjs/common';
 import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+  EmailAlreadyRegisteredException,
+  UserForbiddenException,
+  UserNotFoundException,
+} from './exceptions/user.exception';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
@@ -51,7 +51,7 @@ export class UserService {
     });
 
     if (hasUser) {
-      throw new BadRequestException(EMAIL_IS_ALREADY_REGISTERED);
+      throw new EmailAlreadyRegisteredException(EMAIL_IS_ALREADY_REGISTERED);
     }
 
     const hash = await bcrypt.hash(
@@ -133,7 +133,7 @@ export class UserService {
     const user = await this.userRepository.findOneBy({ id: userId });
 
     if (!user) {
-      throw new NotFoundException(NOT_FOUND_RESOURCE);
+      throw new UserNotFoundException(NOT_FOUND_RESOURCE);
     }
 
     return user;
@@ -143,7 +143,7 @@ export class UserService {
   async getUserByEmail(email: string): Promise<UserEntity> {
     const user = await this.userRepository.findOneBy({ email });
     if (!user) {
-      throw new NotFoundException(NOT_FOUND_RESOURCE);
+      throw new UserNotFoundException(NOT_FOUND_RESOURCE);
     }
 
     return user;
@@ -166,7 +166,7 @@ export class UserService {
     const user = await this.getUserById(userId);
 
     if (userInToken.role !== Role.ADMIN && userInToken.sub !== user.id) {
-      throw new ForbiddenException(FORBIDDEN_RESOURCE_MODIFICATION);
+      throw new UserForbiddenException(FORBIDDEN_RESOURCE_MODIFICATION);
     }
 
     const updateFields = removeUndefined(params);
@@ -197,7 +197,7 @@ export class UserService {
     const user = await this.getUserById(userId);
 
     if (userInToken.role !== Role.ADMIN && userInToken.sub !== user.id) {
-      throw new ForbiddenException(FORBIDDEN_RESOURCE_MODIFICATION);
+      throw new UserForbiddenException(FORBIDDEN_RESOURCE_MODIFICATION);
     }
 
     const deletedUser = { ...user };

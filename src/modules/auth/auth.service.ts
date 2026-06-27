@@ -1,9 +1,6 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { UserNotFoundException } from '../users/exceptions/user.exception';
+import { InvalidEmailOrPasswordException } from './exceptions/auth.exception';
 import * as bcrypt from 'bcrypt';
 import { errors } from 'jose';
 import {
@@ -145,8 +142,8 @@ export class AuthService {
     try {
       user = await this.userService.getUserByEmail(email);
     } catch (error: unknown) {
-      if (error instanceof NotFoundException) {
-        throw new BadRequestException(INVALID_EMAIL_OR_PASSWORD);
+      if (error instanceof UserNotFoundException) {
+        throw new InvalidEmailOrPasswordException(INVALID_EMAIL_OR_PASSWORD);
       }
       throw error;
     }
@@ -154,7 +151,7 @@ export class AuthService {
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      throw new BadRequestException(INVALID_EMAIL_OR_PASSWORD);
+      throw new InvalidEmailOrPasswordException(INVALID_EMAIL_OR_PASSWORD);
     }
 
     return user;

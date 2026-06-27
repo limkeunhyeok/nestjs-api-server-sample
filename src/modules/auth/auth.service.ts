@@ -1,6 +1,7 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { UserNotFoundException } from '../users/exceptions/user.exception';
 import { InvalidEmailOrPasswordException } from './exceptions/auth.exception';
+import { ApiException } from '../../common/exceptions/api.exception';
 import * as bcrypt from 'bcrypt';
 import { errors } from 'jose';
 import {
@@ -74,7 +75,7 @@ export class AuthService {
 
       if (isRefreshToken) {
         if (payload.type !== TOKEN_TYPE_REFRESH) {
-          throw new UnauthorizedException(TOKEN_TYPE_MISMATCH);
+          throw new ApiException(HttpStatus.UNAUTHORIZED, TOKEN_TYPE_MISMATCH);
         }
         return payload as RefreshTokenPayload;
       }
@@ -83,20 +84,20 @@ export class AuthService {
         payload.type !== TOKEN_TYPE_ACCESS &&
         payload.type !== TOKEN_TYPE_DEV
       ) {
-        throw new UnauthorizedException(TOKEN_TYPE_MISMATCH);
+        throw new ApiException(HttpStatus.UNAUTHORIZED, TOKEN_TYPE_MISMATCH);
       }
       return payload as AccessTokenPayload;
     } catch (error: any) {
       if (
         error?.response?.statusCode ||
-        error instanceof UnauthorizedException
+        error instanceof ApiException
       ) {
         throw error;
       }
       if (error instanceof errors.JWTExpired) {
-        throw new UnauthorizedException(TOKEN_EXPIRED);
+        throw new ApiException(HttpStatus.UNAUTHORIZED, TOKEN_EXPIRED);
       }
-      throw new UnauthorizedException(INVALID_OR_MALFORMED_TOKEN);
+      throw new ApiException(HttpStatus.UNAUTHORIZED, INVALID_OR_MALFORMED_TOKEN);
     }
   }
 
@@ -192,8 +193,8 @@ export class AuthService {
     try {
       return await this.userService.getUserById(userId);
     } catch (error: unknown) {
-      if (error instanceof NotFoundException) {
-        throw new UnauthorizedException(INVALID_CREDENTIALS);
+      if (error instanceof UserNotFoundException) {
+        throw new ApiException(HttpStatus.UNAUTHORIZED, INVALID_CREDENTIALS);
       }
       throw error;
     }
@@ -252,17 +253,17 @@ export class AuthService {
 
   extractTokenFromBearer(rawToken: string): string {
     if (!rawToken || typeof rawToken !== 'string') {
-      throw new UnauthorizedException(INVALID_AUTHORIZATION_HEADER_FORMAT);
+      throw new ApiException(HttpStatus.UNAUTHORIZED, INVALID_AUTHORIZATION_HEADER_FORMAT);
     }
 
     const parts = rawToken.split(' ');
     if (parts.length !== 2) {
-      throw new UnauthorizedException(INVALID_AUTHORIZATION_HEADER_FORMAT);
+      throw new ApiException(HttpStatus.UNAUTHORIZED, INVALID_AUTHORIZATION_HEADER_FORMAT);
     }
 
     const [bearer, token] = parts;
     if (bearer.toLowerCase() !== AUTH_SCHEME_BEARER) {
-      throw new UnauthorizedException(INVALID_AUTHORIZATION_HEADER_FORMAT);
+      throw new ApiException(HttpStatus.UNAUTHORIZED, INVALID_AUTHORIZATION_HEADER_FORMAT);
     }
     return token;
   }

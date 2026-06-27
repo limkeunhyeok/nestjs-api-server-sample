@@ -1,10 +1,10 @@
 import {
   CanActivate,
   ExecutionContext,
-  ForbiddenException,
+  HttpStatus,
   Injectable,
-  UnauthorizedException,
 } from '@nestjs/common';
+import { ApiException } from '../exceptions/api.exception';
 import { Reflector } from '@nestjs/core';
 import { isNil } from 'lodash';
 import { AccessTokenPayload } from 'src/modules/auth/auth.interface';
@@ -54,7 +54,7 @@ export class RoleGuard implements CanActivate {
 
     if (isNil(user)) {
       console.log('RoleGuard: INVALID_CREDENTIALS');
-      throw new UnauthorizedException(INVALID_CREDENTIALS);
+      throw new ApiException(HttpStatus.UNAUTHORIZED, INVALID_CREDENTIALS);
     }
 
     const hasRole = roles.includes(user.role);
@@ -65,7 +65,7 @@ export class RoleGuard implements CanActivate {
         'user.role:',
         user.role,
       );
-      throw new ForbiddenException(FORBIDDEN_RESOURCE_MODIFICATION);
+      throw new ApiException(HttpStatus.FORBIDDEN, FORBIDDEN_RESOURCE_MODIFICATION);
     }
 
     return true;

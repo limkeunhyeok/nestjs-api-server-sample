@@ -1,10 +1,11 @@
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import {
+  HttpStatus,
   Inject,
   Injectable,
   NestMiddleware,
-  UnauthorizedException,
 } from '@nestjs/common';
+import { ApiException } from '../../common/exceptions/api.exception';
 import { NextFunction, Request, Response } from 'express';
 import { buildAuthAccessTokenCacheKey } from 'src/common/cache/auth.cache-key';
 import { MISSING_AUTHORIZATION_HEADER } from 'src/common/constants/exception-message.const';
@@ -44,7 +45,7 @@ export class AuthMiddleware implements NestMiddleware {
         'headers:',
         req.headers,
       );
-      throw new UnauthorizedException(MISSING_AUTHORIZATION_HEADER);
+      throw new ApiException(HttpStatus.UNAUTHORIZED, MISSING_AUTHORIZATION_HEADER);
     }
 
     const token = this.authService.extractTokenFromBearer(rawToken);
@@ -52,7 +53,7 @@ export class AuthMiddleware implements NestMiddleware {
     const isBlacklisted = await this.tokenBlacklistService.isBlacklisted(token);
     if (isBlacklisted) {
       console.log('AuthMiddleware: Token has been revoked.');
-      throw new UnauthorizedException('Token has been revoked.');
+      throw new ApiException(HttpStatus.UNAUTHORIZED, 'Token has been revoked.');
     }
 
     const tokenKey = buildAuthAccessTokenCacheKey(token);
@@ -72,11 +73,11 @@ export class AuthMiddleware implements NestMiddleware {
     if ((payload as any).type === TOKEN_TYPE_DEV) {
       const jti = (payload as any).jti;
       if (!jti) {
-        throw new UnauthorizedException('Invalid dev token: missing jti.');
+        throw new ApiException(HttpStatus.UNAUTHORIZED, 'Invalid dev token: missing jti.');
       }
       const isRevoked = await this.devTokenService.isDevTokenRevoked(jti);
       if (isRevoked) {
-        throw new UnauthorizedException('Dev token has been revoked.');
+        throw new ApiException(HttpStatus.UNAUTHORIZED, 'Dev token has been revoked.');
       }
     }
 

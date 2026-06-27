@@ -1,8 +1,9 @@
 import {
-  BadRequestException,
+  HttpStatus,
   Injectable,
   ValidationPipe,
 } from '@nestjs/common';
+import { ApiException } from '../exceptions/api.exception';
 import { ConfigService } from '@nestjs/config';
 import { isEmpty } from 'lodash';
 import { NodeEnv, ServerEnv } from 'src/configurations/server.config';
@@ -23,7 +24,7 @@ export class DtoValidationPipe extends ValidationPipe {
           .map((e) => `${Object.values(e.constraints ?? {}).join(', ')}`)
           .filter((message) => !isEmpty(message))
           .join('; ');
-        return new BadRequestException(messages);
+        return new ApiException(HttpStatus.BAD_REQUEST, messages);
       },
     });
   }

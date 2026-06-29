@@ -1,16 +1,11 @@
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { z } from 'zod';
+import { createZodDto } from 'nestjs-zod';
 import { Role } from 'src/common/constants/role.const';
 
-export class CreateDevTokenDto {
-  @IsString()
-  @IsNotEmpty()
-  name: string;
+export const CreateDevTokenSchema = z.object({
+  name: z.string().min(1),
+  role: z.nativeEnum(Role).optional(),
+  expiresIn: z.string().optional(),
+});
 
-  @IsOptional()
-  @IsEnum(Object.values(Role))
-  role?: Role;
-
-  @IsOptional()
-  @IsString()
-  expiresIn?: string;
-}
+export class CreateDevTokenDto extends createZodDto(CreateDevTokenSchema) {}

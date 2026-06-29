@@ -65,7 +65,10 @@ export class RoleGuard implements CanActivate {
         'user.role:',
         user.role,
       );
-      throw new ApiException(HttpStatus.FORBIDDEN, FORBIDDEN_RESOURCE_MODIFICATION);
+      throw new ApiException(
+        HttpStatus.FORBIDDEN,
+        FORBIDDEN_RESOURCE_MODIFICATION,
+      );
     }
 
     return true;

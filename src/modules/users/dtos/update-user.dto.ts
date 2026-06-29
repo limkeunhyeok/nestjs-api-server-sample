@@ -1,24 +1,11 @@
-import {
-  IsEnum,
-  IsOptional,
-  IsString,
-  Length,
-  MaxLength,
-} from 'class-validator';
+import { z } from 'zod';
+import { createZodDto } from 'nestjs-zod';
 import { Role } from 'src/common/constants/role.const';
 
-export class UpdateUserByIdDto {
-  @IsOptional()
-  @IsEnum(Role)
-  role?: Role;
+export const UpdateUserByIdSchema = z.object({
+  role: z.nativeEnum(Role).optional(),
+  password: z.string().min(8).max(15).optional(),
+  name: z.string().max(60).optional(),
+});
 
-  @IsOptional()
-  @IsString()
-  @Length(8, 15)
-  password?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(60)
-  name?: string;
-}
+export class UpdateUserByIdDto extends createZodDto(UpdateUserByIdSchema) {}

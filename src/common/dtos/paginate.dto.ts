@@ -1,13 +1,5 @@
-import { Type } from 'class-transformer';
-import {
-  IsDate,
-  IsEnum,
-  IsInt,
-  IsOptional,
-  IsString,
-  Min,
-} from 'class-validator';
-import { IsBeforeDate } from '../decorators/is-date.decorator';
+import { z } from 'zod';
+import { createZodDto } from 'nestjs-zod';
 
 export const SortDirection = {
   ASC: 'ASC',
@@ -16,35 +8,26 @@ export const SortDirection = {
 
 export type SortDirection = (typeof SortDirection)[keyof typeof SortDirection];
 
-export class PaginateDto {
-  @Type(() => Date)
-  @IsDate()
-  @IsOptional()
-  @IsBeforeDate('endDate')
-  startDate?: Date;
+export const PaginateBaseSchema = z.object({
+  startDate: z.string().datetime().optional(),
+  endDate: z.string().datetime().optional(),
+  limit: z.coerce.number().int().min(0).default(10000),
+  offset: z.coerce.number().int().min(0).default(0),
+  sortField: z.string().default('createdAt'),
+  sortDirection: z.nativeEnum(SortDirection).default(SortDirection.DESC),
+});
 
-  @Type(() => Date)
-  @IsDate()
-  @IsOptional()
-  endDate?: Date;
+export const PaginateSchema = PaginateBaseSchema.refine(
+  (data) => {
+    if (data.startDate && data.endDate) {
+      return new Date(data.startDate) < new Date(data.endDate);
+    }
+    return true;
+  },
+  {
+    message: 'startDate must be before endDate',
+    path: ['startDate'],
+  },
+);
 
-  @Type(() => Number)
-  @IsInt()
-  @Min(0)
-  @IsOptional()
-  limit: number = 10000;
-
-  @Type(() => Number)
-  @IsInt()
-  @Min(0)
-  @IsOptional()
-  offset: number = 0;
-
-  @IsString()
-  @IsOptional()
-  sortField: string = 'createdAt';
-
-  @IsEnum(SortDirection)
-  @IsOptional()
-  sortDirection: SortDirection = SortDirection.DESC;
-}
+export class PaginateDto extends createZodDto(PaginateSchema) {}

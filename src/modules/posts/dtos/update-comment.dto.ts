@@ -1,13 +1,15 @@
-import { IsBoolean, IsOptional, IsString } from 'class-validator';
-import { TransformAndValidateBoolean } from 'src/common/decorators/boolean.decorator';
+import { z } from 'zod';
+import { createZodDto } from 'nestjs-zod';
 
-export class UpdateCommentDto {
-  @IsOptional()
-  @IsString()
-  contents?: string;
+const zodBooleanCoerce = z.preprocess((val) => {
+  if (val === 'true' || val === true) return true;
+  if (val === 'false' || val === false) return false;
+  return val;
+}, z.boolean());
 
-  @IsOptional()
-  @TransformAndValidateBoolean()
-  @IsBoolean()
-  published?: boolean;
-}
+export const UpdateCommentSchema = z.object({
+  contents: z.string().optional(),
+  published: zodBooleanCoerce.optional(),
+});
+
+export class UpdateCommentDto extends createZodDto(UpdateCommentSchema) {}

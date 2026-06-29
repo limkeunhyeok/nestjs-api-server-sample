@@ -51,6 +51,8 @@ export class CommentController {
     return await this.commentService.paginateComments({
       postId,
       ...query,
+      startDate: query.startDate ? new Date(query.startDate) : undefined,
+      endDate: query.endDate ? new Date(query.endDate) : undefined,
     });
   }
 

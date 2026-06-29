@@ -1,28 +1,45 @@
-import { Type } from 'class-transformer';
-import { IsBoolean, IsNumber, IsOptional } from 'class-validator';
-import { TransformAndValidateBoolean } from 'src/common/decorators/boolean.decorator';
-import { IsSortableField } from 'src/common/decorators/is-sortable-field.decorator';
-import { PaginateDto } from 'src/common/dtos/paginate.dto';
+import { z } from 'zod';
+import { createZodDto } from 'nestjs-zod';
+import { PaginateBaseSchema } from 'src/common/dtos/paginate.dto';
 import { PostEntity } from '../entities/post.entity';
 
-const POST_SORT_FIELDS: Partial<keyof PostEntity>[] = [
+const POST_SORT_FIELDS: (keyof PostEntity)[] = [
   'id',
   'published',
   'createdAt',
   'updatedAt',
 ];
 
-export class PaginatePostsDto extends PaginateDto {
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  authorId?: number;
+const zodBooleanCoerce = z.preprocess((val) => {
+  if (val === 'true' || val === true) return true;
+  if (val === 'false' || val === false) return false;
+  return val;
+}, z.boolean());
 
-  @IsOptional()
-  @TransformAndValidateBoolean()
-  @IsBoolean()
-  published?: boolean;
+export const PaginatePostsSchema = PaginateBaseSchema.extend({
+  authorId: z.coerce.number().optional(),
+  published: zodBooleanCoerce.optional(),
+})
+  .refine(
+    (data) => {
+      return POST_SORT_FIELDS.includes(data.sortField as keyof PostEntity);
+    },
+    {
+      message: `sortField must be one of: ${POST_SORT_FIELDS.join(', ')}`,
+      path: ['sortField'],
+    },
+  )
+  .refine(
+    (data) => {
+      if (data.startDate && data.endDate) {
+        return data.startDate < data.endDate;
+      }
+      return true;
+    },
+    {
+      message: 'startDate must be before endDate',
+      path: ['startDate'],
+    },
+  );
 
-  @IsSortableField(POST_SORT_FIELDS)
-  override sortField: string = 'createdAt';
-}
+export class PaginatePostsDto extends createZodDto(PaginatePostsSchema) {}

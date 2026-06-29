@@ -1,7 +1,8 @@
-import { IsString, Length } from 'class-validator';
+import { z } from 'zod';
+import { createZodDto } from 'nestjs-zod';
 
-export class VerifyPasswordDto {
-  @IsString()
-  @Length(8, 15)
-  confirmPassword: string;
-}
+export const VerifyPasswordSchema = z.object({
+  confirmPassword: z.string().min(8).max(15),
+});
+
+export class VerifyPasswordDto extends createZodDto(VerifyPasswordSchema) {}

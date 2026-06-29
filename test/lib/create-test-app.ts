@@ -35,8 +35,7 @@ export async function createTestApp(): Promise<{
   app.useLogger(logger);
 
   // pipes
-  const configService = app.get(ConfigService);
-  app.useGlobalPipes(new DtoValidationPipe(configService));
+  app.useGlobalPipes(new DtoValidationPipe());
 
   // filters
   app.useGlobalFilters(

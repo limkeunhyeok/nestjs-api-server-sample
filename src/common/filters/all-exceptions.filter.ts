@@ -15,7 +15,7 @@ import {
   BaseDomainException,
   DomainExceptionCode,
 } from '../exceptions/domain.exception';
-import { ApiException } from '../exceptions/api.exception';
+import { ApiException } from 'src/common/exceptions/api.exception';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {

@@ -39,7 +39,11 @@ export class UserController {
   async paginate(
     @Query() query: PaginateUsersDto,
   ): Promise<PaginationResponse<UserEntity>> {
-    return await this.userService.paginateUsers(query);
+    return await this.userService.paginateUsers({
+      ...query,
+      startDate: query.startDate ? new Date(query.startDate) : undefined,
+      endDate: query.endDate ? new Date(query.endDate) : undefined,
+    });
   }
 
   @Get('/:userId')

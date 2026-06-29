@@ -46,7 +46,11 @@ export class PostController {
   async paginate(
     @Query() query: PaginatePostsDto,
   ): Promise<PaginationResponse<PostEntity>> {
-    return await this.postService.paginatePosts(query);
+    return await this.postService.paginatePosts({
+      ...query,
+      startDate: query.startDate ? new Date(query.startDate) : undefined,
+      endDate: query.endDate ? new Date(query.endDate) : undefined,
+    });
   }
 
   @Get('/:postId')

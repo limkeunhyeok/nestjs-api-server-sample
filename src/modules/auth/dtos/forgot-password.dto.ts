@@ -1,8 +1,8 @@
-import { IsEmail, IsString, MaxLength } from 'class-validator';
+import { z } from 'zod';
+import { createZodDto } from 'nestjs-zod';
 
-export class ForgotPasswordDto {
-  @IsString()
-  @IsEmail()
-  @MaxLength(60)
-  email: string;
-}
+export const ForgotPasswordSchema = z.object({
+  email: z.string().email().max(60),
+});
+
+export class ForgotPasswordDto extends createZodDto(ForgotPasswordSchema) {}

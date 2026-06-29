@@ -1,16 +1,16 @@
-import { IsBoolean, IsOptional, IsString, Length } from 'class-validator';
-import { TransformAndValidateBoolean } from 'src/common/decorators/boolean.decorator';
+import { z } from 'zod';
+import { createZodDto } from 'nestjs-zod';
 
-export class CreatePostDto {
-  @IsString()
-  @Length(1, 100)
-  title: string;
+const zodBooleanCoerce = z.preprocess((val) => {
+  if (val === 'true' || val === true) return true;
+  if (val === 'false' || val === false) return false;
+  return val;
+}, z.boolean());
 
-  @IsString()
-  contents: string;
+export const CreatePostSchema = z.object({
+  title: z.string().min(1).max(100),
+  contents: z.string(),
+  published: zodBooleanCoerce.default(true),
+});
 
-  @IsOptional()
-  @TransformAndValidateBoolean()
-  @IsBoolean()
-  published: boolean = true;
-}
+export class CreatePostDto extends createZodDto(CreatePostSchema) {}

@@ -88,16 +88,16 @@ export class AuthService {
       }
       return payload as AccessTokenPayload;
     } catch (error: any) {
-      if (
-        error?.response?.statusCode ||
-        error instanceof ApiException
-      ) {
+      if (error?.response?.statusCode || error instanceof ApiException) {
         throw error;
       }
       if (error instanceof errors.JWTExpired) {
         throw new ApiException(HttpStatus.UNAUTHORIZED, TOKEN_EXPIRED);
       }
-      throw new ApiException(HttpStatus.UNAUTHORIZED, INVALID_OR_MALFORMED_TOKEN);
+      throw new ApiException(
+        HttpStatus.UNAUTHORIZED,
+        INVALID_OR_MALFORMED_TOKEN,
+      );
     }
   }
 
@@ -253,17 +253,26 @@ export class AuthService {
 
   extractTokenFromBearer(rawToken: string): string {
     if (!rawToken || typeof rawToken !== 'string') {
-      throw new ApiException(HttpStatus.UNAUTHORIZED, INVALID_AUTHORIZATION_HEADER_FORMAT);
+      throw new ApiException(
+        HttpStatus.UNAUTHORIZED,
+        INVALID_AUTHORIZATION_HEADER_FORMAT,
+      );
     }
 
     const parts = rawToken.split(' ');
     if (parts.length !== 2) {
-      throw new ApiException(HttpStatus.UNAUTHORIZED, INVALID_AUTHORIZATION_HEADER_FORMAT);
+      throw new ApiException(
+        HttpStatus.UNAUTHORIZED,
+        INVALID_AUTHORIZATION_HEADER_FORMAT,
+      );
     }
 
     const [bearer, token] = parts;
     if (bearer.toLowerCase() !== AUTH_SCHEME_BEARER) {
-      throw new ApiException(HttpStatus.UNAUTHORIZED, INVALID_AUTHORIZATION_HEADER_FORMAT);
+      throw new ApiException(
+        HttpStatus.UNAUTHORIZED,
+        INVALID_AUTHORIZATION_HEADER_FORMAT,
+      );
     }
     return token;
   }

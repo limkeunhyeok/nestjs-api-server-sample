@@ -1,28 +1,12 @@
-import {
-  IsEmail,
-  IsEnum,
-  IsOptional,
-  IsString,
-  Length,
-  MaxLength,
-} from 'class-validator';
+import { z } from 'zod';
+import { createZodDto } from 'nestjs-zod';
 import { Role } from 'src/common/constants/role.const';
 
-export class CreateUserDto {
-  @IsString()
-  @IsEmail()
-  @MaxLength(60)
-  email: string;
+export const CreateUserSchema = z.object({
+  email: z.string().email().max(60),
+  password: z.string().min(8).max(15),
+  name: z.string().max(60),
+  role: z.nativeEnum(Role).default(Role.MEMBER),
+});
 
-  @IsString()
-  @Length(8, 15)
-  password: string;
-
-  @IsString()
-  @MaxLength(60)
-  name: string;
-
-  @IsEnum(Role)
-  @IsOptional()
-  role: Role = Role.MEMBER;
-}
+export class CreateUserDto extends createZodDto(CreateUserSchema) {}

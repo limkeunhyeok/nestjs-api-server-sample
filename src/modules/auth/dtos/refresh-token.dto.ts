@@ -1,6 +1,8 @@
-import { IsString } from 'class-validator';
+import { z } from 'zod';
+import { createZodDto } from 'nestjs-zod';
 
-export class RefreshTokensDto {
-  @IsString()
-  refreshToken: string;
-}
+export const RefreshTokensSchema = z.object({
+  refreshToken: z.string(),
+});
+
+export class RefreshTokensDto extends createZodDto(RefreshTokensSchema) {}

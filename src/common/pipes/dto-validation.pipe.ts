@@ -1,31 +1,48 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
 import {
-  HttpStatus,
+  ArgumentMetadata,
+  BadRequestException,
   Injectable,
-  ValidationPipe,
+  PipeTransform,
 } from '@nestjs/common';
-import { ApiException } from '../exceptions/api.exception';
-import { ConfigService } from '@nestjs/config';
-import { isEmpty } from 'lodash';
-import { NodeEnv, ServerEnv } from 'src/configurations/server.config';
 
 @Injectable()
-export class DtoValidationPipe extends ValidationPipe {
-  constructor(configService: ConfigService<ServerEnv, true>) {
-    const nodeEnv = configService.get<NodeEnv>('NODE_ENV');
+export class DtoValidationPipe implements PipeTransform {
+  transform(value: any, metadata: ArgumentMetadata) {
+    const { metatype } = metadata;
 
-    super({
-      whitelist: true, // 정의된 속성만 허용하고 나머진 제거
-      forbidNonWhitelisted: nodeEnv === NodeEnv.DEV, // 정의되지 않은 속성이 들어오면 에러
-      transform: true, // 요청 객체를 DTO 클래스 인스턴스로 변환
-      dismissDefaultMessages: nodeEnv === NodeEnv.PROD, // 여러 에러 메시지 중 첫번째 메시지만 출력
-      stopAtFirstError: nodeEnv === NodeEnv.PROD, // 각 필드마다 에러나는 첫번째 데코레이터에서 멈춤(ex: @IsString에서 걸리면, 다음 @IsEmpty 같은 조건은 검사x)
-      exceptionFactory: (errors) => {
-        const messages = errors
-          .map((e) => `${Object.values(e.constraints ?? {}).join(', ')}`)
-          .filter((message) => !isEmpty(message))
-          .join('; ');
-        return new ApiException(HttpStatus.BAD_REQUEST, messages);
-      },
-    });
+    // metatype이 없거나 객체/함수가 아니면 바로 패스
+    if (
+      !metatype ||
+      (typeof metatype !== 'function' && typeof metatype !== 'object')
+    ) {
+      return value;
+    }
+
+    // static schema가 없거나 zod 스키마가 아니면 패스
+    if (
+      !('schema' in metatype) ||
+      typeof (metatype as any).schema?.safeParse !== 'function'
+    ) {
+      return value;
+    }
+
+    const schema = (metatype as any).schema;
+    const result = schema.safeParse(value);
+
+    if (!result.success) {
+      // Zod 에러 메시지를 기존 포맷과 호환되게 '; ' 로 합침
+      const messages: string = result.error.issues
+        .map((e) => {
+          const field = e.path.join('.');
+          return field ? `${field}: ${e.message}` : e.message;
+        })
+        .join('; ');
+
+      throw new BadRequestException(messages);
+    }
+
+    // Zod 검증을 마친 가공된 데이터를 반환
+    return result.data;
   }
 }

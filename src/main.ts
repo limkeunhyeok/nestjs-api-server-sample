@@ -27,7 +27,7 @@ async function bootstrap() {
   app.useLogger(logger);
 
   const configService = app.get<ConfigService<ServerEnv, true>>(ConfigService);
-  app.useGlobalPipes(new DtoValidationPipe(configService));
+  app.useGlobalPipes(new DtoValidationPipe());
   app.useGlobalFilters(
     new AllExceptionsFilter(logger),
     new TypeOrmExceptionFilter(logger),

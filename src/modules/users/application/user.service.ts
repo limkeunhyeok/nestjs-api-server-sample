@@ -1,11 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import {
   EmailAlreadyRegisteredException,
   UserForbiddenException,
   UserNotFoundException,
 } from '../domain/exceptions/user.exception';
 import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import {
   buildUserByIdCacheKey,
@@ -22,19 +21,20 @@ import { SortDirection } from 'src/common/dtos/paginate.dto';
 import { PaginationResponse } from 'src/common/interfaces/pagination.interface';
 import { ServerEnv } from 'src/configurations/server.config';
 import { removeUndefined } from 'src/libs/object';
-import { toPaginationResponse } from 'src/libs/pagination';
-import { getDateRange } from 'src/libs/range';
-import { FindOptionsWhere, Like, Repository } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
 import { Role } from '../../../common/constants/role.const';
 import { UserEntity } from '../infrastructure/persistence/user.orm-entity';
 import { getTTL } from '../user.util';
+import {
+  USER_REPOSITORY_PORT,
+  UserRepositoryPort,
+} from '../domain/repository-ports/user.repository.port';
 
 @Injectable()
 export class UserService {
   constructor(
-    @InjectRepository(UserEntity)
-    private readonly userRepository: Repository<UserEntity>,
+    @Inject(USER_REPOSITORY_PORT)
+    private readonly userRepository: UserRepositoryPort,
     private readonly configService: ConfigService<ServerEnv, true>,
   ) {}
 
@@ -46,9 +46,7 @@ export class UserService {
     name: string;
     role: Role;
   }): Promise<UserEntity> {
-    const hasUser = await this.userRepository.findOneBy({
-      email: params.email,
-    });
+    const hasUser = await this.userRepository.findOneByEmail(params.email);
 
     if (hasUser) {
       throw new EmailAlreadyRegisteredException(EMAIL_IS_ALREADY_REGISTERED);
@@ -59,14 +57,12 @@ export class UserService {
       this.configService.get<number>('SALT_ROUND'),
     );
 
-    const createdUser = this.userRepository.create({
+    return await this.userRepository.save({
       email: params.email,
       password: hash,
       role: params.role,
       name: params.name,
     });
-
-    return await this.userRepository.save(createdUser);
   }
 
   @Cacheable({
@@ -84,42 +80,7 @@ export class UserService {
     sortField: string;
     sortDirection: SortDirection;
   }): Promise<PaginationResponse<UserEntity>> {
-    const {
-      role,
-      name,
-      startDate,
-      endDate,
-      limit,
-      offset,
-      sortField,
-      sortDirection,
-    } = params;
-
-    const query: FindOptionsWhere<UserEntity> = {};
-
-    const range = getDateRange(startDate, endDate);
-
-    if (role) {
-      query.role = role;
-    }
-
-    if (name) {
-      query.name = Like(`%${name}%`);
-    }
-
-    const [users, total] = await this.userRepository.findAndCount({
-      where: {
-        ...query,
-        ...range,
-      },
-      order: {
-        [sortField]: sortDirection,
-      },
-      skip: limit > 0 ? offset : undefined,
-      take: limit > 0 ? limit : undefined,
-    });
-
-    return toPaginationResponse({ total, limit, offset, data: users });
+    return await this.userRepository.paginate(params);
   }
 
   @Cacheable<[number]>({
@@ -130,7 +91,7 @@ export class UserService {
   })
   @Transactional()
   async getUserById(userId: number): Promise<UserEntity> {
-    const user = await this.userRepository.findOneBy({ id: userId });
+    const user = await this.userRepository.findOneById(userId);
 
     if (!user) {
       throw new UserNotFoundException(NOT_FOUND_RESOURCE);
@@ -141,7 +102,7 @@ export class UserService {
 
   @Transactional()
   async getUserByEmail(email: string): Promise<UserEntity> {
-    const user = await this.userRepository.findOneBy({ email });
+    const user = await this.userRepository.findOneByEmail(email);
     if (!user) {
       throw new UserNotFoundException(NOT_FOUND_RESOURCE);
     }
@@ -202,7 +163,7 @@ export class UserService {
 
     const deletedUser = { ...user };
 
-    await this.userRepository.remove(user); // remove 시, id에 undefined가 할당
+    await this.userRepository.delete(user.id);
 
     return deletedUser;
   }

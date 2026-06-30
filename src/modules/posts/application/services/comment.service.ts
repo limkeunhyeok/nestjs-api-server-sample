@@ -1,10 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import {
   CommentConflictException,
   CommentForbiddenException,
   CommentNotFoundException,
 } from '../../domain/exceptions/comment.exception';
-import { InjectRepository } from '@nestjs/typeorm';
 import {
   buildCommentByIdCacheKey,
   buildCommentsPaginationCacheKey,
@@ -20,20 +19,21 @@ import { Cacheable } from 'src/common/decorators/cacheable.decorator';
 import { SortDirection } from 'src/common/dtos/paginate.dto';
 import { PaginationResponse } from 'src/common/interfaces/pagination.interface';
 import { removeUndefined } from 'src/libs/object';
-import { toPaginationResponse } from 'src/libs/pagination';
-import { getDateRange } from 'src/libs/range';
-import { FindOptionsWhere, Repository } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
 import { UserService } from '../../../users/application/user.service';
 import { CommentEntity } from '../../infrastructure/persistence/comment.orm-entity';
 import { getTTL } from '../../utils/comment.util';
 import { PostService } from './post.service';
+import {
+  COMMENT_REPOSITORY_PORT,
+  CommentRepositoryPort,
+} from '../../domain/repository-ports/comment.repository.port';
 
 @Injectable()
 export class CommentService {
   constructor(
-    @InjectRepository(CommentEntity)
-    private readonly commentRepository: Repository<CommentEntity>,
+    @Inject(COMMENT_REPOSITORY_PORT)
+    private readonly commentRepository: CommentRepositoryPort,
     private readonly userService: UserService,
     private readonly postService: PostService,
   ) {}
@@ -49,14 +49,12 @@ export class CommentService {
     const user = await this.userService.getUserById(params.userId);
     const post = await this.postService.getPostById(params.postId);
 
-    const createdComment = this.commentRepository.create({
+    return await this.commentRepository.save({
       contents: params.contents,
       published: params.published,
       author: user,
       post,
     });
-
-    return await this.commentRepository.save(createdComment);
   }
 
   @Cacheable({
@@ -75,57 +73,7 @@ export class CommentService {
     sortField: string;
     sortDirection: SortDirection;
   }): Promise<PaginationResponse<CommentEntity>> {
-    const {
-      authorId,
-      postId,
-      published,
-      startDate,
-      endDate,
-      limit,
-      offset,
-      sortField,
-      sortDirection,
-    } = params;
-
-    const query: FindOptionsWhere<CommentEntity> = {};
-
-    const range = getDateRange(startDate, endDate);
-
-    if (authorId) {
-      query.author = {
-        id: authorId,
-      };
-    }
-
-    if (postId) {
-      query.post = {
-        id: postId,
-      };
-    }
-
-    if (published) {
-      query.published = published;
-    }
-
-    const [commentEntities, total] = await this.commentRepository.findAndCount({
-      where: {
-        ...query,
-        ...range,
-      },
-      order: {
-        [sortField]: sortDirection,
-      },
-      skip: limit > 0 ? offset : undefined,
-      take: limit > 0 ? limit : undefined,
-      relations: ['author', 'post'],
-    });
-
-    return toPaginationResponse({
-      total,
-      limit,
-      offset,
-      data: commentEntities,
-    });
+    return await this.commentRepository.paginate(params);
   }
 
   @Cacheable<[number, number]>({
@@ -142,12 +90,7 @@ export class CommentService {
   ): Promise<CommentEntity> {
     const post = await this.postService.getPostById(postId);
 
-    const comment = await this.commentRepository.findOne({
-      where: {
-        id: commentId,
-      },
-      relations: ['author', 'post'],
-    });
+    const comment = await this.commentRepository.findOneById(commentId);
 
     if (!comment) {
       throw new CommentNotFoundException(NOT_FOUND_RESOURCE);
@@ -211,7 +154,7 @@ export class CommentService {
 
     const deletedComment = { ...comment };
 
-    await this.commentRepository.remove(comment); // remove 시, id에 undefined가 할당
+    await this.commentRepository.delete(comment.id);
 
     return deletedComment;
   }

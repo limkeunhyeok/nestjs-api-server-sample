@@ -1,9 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import {
   PostForbiddenException,
   PostNotFoundException,
 } from '../../domain/exceptions/post.exception';
-import { InjectRepository } from '@nestjs/typeorm';
 import {
   buildPostByIdCacheKey,
   buildPostsPaginationCacheKey,
@@ -17,20 +16,21 @@ import { Cacheable } from 'src/common/decorators/cacheable.decorator';
 import { SortDirection } from 'src/common/dtos/paginate.dto';
 import { PaginationResponse } from 'src/common/interfaces/pagination.interface';
 import { removeUndefined } from 'src/libs/object';
-import { toPaginationResponse } from 'src/libs/pagination';
-import { getDateRange } from 'src/libs/range';
-import { FindOptionsWhere, Repository } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
 import { Role } from 'src/common/constants/role.const';
 import { UserService } from '../../../users/application/user.service';
 import { PostEntity } from '../../infrastructure/persistence/post.orm-entity';
 import { getTTL } from '../../utils/post.util';
+import {
+  POST_REPOSITORY_PORT,
+  PostRepositoryPort,
+} from '../../domain/repository-ports/post.repository.port';
 
 @Injectable()
 export class PostService {
   constructor(
-    @InjectRepository(PostEntity)
-    private readonly postRepository: Repository<PostEntity>,
+    @Inject(POST_REPOSITORY_PORT)
+    private readonly postRepository: PostRepositoryPort,
     private readonly userService: UserService,
   ) {}
 
@@ -44,14 +44,12 @@ export class PostService {
   }): Promise<PostEntity> {
     const user = await this.userService.getUserById(params.userId);
 
-    const createdPost = this.postRepository.create({
+    return await this.postRepository.save({
       title: params.title,
       contents: params.contents,
       published: params.published,
       author: user,
     });
-
-    return await this.postRepository.save(createdPost);
   }
 
   @Cacheable({
@@ -69,45 +67,7 @@ export class PostService {
     sortField: string;
     sortDirection: SortDirection;
   }): Promise<PaginationResponse<PostEntity>> {
-    const {
-      authorId,
-      published,
-      startDate,
-      endDate,
-      limit,
-      offset,
-      sortField,
-      sortDirection,
-    } = params;
-
-    const query: FindOptionsWhere<PostEntity> = {};
-
-    const range = getDateRange(startDate, endDate);
-
-    if (authorId) {
-      query.author = {
-        id: authorId,
-      };
-    }
-
-    if (published) {
-      query.published = published;
-    }
-
-    const [postEntities, total] = await this.postRepository.findAndCount({
-      where: {
-        ...query,
-        ...range,
-      },
-      order: {
-        [sortField]: sortDirection,
-      },
-      skip: limit > 0 ? offset : undefined,
-      take: limit > 0 ? limit : undefined,
-      relations: ['author'],
-    });
-
-    return toPaginationResponse({ total, limit, offset, data: postEntities });
+    return await this.postRepository.paginate(params);
   }
 
   @Cacheable<[number]>({
@@ -118,10 +78,7 @@ export class PostService {
   })
   @Transactional()
   async getPostById(postId: number): Promise<PostEntity> {
-    const postEntity = await this.postRepository.findOne({
-      where: { id: postId },
-      relations: ['author'],
-    });
+    const postEntity = await this.postRepository.findOneById(postId);
 
     if (!postEntity) {
       throw new PostNotFoundException(NOT_FOUND_RESOURCE);
@@ -174,7 +131,7 @@ export class PostService {
 
     const deletedPost = { ...post };
 
-    await this.postRepository.remove(post); // remove 시, id에 undefined가 할당
+    await this.postRepository.delete(post.id);
 
     return deletedPost;
   }

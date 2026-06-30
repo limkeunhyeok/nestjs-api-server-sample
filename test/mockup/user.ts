@@ -1,7 +1,7 @@
 import * as bcrypt from 'bcrypt';
 import * as faker from 'faker';
 import { Role } from 'src/common/constants/role.const';
-import { UserEntity } from 'src/modules/users/user.entity';
+import { UserEntity } from 'src/modules/users/infrastructure/persistence/user.orm-entity';
 import { Repository } from 'typeorm';
 
 export function mockUserRaw(role: Role = Role.MEMBER) {

@@ -14,13 +14,13 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserInToken } from 'src/common/decorators/user-in-token.decorator';
 import { PaginationResponse } from 'src/common/interfaces/pagination.interface';
-import { Role } from '../../common/constants/role.const';
-import { AccessTokenPayload } from '../auth/auth.interface';
-import { CreateUserDto } from './dtos/create-user.dto';
-import { PaginateUsersDto } from './dtos/paginate-user.dto';
-import { UpdateUserByIdDto } from './dtos/update-user.dto';
-import { UserEntity } from './user.entity';
-import { UserService } from './user.service';
+import { Role } from '../../../common/constants/role.const';
+import { AccessTokenPayload } from '../../auth/auth.interface';
+import { CreateUserDto } from '../dtos/create-user.dto';
+import { PaginateUsersDto } from '../dtos/paginate-user.dto';
+import { UpdateUserByIdDto } from '../dtos/update-user.dto';
+import { UserEntity } from '../infrastructure/persistence/user.orm-entity';
+import { UserService } from '../application/user.service';
 
 @ApiTags('users')
 @ApiBearerAuth('accessToken')

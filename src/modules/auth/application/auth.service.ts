@@ -1,7 +1,7 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { UserNotFoundException } from '../users/exceptions/user.exception';
-import { InvalidEmailOrPasswordException } from './exceptions/auth.exception';
-import { ApiException } from '../../common/exceptions/api.exception';
+import { UserNotFoundException } from '../../users/domain/exceptions/user.exception';
+import { InvalidEmailOrPasswordException } from '../exceptions/auth.exception';
+import { ApiException } from '../../../common/exceptions/api.exception';
 import * as bcrypt from 'bcrypt';
 import { errors } from 'jose';
 import {
@@ -14,9 +14,9 @@ import {
 } from 'src/common/constants/exception-message.const';
 import { Role } from 'src/common/constants/role.const';
 import { generateRandomString } from 'src/libs/string';
-import { JoseJwtService } from '../jose-jwt/jose-jwt.service';
-import { UserEntity } from '../users/user.entity';
-import { UserService } from '../users/user.service';
+import { JoseJwtService } from '../../jose-jwt/jose-jwt.service';
+import { UserEntity } from '../../users/infrastructure/persistence/user.orm-entity';
+import { UserService } from '../../users/application/user.service';
 import {
   ACCESS_TOKEN_EXPIRES_IN,
   AUTH_SCHEME_BEARER,
@@ -24,13 +24,13 @@ import {
   TOKEN_TYPE_ACCESS,
   TOKEN_TYPE_DEV,
   TOKEN_TYPE_REFRESH,
-} from './auth.const';
+} from '../auth.const';
 import {
   AccessTokenPayload,
   AuthTokens,
   RefreshTokenPayload,
-} from './auth.interface';
-import { TokenBlacklistService } from './token-blacklist.service';
+} from '../auth.interface';
+import { TokenBlacklistService } from '../token-blacklist.service';
 
 @Injectable()
 export class AuthService {

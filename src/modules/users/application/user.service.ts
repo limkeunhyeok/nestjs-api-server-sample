@@ -3,7 +3,7 @@ import {
   EmailAlreadyRegisteredException,
   UserForbiddenException,
   UserNotFoundException,
-} from './exceptions/user.exception';
+} from '../domain/exceptions/user.exception';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
@@ -26,9 +26,9 @@ import { toPaginationResponse } from 'src/libs/pagination';
 import { getDateRange } from 'src/libs/range';
 import { FindOptionsWhere, Like, Repository } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
-import { Role } from '../../common/constants/role.const';
-import { UserEntity } from './user.entity';
-import { getTTL } from './user.util';
+import { Role } from '../../../common/constants/role.const';
+import { UserEntity } from '../infrastructure/persistence/user.orm-entity';
+import { getTTL } from '../user.util';
 
 @Injectable()
 export class UserService {

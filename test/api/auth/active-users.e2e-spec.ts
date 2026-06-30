@@ -1,6 +1,6 @@
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Role } from 'src/common/constants/role.const';
-import { UserEntity } from 'src/modules/users/user.entity';
+import { UserEntity } from 'src/modules/users/infrastructure/persistence/user.orm-entity';
 import { expectResponseFailed } from 'test/expectation/common';
 import { initE2ETest } from 'test/lib/init-e2e-test';
 import { fetchHeaders, fetchHeadersByMember, withHeadersBy } from 'test/lib/utils';

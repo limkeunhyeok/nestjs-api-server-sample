@@ -1,5 +1,5 @@
 import { isEmptyObject } from 'src/libs/validator';
-import { PostEntity } from 'src/modules/posts/entities/post.entity';
+import { PostEntity } from 'src/modules/posts/infrastructure/persistence/post.orm-entity';
 
 export function expectPostResponseSucceed(
   result: Partial<PostEntity>,

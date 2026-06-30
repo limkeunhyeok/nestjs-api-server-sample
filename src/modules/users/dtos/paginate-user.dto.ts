@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { createZodDto } from 'nestjs-zod';
 import { PaginateBaseSchema } from 'src/common/dtos/paginate.dto';
 import { Role } from '../../../common/constants/role.const';
-import { UserEntity } from '../user.entity';
+import { UserEntity } from '../infrastructure/persistence/user.orm-entity';
 
 const USER_SORT_FIELDS: (keyof UserEntity)[] = [
   'id',

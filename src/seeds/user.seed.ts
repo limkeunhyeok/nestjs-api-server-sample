@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import * as faker from 'faker';
 import { AppModule } from 'src/app.module';
 import { Role } from 'src/common/constants/role.const';
-import { UserService } from 'src/modules/users/user.service';
+import { UserService } from 'src/modules/users/application/user.service';
 import { DataSource } from 'typeorm';
 import {
   addTransactionalDataSource,

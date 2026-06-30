@@ -19,8 +19,8 @@ import { Role } from '../../../common/constants/role.const';
 import { CreatePostDto } from '../dtos/create-post.dto';
 import { PaginatePostsDto } from '../dtos/paginate-posts.dto';
 import { UpdatePostDto } from '../dtos/update-post.dto';
-import { PostEntity } from '../entities/post.entity';
-import { PostService } from '../services/post.service';
+import { PostEntity } from '../infrastructure/persistence/post.orm-entity';
+import { PostService } from '../application/services/post.service';
 
 @ApiTags('posts')
 @ApiBearerAuth('accessToken')

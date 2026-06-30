@@ -19,8 +19,8 @@ import { Role } from '../../../common/constants/role.const';
 import { CreateCommentDto } from '../dtos/create-comment.dto';
 import { PaginateCommentsDto } from '../dtos/paginate-comments.dto';
 import { UpdateCommentDto } from '../dtos/update-comment.dto';
-import { CommentEntity } from '../entities/comment.entity';
-import { CommentService } from '../services/comment.service';
+import { CommentEntity } from '../infrastructure/persistence/comment.orm-entity';
+import { CommentService } from '../application/services/comment.service';
 
 @ApiTags('posts')
 @ApiBearerAuth('accessToken')

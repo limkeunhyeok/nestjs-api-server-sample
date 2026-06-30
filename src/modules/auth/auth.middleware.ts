@@ -6,7 +6,7 @@ import { buildAuthAccessTokenCacheKey } from 'src/common/cache/auth.cache-key';
 import { MISSING_AUTHORIZATION_HEADER } from 'src/common/constants/exception-message.const';
 import { TOKEN_TYPE_DEV } from 'src/modules/auth/auth.const';
 import { AccessTokenPayload } from 'src/modules/auth/auth.interface';
-import { AuthService } from 'src/modules/auth/auth.service';
+import { AuthService } from 'src/modules/auth/application/auth.service';
 import { ActiveUsersService } from './active-users.service';
 import { DevTokenService } from './dev-token.service';
 import { TokenBlacklistService } from './token-blacklist.service';

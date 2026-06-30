@@ -1,6 +1,6 @@
 import * as faker from 'faker';
-import { PostEntity } from 'src/modules/posts/entities/post.entity';
-import { UserEntity } from 'src/modules/users/user.entity';
+import { PostEntity } from 'src/modules/posts/infrastructure/persistence/post.orm-entity';
+import { UserEntity } from 'src/modules/users/infrastructure/persistence/user.orm-entity';
 import { Repository } from 'typeorm';
 
 export function mockCreatePostDto(published = true) {

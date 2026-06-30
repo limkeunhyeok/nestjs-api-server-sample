@@ -3,7 +3,7 @@ import {
   CommentConflictException,
   CommentForbiddenException,
   CommentNotFoundException,
-} from '../exceptions/comment.exception';
+} from '../../domain/exceptions/comment.exception';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   buildCommentByIdCacheKey,
@@ -24,9 +24,9 @@ import { toPaginationResponse } from 'src/libs/pagination';
 import { getDateRange } from 'src/libs/range';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
-import { UserService } from '../../users/user.service';
-import { CommentEntity } from '../entities/comment.entity';
-import { getTTL } from '../utils/comment.util';
+import { UserService } from '../../../users/application/user.service';
+import { CommentEntity } from '../../infrastructure/persistence/comment.orm-entity';
+import { getTTL } from '../../utils/comment.util';
 import { PostService } from './post.service';
 
 @Injectable()

@@ -4,20 +4,16 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
   Relation,
 } from 'typeorm';
-import { UserEntity } from '../../users/user.entity';
-import { CommentEntity } from './comment.entity';
+import { UserEntity } from '../../../users/infrastructure/persistence/user.orm-entity';
+import { PostEntity } from './post.orm-entity';
 
-@Entity('post')
-export class PostEntity extends CustomEntity {
+@Entity('comment')
+export class CommentEntity extends CustomEntity {
   @PrimaryGeneratedColumn()
   id: number;
-
-  @Column({ type: 'varchar', length: 100 })
-  title: string;
 
   @Column({ type: 'text' })
   contents: string;
@@ -25,10 +21,11 @@ export class PostEntity extends CustomEntity {
   @Column({ type: 'boolean' })
   published: boolean;
 
+  @ManyToOne(() => PostEntity, (post) => post.id, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'postId' })
+  post: Relation<PostEntity>;
+
   @ManyToOne(() => UserEntity, (user) => user.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'authorId' })
   author: Relation<UserEntity>;
-
-  @OneToMany(() => CommentEntity, (comment) => comment.post)
-  comments: Relation<CommentEntity[]>;
 }

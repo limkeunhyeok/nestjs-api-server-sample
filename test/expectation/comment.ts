@@ -1,5 +1,5 @@
 import { isEmptyObject } from 'src/libs/validator';
-import { CommentEntity } from 'src/modules/posts/entities/comment.entity';
+import { CommentEntity } from 'src/modules/posts/infrastructure/persistence/comment.orm-entity';
 
 export function expectCommentResponseSucceed(
   result: Partial<CommentEntity>,

@@ -8,9 +8,9 @@ import {
   PrimaryGeneratedColumn,
   Relation,
 } from 'typeorm';
-import { Role } from '../../common/constants/role.const';
-import { CommentEntity } from '../posts/entities/comment.entity';
-import { PostEntity } from '../posts/entities/post.entity';
+import { Role } from 'src/common/constants/role.const';
+import { CommentEntity } from '../../../posts/infrastructure/persistence/comment.orm-entity';
+import { PostEntity } from '../../../posts/infrastructure/persistence/post.orm-entity';
 
 @Entity('user')
 export class UserEntity extends CustomEntity {

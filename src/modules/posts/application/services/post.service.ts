@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   PostForbiddenException,
   PostNotFoundException,
-} from '../exceptions/post.exception';
+} from '../../domain/exceptions/post.exception';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   buildPostByIdCacheKey,
@@ -21,10 +21,10 @@ import { toPaginationResponse } from 'src/libs/pagination';
 import { getDateRange } from 'src/libs/range';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
-import { Role } from '../../../common/constants/role.const';
-import { UserService } from '../../users/user.service';
-import { PostEntity } from '../entities/post.entity';
-import { getTTL } from '../utils/post.util';
+import { Role } from 'src/common/constants/role.const';
+import { UserService } from '../../../users/application/user.service';
+import { PostEntity } from '../../infrastructure/persistence/post.orm-entity';
+import { getTTL } from '../../utils/post.util';
 
 @Injectable()
 export class PostService {

@@ -1,7 +1,7 @@
 import {
   BaseDomainException,
   DomainExceptionCode,
-} from '../../../common/exceptions/domain.exception';
+} from '../../../../common/exceptions/domain.exception';
 
 export class EmailAlreadyRegisteredException extends BaseDomainException {
   readonly code = DomainExceptionCode.BAD_REQUEST;

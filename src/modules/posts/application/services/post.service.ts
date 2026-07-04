@@ -48,7 +48,7 @@ export class PostService {
       title: params.title,
       contents: params.contents,
       published: params.published,
-      author: user,
+      author: { id: user.id },
     });
   }
 

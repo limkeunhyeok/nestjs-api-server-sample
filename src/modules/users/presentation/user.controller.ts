@@ -1,6 +1,5 @@
 import {
   Body,
-  ClassSerializerInterceptor,
   Controller,
   Delete,
   Get,
@@ -8,7 +7,6 @@ import {
   Post,
   Put,
   Query,
-  UseInterceptors,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles.decorator';
@@ -19,36 +17,42 @@ import { AccessTokenPayload } from '../../auth/auth.interface';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { PaginateUsersDto } from '../dtos/paginate-user.dto';
 import { UpdateUserByIdDto } from '../dtos/update-user.dto';
-import { UserEntity } from '../infrastructure/persistence/user.orm-entity';
+import { UserResponseDto } from '../dtos/user-response.dto';
 import { UserService } from '../application/user.service';
 
 @ApiTags('users')
 @ApiBearerAuth('accessToken')
-@UseInterceptors(ClassSerializerInterceptor)
 @Roles([Role.ADMIN])
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post()
-  async create(@Body() body: CreateUserDto): Promise<UserEntity> {
-    return await this.userService.createUser(body);
+  async create(@Body() body: CreateUserDto): Promise<UserResponseDto> {
+    const user = await this.userService.createUser(body);
+    return UserResponseDto.fromDomain(user);
   }
 
   @Get()
   async paginate(
     @Query() query: PaginateUsersDto,
-  ): Promise<PaginationResponse<UserEntity>> {
-    return await this.userService.paginateUsers({
+  ): Promise<PaginationResponse<UserResponseDto>> {
+    const pagination = await this.userService.paginateUsers({
       ...query,
       startDate: query.startDate ? new Date(query.startDate) : undefined,
       endDate: query.endDate ? new Date(query.endDate) : undefined,
     });
+
+    return {
+      ...pagination,
+      data: pagination.data.map((user) => UserResponseDto.fromDomain(user)),
+    };
   }
 
   @Get('/:userId')
-  async getOneById(@Param('userId') userId: number): Promise<UserEntity> {
-    return await this.userService.getUserById(userId);
+  async getOneById(@Param('userId') userId: number): Promise<UserResponseDto> {
+    const user = await this.userService.getUserById(userId);
+    return UserResponseDto.fromDomain(user);
   }
 
   @Put('/:userId')
@@ -56,15 +60,17 @@ export class UserController {
     @Param('userId') userId: number,
     @Body() body: UpdateUserByIdDto,
     @UserInToken() payload: AccessTokenPayload,
-  ): Promise<UserEntity> {
-    return await this.userService.updateUser(userId, body, payload);
+  ): Promise<UserResponseDto> {
+    const user = await this.userService.updateUser(userId, body, payload);
+    return UserResponseDto.fromDomain(user);
   }
 
   @Delete('/:userId')
   async delete(
     @Param('userId') userId: number,
     @UserInToken() payload: AccessTokenPayload,
-  ): Promise<UserEntity> {
-    return await this.userService.deleteUser(userId, payload);
+  ): Promise<UserResponseDto> {
+    const user = await this.userService.deleteUser(userId, payload);
+    return UserResponseDto.fromDomain(user);
   }
 }

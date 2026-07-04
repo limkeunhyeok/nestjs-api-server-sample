@@ -15,7 +15,7 @@ import {
 import { Role } from 'src/common/constants/role.const';
 import { generateRandomString } from 'src/libs/string';
 import { JoseJwtService } from '../../jose-jwt/jose-jwt.service';
-import { UserEntity } from '../../users/infrastructure/persistence/user.orm-entity';
+import { User } from '../../users/domain/models/user.model';
 import { UserService } from '../../users/application/user.service';
 import {
   ACCESS_TOKEN_EXPIRES_IN,
@@ -135,10 +135,10 @@ export class AuthService {
   async authenticateUser(params: {
     email: string;
     password: string;
-  }): Promise<UserEntity> {
+  }): Promise<User> {
     const { email, password } = params;
 
-    let user: UserEntity;
+    let user: User;
 
     try {
       user = await this.userService.getUserByEmail(email);
@@ -149,7 +149,7 @@ export class AuthService {
       throw error;
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
 
     if (!isPasswordValid) {
       throw new InvalidEmailOrPasswordException(INVALID_EMAIL_OR_PASSWORD);
@@ -189,7 +189,7 @@ export class AuthService {
     };
   }
 
-  async getAuthorizedUserById(userId: number): Promise<UserEntity> {
+  async getAuthorizedUserById(userId: number): Promise<User> {
     try {
       return await this.userService.getUserById(userId);
     } catch (error: unknown) {

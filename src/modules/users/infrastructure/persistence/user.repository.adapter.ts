@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Like, Repository } from 'typeorm';
 import { UserRepositoryPort } from '../../domain/repository-ports/user.repository.port';
 import { UserEntity } from './user.orm-entity';
+import { User } from '../../domain/models/user.model';
+import { UserMapper } from './user.mapper';
 import { Role } from 'src/common/constants/role.const';
 import { SortDirection } from 'src/common/dtos/paginate.dto';
 import { PaginationResponse } from 'src/common/interfaces/pagination.interface';
@@ -16,16 +18,20 @@ export class UserRepositoryAdapter implements UserRepositoryPort {
     private readonly repo: Repository<UserEntity>,
   ) {}
 
-  async findOneByEmail(email: string): Promise<UserEntity | null> {
-    return await this.repo.findOneBy({ email });
+  async findOneByEmail(email: string): Promise<User | null> {
+    const userEntity = await this.repo.findOneBy({ email });
+    return userEntity ? UserMapper.toDomain(userEntity) : null;
   }
 
-  async findOneById(id: number): Promise<UserEntity | null> {
-    return await this.repo.findOneBy({ id });
+  async findOneById(id: number): Promise<User | null> {
+    const userEntity = await this.repo.findOneBy({ id });
+    return userEntity ? UserMapper.toDomain(userEntity) : null;
   }
 
-  async save(user: Partial<UserEntity>): Promise<UserEntity> {
-    return await this.repo.save(user);
+  async save(user: User): Promise<User> {
+    const ormEntity = UserMapper.toOrm(user);
+    const savedEntity = await this.repo.save(ormEntity);
+    return UserMapper.toDomain(savedEntity);
   }
 
   async paginate(params: {
@@ -37,7 +43,7 @@ export class UserRepositoryAdapter implements UserRepositoryPort {
     offset: number;
     sortField: string;
     sortDirection: SortDirection;
-  }): Promise<PaginationResponse<UserEntity>> {
+  }): Promise<PaginationResponse<User>> {
     const {
       role,
       name,
@@ -72,7 +78,9 @@ export class UserRepositoryAdapter implements UserRepositoryPort {
       take: limit > 0 ? limit : undefined,
     });
 
-    return toPaginationResponse({ total, limit, offset, data: users });
+    const domainUsers = users.map((user) => UserMapper.toDomain(user));
+
+    return toPaginationResponse({ total, limit, offset, data: domainUsers });
   }
 
   async delete(id: number): Promise<void> {

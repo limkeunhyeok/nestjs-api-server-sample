@@ -1,17 +1,9 @@
-import {
-  Body,
-  ClassSerializerInterceptor,
-  Controller,
-  Get,
-  Headers,
-  Post,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Body, Controller, Get, Headers, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserInToken } from 'src/common/decorators/user-in-token.decorator';
-import { UserEntity } from '../../users/infrastructure/persistence/user.orm-entity';
+import { UserResponseDto } from '../../users/dtos/user-response.dto';
 import { AuthTokens } from '../auth.interface';
 import { AuthService } from '../application/auth.service';
 import { ForgotPasswordDto } from '../dtos/forgot-password.dto';
@@ -39,9 +31,9 @@ export class AuthController {
   @ApiBearerAuth('accessToken')
   @Roles([])
   @Get('me')
-  @UseInterceptors(ClassSerializerInterceptor)
-  async getMe(@UserInToken('sub') userId: number): Promise<UserEntity> {
-    return await this.authService.getAuthorizedUserById(userId);
+  async getMe(@UserInToken('sub') userId: number): Promise<UserResponseDto> {
+    const user = await this.authService.getAuthorizedUserById(userId);
+    return UserResponseDto.fromDomain(user);
   }
 
   @Post('refresh')

@@ -52,7 +52,7 @@ export class CommentService {
     return await this.commentRepository.save({
       contents: params.contents,
       published: params.published,
-      author: user,
+      author: { id: user.id },
       post,
     });
   }

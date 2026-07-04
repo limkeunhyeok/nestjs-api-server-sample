@@ -23,12 +23,13 @@ import { ServerEnv } from 'src/configurations/server.config';
 import { removeUndefined } from 'src/libs/object';
 import { Transactional } from 'typeorm-transactional';
 import { Role } from '../../../common/constants/role.const';
-import { UserEntity } from '../infrastructure/persistence/user.orm-entity';
 import { getTTL } from '../user.util';
 import {
   USER_REPOSITORY_PORT,
   UserRepositoryPort,
 } from '../domain/repository-ports/user.repository.port';
+import { User } from '../domain/models/user.model';
+import { Email } from '../domain/value-objects/email.vo';
 
 @Injectable()
 export class UserService {
@@ -45,7 +46,7 @@ export class UserService {
     password: string;
     name: string;
     role: Role;
-  }): Promise<UserEntity> {
+  }): Promise<User> {
     const hasUser = await this.userRepository.findOneByEmail(params.email);
 
     if (hasUser) {
@@ -57,12 +58,15 @@ export class UserService {
       this.configService.get<number>('SALT_ROUND'),
     );
 
-    return await this.userRepository.save({
-      email: params.email,
-      password: hash,
-      role: params.role,
-      name: params.name,
-    });
+    const user = new User(
+      0,
+      new Email(params.email),
+      hash,
+      params.name,
+      params.role,
+    );
+
+    return await this.userRepository.save(user);
   }
 
   @Cacheable({
@@ -79,7 +83,7 @@ export class UserService {
     offset: number;
     sortField: string;
     sortDirection: SortDirection;
-  }): Promise<PaginationResponse<UserEntity>> {
+  }): Promise<PaginationResponse<User>> {
     return await this.userRepository.paginate(params);
   }
 
@@ -90,7 +94,7 @@ export class UserService {
     keysSetName: 'cacheKeys',
   })
   @Transactional()
-  async getUserById(userId: number): Promise<UserEntity> {
+  async getUserById(userId: number): Promise<User> {
     const user = await this.userRepository.findOneById(userId);
 
     if (!user) {
@@ -101,7 +105,7 @@ export class UserService {
   }
 
   @Transactional()
-  async getUserByEmail(email: string): Promise<UserEntity> {
+  async getUserByEmail(email: string): Promise<User> {
     const user = await this.userRepository.findOneByEmail(email);
     if (!user) {
       throw new UserNotFoundException(NOT_FOUND_RESOURCE);
@@ -123,8 +127,12 @@ export class UserService {
       sub: number;
       role: Role;
     },
-  ): Promise<UserEntity> {
-    const user = await this.getUserById(userId);
+  ): Promise<User> {
+    const user = await this.userRepository.findOneById(userId);
+
+    if (!user) {
+      throw new UserNotFoundException(NOT_FOUND_RESOURCE);
+    }
 
     if (userInToken.role !== Role.ADMIN && userInToken.sub !== user.id) {
       throw new UserForbiddenException(FORBIDDEN_RESOURCE_MODIFICATION);
@@ -138,10 +146,16 @@ export class UserService {
         this.configService.get<number>('SALT_ROUND'),
       );
 
-      updateFields.password = hash;
+      user.updatePassword(hash);
     }
 
-    Object.assign(user, updateFields);
+    if (updateFields.name) {
+      user.changeName(updateFields.name);
+    }
+
+    if (updateFields.role) {
+      user.changeRole(updateFields.role);
+    }
 
     return await this.userRepository.save(user);
   }
@@ -154,34 +168,40 @@ export class UserService {
       sub: number;
       role: Role;
     },
-  ): Promise<UserEntity> {
-    const user = await this.getUserById(userId);
+  ): Promise<User> {
+    const user = await this.userRepository.findOneById(userId);
+
+    if (!user) {
+      throw new UserNotFoundException(NOT_FOUND_RESOURCE);
+    }
 
     if (userInToken.role !== Role.ADMIN && userInToken.sub !== user.id) {
       throw new UserForbiddenException(FORBIDDEN_RESOURCE_MODIFICATION);
     }
 
-    const deletedUser = { ...user };
-
     await this.userRepository.delete(user.id);
 
-    return deletedUser;
+    return user;
   }
 
   async resetUserPassword(params: {
     userId: number;
     newPassword: string;
-  }): Promise<UserEntity> {
+  }): Promise<User> {
     const { userId, newPassword } = params;
 
-    const user = await this.getUserById(userId);
+    const user = await this.userRepository.findOneById(userId);
+
+    if (!user) {
+      throw new UserNotFoundException(NOT_FOUND_RESOURCE);
+    }
 
     const hash = await bcrypt.hash(
       newPassword,
       this.configService.get<number>('SALT_ROUND'),
     );
 
-    user.password = hash;
+    user.updatePassword(hash);
     return await this.userRepository.save(user);
   }
 }

@@ -82,7 +82,9 @@ export function Cacheable<TArgs extends unknown[] = unknown[]>(
       });
 
       const result = await originalMethod.apply(this, args);
-      const plainResult = instanceToPlain(result);
+      const plainResult = (instanceToPlain as (val: unknown) => unknown)(
+        result,
+      );
 
       try {
         let ttl: number | undefined;

@@ -2,29 +2,31 @@ import { Expose } from 'class-transformer';
 import { Role } from 'src/common/constants/role.const';
 import { User } from '../domain/models/user.model';
 
+const ExposeDeco = Expose as () => PropertyDecorator;
+
 export class UserResponseDto {
-  @Expose()
+  @ExposeDeco()
   id: number;
 
-  @Expose()
+  @ExposeDeco()
   email: string;
 
-  @Expose()
+  @ExposeDeco()
   name: string;
 
-  @Expose()
+  @ExposeDeco()
   role: Role;
 
-  @Expose()
+  @ExposeDeco()
   latestTryLoginDate?: Date | null;
 
-  @Expose()
+  @ExposeDeco()
   version?: number;
 
-  @Expose()
+  @ExposeDeco()
   createdAt?: Date;
 
-  @Expose()
+  @ExposeDeco()
   updatedAt?: Date;
 
   static fromDomain(user: User): UserResponseDto {

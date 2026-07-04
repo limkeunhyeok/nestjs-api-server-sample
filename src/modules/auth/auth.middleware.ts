@@ -5,7 +5,10 @@ import { NextFunction, Request, Response } from 'express';
 import { buildAuthAccessTokenCacheKey } from 'src/common/cache/auth.cache-key';
 import { MISSING_AUTHORIZATION_HEADER } from 'src/common/constants/exception-message.const';
 import { TOKEN_TYPE_DEV } from 'src/modules/auth/auth.const';
-import { AccessTokenPayload } from 'src/modules/auth/auth.interface';
+import {
+  AccessTokenPayload,
+  DevTokenPayload,
+} from 'src/modules/auth/auth.interface';
 import { AuthService } from 'src/modules/auth/application/auth.service';
 import { ActiveUsersService } from './active-users.service';
 import { DevTokenService } from './dev-token.service';
@@ -71,8 +74,9 @@ export class AuthMiddleware implements NestMiddleware {
       isRefreshToken: false,
     });
 
-    if ((payload as any).type === TOKEN_TYPE_DEV) {
-      const jti = (payload as any).jti;
+    if (payload.type === TOKEN_TYPE_DEV) {
+      const devPayload = payload as DevTokenPayload;
+      const jti = devPayload.jti;
       if (!jti) {
         throw new ApiException(
           HttpStatus.UNAUTHORIZED,

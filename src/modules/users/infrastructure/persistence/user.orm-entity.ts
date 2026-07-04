@@ -12,6 +12,10 @@ import { Role } from 'src/common/constants/role.const';
 import { CommentEntity } from '../../../posts/infrastructure/persistence/comment.orm-entity';
 import { PostEntity } from '../../../posts/infrastructure/persistence/post.orm-entity';
 
+const ExcludeDeco = Exclude as (options?: {
+  toPlainOnly?: boolean;
+}) => PropertyDecorator;
+
 @Entity('user')
 export class UserEntity extends CustomEntity {
   @PrimaryGeneratedColumn()
@@ -22,7 +26,7 @@ export class UserEntity extends CustomEntity {
   email: string;
 
   @Column({ type: 'varchar' })
-  @Exclude({ toPlainOnly: true })
+  @ExcludeDeco({ toPlainOnly: true })
   password: string;
 
   @Column({ type: 'varchar' })

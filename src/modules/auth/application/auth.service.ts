@@ -87,8 +87,16 @@ export class AuthService {
         throw new ApiException(HttpStatus.UNAUTHORIZED, TOKEN_TYPE_MISMATCH);
       }
       return payload as AccessTokenPayload;
-    } catch (error: any) {
-      if (error?.response?.statusCode || error instanceof ApiException) {
+    } catch (error: unknown) {
+      const response =
+        error && typeof error === 'object'
+          ? (Reflect.get(error, 'response') as unknown)
+          : undefined;
+      const statusCode =
+        response && typeof response === 'object'
+          ? (Reflect.get(response, 'statusCode') as unknown)
+          : undefined;
+      if (statusCode || error instanceof ApiException) {
         throw error;
       }
       if (error instanceof errors.JWTExpired) {

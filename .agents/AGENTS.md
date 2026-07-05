@@ -24,35 +24,38 @@
 
 ## 3. 아키텍처 원칙 (Architecture Blueprint)
 
-의존성의 단방향 흐름을 강제하고, 프레임워크 및 데이터베이스 기술로부터 비즈데이 도메인을 분리하기 위해 **포트-어댑터(Ports & Adapters) 아키텍처**를 사용합니다.
+의존성의 단방향 흐름을 강제하고, 프레임워크 및 데이터베이스 기술로부터 비즈니스 도메인을 분리하기 위해 **포트-어댑터(Ports & Adapters) 아키텍처**를 사용합니다.
 
 ```mermaid
 graph TD
-    subgraph Presentation / Interface
-        Controller[Controller]
-        HttpDto[HTTP Request/Response DTO]
+    subgraph Presentation
+        Controller[REST Controller]
+        RequestDto[Request DTO]
+        ResponseDto[Response DTO]
     end
 
-    subgraph Application
-        UseCase[UseCase Command/Query Service]
+    subgraph Application [Application / Use Case]
+        Service[Application Service]
+        AppPort[Inbound/Outbound Port]
     end
 
-    subgraph Domain
-        DomainEntity[Domain Entity / Value Object]
-        RepositoryPort[Repository Port Interface]
+    subgraph Domain [Pure Domain]
+        DomainEntity[Domain Entity]
+        ValueObject[Value Object]
+        DomainRepository[Repository Interface]
         DomainException[Domain Exception]
     end
 
     subgraph Infrastructure
         OrmEntity[TypeORM ORM Entity]
         RepositoryAdapter[Repository Adapter]
-        Mapper[Entity Mapper]
+        Mapper[Data Mapper]
     end
 
-    Controller --> UseCase
-    UseCase --> DomainEntity
-    UseCase --> RepositoryPort
-    RepositoryAdapter -- Implements --> RepositoryPort
+    Controller --> Service
+    Service --> DomainEntity
+    Service --> AppPort
+    RepositoryAdapter -- Implements --> DomainRepository
     RepositoryAdapter --> OrmEntity
     RepositoryAdapter --> Mapper
     Mapper --> DomainEntity
@@ -66,19 +69,19 @@ graph TD
 AI 에이전트가 코드를 작성하거나 변경할 때 실수하기 쉬운 핵심 규칙들이며, 예외 없이 강제 적용됩니다.
 
 ### 4.1. 도메인 레이어의 완전성 격리 (Domain Purity)
-- **위치**: `domain/` 디렉토리 하위 of 모든 파일 (`models/`, `repository-ports/`, `exceptions/`)
+- **위치**: `domain/` 디렉토리 하위의 모든 서브디렉토리 (`entities/`, `value-objects/`, `repositories/`, `services/`, `exceptions/` 등)
 - **제약**: 순수 TypeScript 코드로만 구성되어야 합니다. `@nestjs/common`, `@nestjs/typeorm`, `typeorm`을 포함한 어떠한 프레임워크 데코레이터나 라이브러리도 임포트할 수 없습니다.
 
 ### 4.2. CQS(Command Query Separation) 분리 규격
-- **상태 변경 (Command)**: 데이터 쓰기를 수행하는 UseCase는 `~Command.usecase.ts`로 구현하며, 단일 트랜잭션 단위로 실행되도록 `typeorm-transactional` 모듈의 `@Transactional()`을 최상위 메서드에 적용합니다.
-- **조회 (Query)**: 단순 데이터 조회를 수행하는 UseCase는 `~Query.usecase.ts` 또는 `~QueryService`로 구현하며, 불필요한 트랜잭션 래핑을 금지합니다.
+- **상태 변경 (Command)**: 데이터 쓰기를 수행하는 UseCase는 `~Command.usecase.ts` 또는 서비스 형태로 구현하며, 단일 트랜잭션 단위로 실행되도록 `typeorm-transactional` 모듈의 `@Transactional()`을 최상위 메서드에 적용합니다.
+- **조회 (Query)**: 단순 데이터 조회를 수행하는 UseCase는 `~Query.usecase.ts` 또는 조회 서비스로 구현하며, 불필요한 트랜잭션 래핑을 금지합니다.
 
 ### 4.3. 상태 매핑 격리 (Mappers & Adapters)
-- 데이터베이스 세부 테이블 구조와 매핑되는 **ORM Entity**(`PostOrmEntity` 등)는 `infrastructure/` 계층에만 존재해야 하며, 도메인 비즈니스 로직 및 프레젠테이션(Controller) 계층으로 노출될 수 없습니다.
-- 외부 노출과 영속성 처리를 위해 상호 변환 시 반드시 static 메서드를 지닌 `PostMapper` 등 매퍼 클래스를 경유해야 합니다.
+- 데이터베이스 세부 테이블 구조와 매핑되는 **ORM Entity**(`PostOrmEntity` 등)는 `infrastructure/persistence/entities/` 계층에만 존재해야 하며, 도메인 비즈니스 로직 및 프레젠테이션(Controller) 계층으로 노출될 수 없습니다.
+- 외부 노출과 영속성 처리를 위해 상호 변환 시 반드시 static 메서드를 지닌 `Mapper` 클래스(`infrastructure/persistence/mappers/` 또는 `application/mappers/`)를 경유해야 합니다.
 
 ### 4.4. 순수 도메인 예외 (Domain Exceptions)
-- **제약**: 도메인(`domain/`) 및 애플리케이션(`application/`) 레이어에서는 NestJS가 제공하는 `HttpException` 계열(`NotFoundException`, `ForbiddenException` 등)을 직접 `throw`해서는 안 않습니다.
+- **제약**: 도메인(`domain/`) 및 애플리케이션(`application/`) 레이어에서는 NestJS가 제공하는 `HttpException` 계열(`NotFoundException`, `ForbiddenException` 등)을 직접 `throw`해서는 안 됩니다.
 - **구현**: 모든 커스텀 비즈니스 예외는 [domain.exception.ts](file:///Users/limkeunhyeok/Desktop/nestjs-api-server-sample/src/common/exceptions/domain.exception.ts)의 `BaseDomainException`을 상속받아 정의해야 합니다.
 - **필터 매핑**: 던져진 도메인 예외는 `AllExceptionsFilter`에서 예외 유형에 대응하는 HTTP 상태 코드로 자동 매핑되어 클라이언트 응답으로 변환됩니다.
 
@@ -104,4 +107,8 @@ AI 에이전트가 코드를 작성하거나 변경할 때 실수하기 쉬운 �
 ### 4.10. 불필요한 빌드 및 린트 검증 생략 (No Redundant Validation)
 - **제약**: 에이전트는 단순 문서(README.md, ADR, Spec 명세 등 마크다운 파일) 작성이나 정적 리소스 추가와 같이 소스 코드의 컴파일 결과 및 런타임 동작에 어떠한 부수 효과(Side-effect)도 미치지 않는 독립적인 작업을 수행한 경우, 터미널 도구를 통해 `pnpm build`, `pnpm lint` 등의 기계적이고 무의미한 검증 명령을 실행하여 프로세스와 피드백 단계를 낭비해서는 안 됩니다.
 - **예외**: 소스 코드 수정이 수반되거나 실제로 린트/컴파일 검증이 유의미한 코드베이스 변경 시에 한해서만 검증 도구를 기동합니다.
+
+### 4.11. 초정밀 디렉토리 표준 구조 강제 준수 (Standard Directory Tree Constraint)
+- **제약**: 신규 파일을 생성하거나 기존 코드를 리팩토링 및 재배치할 때, 에이전트는 [아키텍처 표준 명세서(architecture-specification.md)](file:///Users/limkeunhyeok/Desktop/nestjs-api-server-sample/docs/specs/architecture-specification.md)에 기술된 표준 서브디렉토리 명세(`application/dto/`, `domain/value-objects/`, `infrastructure/persistence/mappers/` 등)를 한 치의 오차도 없이 엄격히 준수하여 배치하여야 합니다. 임의로 디렉토리 구조를 평평하게 변경하는 행위를 원천 금지합니다.
+
 

@@ -13,7 +13,7 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserInToken } from 'src/common/decorators/user-in-token.decorator';
 import { DevTokenEntity } from './dev-token.entity';
 import { DevTokenService } from './dev-token.service';
-import { CreateDevTokenDto } from './dtos/create-dev-token.dto';
+import { CreateDevTokenDto } from './application/dto/create-dev-token.dto';
 
 @ApiTags('dev-tokens')
 @ApiBearerAuth('accessToken')

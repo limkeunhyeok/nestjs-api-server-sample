@@ -1,9 +1,9 @@
+import { z } from 'zod';
 import { createZodDto } from 'nestjs-zod';
 import { PaginateBaseSchema } from 'src/common/dtos/paginate.dto';
-import { z } from 'zod';
-import { PostEntity } from '../infrastructure/persistence/post.orm-entity';
+import { CommentEntity } from '../../infrastructure/persistence/comment.orm-entity';
 
-const POST_SORT_FIELDS: (keyof PostEntity)[] = [
+const COMMENT_SORT_FIELDS: (keyof CommentEntity)[] = [
   'id',
   'published',
   'createdAt',
@@ -16,16 +16,18 @@ const zodBooleanCoerce = z.preprocess((val) => {
   return val;
 }, z.boolean());
 
-export const PaginatePostsSchema = PaginateBaseSchema.extend({
+export const PaginateCommentsSchema = PaginateBaseSchema.extend({
   authorId: z.coerce.number().optional(),
   published: zodBooleanCoerce.optional(),
 })
   .refine(
     (data) => {
-      return POST_SORT_FIELDS.includes(data.sortField as keyof PostEntity);
+      return COMMENT_SORT_FIELDS.includes(
+        data.sortField as keyof CommentEntity,
+      );
     },
     {
-      message: `sortField must be one of: ${POST_SORT_FIELDS.join(', ')}`,
+      message: `sortField must be one of: ${COMMENT_SORT_FIELDS.join(', ')}`,
       path: ['sortField'],
     },
   )
@@ -42,4 +44,4 @@ export const PaginatePostsSchema = PaginateBaseSchema.extend({
     },
   );
 
-export class PaginatePostsDto extends createZodDto(PaginatePostsSchema) {}
+export class PaginateCommentsDto extends createZodDto(PaginateCommentsSchema) {}

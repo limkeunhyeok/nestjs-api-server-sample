@@ -3,13 +3,13 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserInToken } from 'src/common/decorators/user-in-token.decorator';
-import { UserResponseDto } from '../../users/presentation/responses/user-response.dto';
+import { UserResponseDto } from '../../users/application/dto/user-response.dto';
 import { AuthTokens } from '../auth.interface';
 import { AuthService } from '../application/auth.service';
-import { ForgotPasswordDto } from '../dtos/forgot-password.dto';
-import { LoginDto } from '../dtos/login.dto';
-import { RefreshTokensDto } from '../dtos/refresh-token.dto';
-import { RegisterDto } from '../dtos/register.dto';
+import { ForgotPasswordDto } from '../application/dto/forgot-password.dto';
+import { LoginDto } from '../application/dto/login.dto';
+import { RefreshTokensDto } from '../application/dto/refresh-token.dto';
+import { RegisterDto } from '../application/dto/register.dto';
 
 @ApiTags('auth')
 @Controller('auth')

@@ -16,9 +16,9 @@ import { UserInToken } from 'src/common/decorators/user-in-token.decorator';
 import { PaginationResponse } from 'src/common/interfaces/pagination.interface';
 import { AuthUser } from 'src/modules/auth/auth.interface';
 import { Role } from '../../../common/constants/role.const';
-import { CreatePostDto } from '../dtos/create-post.dto';
-import { PaginatePostsDto } from '../dtos/paginate-posts.dto';
-import { UpdatePostDto } from '../dtos/update-post.dto';
+import { CreatePostDto } from '../application/dto/create-post.dto';
+import { PaginatePostsDto } from '../application/dto/paginate-posts.dto';
+import { UpdatePostDto } from '../application/dto/update-post.dto';
 import { PostEntity } from '../infrastructure/persistence/post.orm-entity';
 import { PostService } from '../application/services/post.service';
 
@@ -30,7 +30,6 @@ import { PostService } from '../application/services/post.service';
 export class PostController {
   constructor(private readonly postService: PostService) {}
 
-  @Post()
   @Post()
   async create(
     @Body() body: CreatePostDto,
@@ -58,7 +57,6 @@ export class PostController {
     return await this.postService.getPostById(postId);
   }
 
-  @Put('/:postId')
   @Put('/:postId')
   async update(
     @Param('postId') postId: number,

@@ -15,10 +15,10 @@ import { UserInToken } from 'src/common/decorators/user-in-token.decorator';
 import { PaginationResponse } from 'src/common/interfaces/pagination.interface';
 import { AuthUser } from 'src/modules/auth/auth.interface';
 import { UserService } from 'src/modules/users/application/services/user.service';
-import { CreateUserDto } from 'src/modules/users/presentation/requests/create-user.dto';
-import { PaginateUsersDto } from 'src/modules/users/presentation/requests/paginate-user.dto';
-import { UpdateUserByIdDto } from 'src/modules/users/presentation/requests/update-user.dto';
-import { UserResponseDto } from 'src/modules/users/presentation/responses/user-response.dto';
+import { CreateUserDto } from 'src/modules/users/application/dto/create-user.dto';
+import { PaginateUsersDto } from 'src/modules/users/application/dto/paginate-user.dto';
+import { UpdateUserByIdDto } from 'src/modules/users/application/dto/update-user.dto';
+import { UserResponseDto } from 'src/modules/users/application/dto/user-response.dto';
 
 @ApiTags('users')
 @ApiBearerAuth('accessToken')

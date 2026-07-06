@@ -16,9 +16,9 @@ import { UserInToken } from 'src/common/decorators/user-in-token.decorator';
 import { PaginationResponse } from 'src/common/interfaces/pagination.interface';
 import { AuthUser } from 'src/modules/auth/auth.interface';
 import { Role } from '../../../common/constants/role.const';
-import { CreateCommentDto } from '../dtos/create-comment.dto';
-import { PaginateCommentsDto } from '../dtos/paginate-comments.dto';
-import { UpdateCommentDto } from '../dtos/update-comment.dto';
+import { CreateCommentDto } from '../application/dto/create-comment.dto';
+import { PaginateCommentsDto } from '../application/dto/paginate-comments.dto';
+import { UpdateCommentDto } from '../application/dto/update-comment.dto';
 import { CommentEntity } from '../infrastructure/persistence/comment.orm-entity';
 import { CommentService } from '../application/services/comment.service';
 

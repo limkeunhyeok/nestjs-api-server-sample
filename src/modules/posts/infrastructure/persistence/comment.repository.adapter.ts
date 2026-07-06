@@ -23,7 +23,8 @@ export class CommentRepositoryAdapter implements CommentRepositoryPort {
   }
 
   async save(comment: Partial<CommentEntity>): Promise<CommentEntity> {
-    return await this.repo.save(comment);
+    const saved = await this.repo.save(comment);
+    return (await this.findOneById(saved.id))!;
   }
 
   async paginate(params: {

@@ -5,7 +5,7 @@ import { SnakeNamingStrategy } from 'src/common/databases/snake-naming.strategy'
 import { DevTokenEntity } from 'src/modules/auth/dev-token.entity';
 import { CommentEntity } from 'src/modules/posts/infrastructure/persistence/comment.orm-entity';
 import { PostEntity } from 'src/modules/posts/infrastructure/persistence/post.orm-entity';
-import { UserEntity } from 'src/modules/users/infrastructure/persistence/user.orm-entity';
+import { UserEntity } from 'src/modules/users/infrastructure/persistence/entities/user.orm-entity';
 import { NodeEnv, ServerEnv } from './server.config';
 
 @Injectable()

@@ -1,5 +1,5 @@
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { UserEntity } from 'src/modules/users/infrastructure/persistence/user.orm-entity';
+import { UserEntity } from 'src/modules/users/infrastructure/persistence/entities/user.orm-entity';
 import { expectResponseFailed } from 'test/expectation/common';
 import { initE2ETest } from 'test/lib/init-e2e-test';
 import { fetchHeaders, withHeadersBy } from 'test/lib/utils';

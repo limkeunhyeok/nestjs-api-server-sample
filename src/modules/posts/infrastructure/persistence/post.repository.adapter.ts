@@ -23,7 +23,8 @@ export class PostRepositoryAdapter implements PostRepositoryPort {
   }
 
   async save(post: Partial<PostEntity>): Promise<PostEntity> {
-    return await this.repo.save(post);
+    const saved = await this.repo.save(post);
+    return (await this.findOneById(saved.id))!;
   }
 
   async paginate(params: {

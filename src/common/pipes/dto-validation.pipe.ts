@@ -5,6 +5,7 @@ import {
   Injectable,
   PipeTransform,
 } from '@nestjs/common';
+import { ZodIssue } from 'zod';
 
 @Injectable()
 export class DtoValidationPipe implements PipeTransform {
@@ -33,7 +34,7 @@ export class DtoValidationPipe implements PipeTransform {
     if (!result.success) {
       // Zod 에러 메시지를 기존 포맷과 호환되게 '; ' 로 합침
       const messages: string = result.error.issues
-        .map((e) => {
+        .map((e: ZodIssue) => {
           const field = e.path.join('.');
           return field ? `${field}: ${e.message}` : e.message;
         })

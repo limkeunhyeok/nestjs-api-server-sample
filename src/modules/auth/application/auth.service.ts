@@ -1,7 +1,4 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { UserNotFoundException } from '../../users/domain/exceptions/user.exception';
-import { InvalidEmailOrPasswordException } from '../exceptions/auth.exception';
-import { ApiException } from '../../../common/exceptions/api.exception';
 import * as bcrypt from 'bcrypt';
 import { errors } from 'jose';
 import {
@@ -14,9 +11,11 @@ import {
 } from 'src/common/constants/exception-message.const';
 import { Role } from 'src/common/constants/role.const';
 import { generateRandomString } from 'src/libs/string';
+import { ApiException } from '../../../common/exceptions/api.exception';
 import { JoseJwtService } from '../../jose-jwt/jose-jwt.service';
-import { User } from '../../users/domain/models/user.model';
-import { UserService } from '../../users/application/user.service';
+import { UserService } from '../../users/application/services/user.service';
+import { User } from '../../users/domain/entities/user.model';
+import { UserNotFoundException } from '../../users/domain/exceptions/user.exception';
 import {
   ACCESS_TOKEN_EXPIRES_IN,
   AUTH_SCHEME_BEARER,
@@ -28,8 +27,10 @@ import {
 import {
   AccessTokenPayload,
   AuthTokens,
+  DevTokenPayload,
   RefreshTokenPayload,
 } from '../auth.interface';
+import { InvalidEmailOrPasswordException } from '../exceptions/auth.exception';
 import { TokenBlacklistService } from '../token-blacklist.service';
 
 @Injectable()
@@ -40,7 +41,9 @@ export class AuthService {
     private readonly tokenBlacklistService: TokenBlacklistService,
   ) {}
 
-  async parseBearerToken(rawToken: string): Promise<AccessTokenPayload>;
+  async parseBearerToken(
+    rawToken: string,
+  ): Promise<AccessTokenPayload | DevTokenPayload>;
   async parseBearerToken(
     rawToken: string,
     options: {
@@ -56,14 +59,14 @@ export class AuthService {
           isRawToken?: boolean;
         }
       | undefined,
-  ): Promise<AccessTokenPayload>;
+  ): Promise<AccessTokenPayload | DevTokenPayload>;
   async parseBearerToken(
     rawToken: string,
     options?: {
       isRefreshToken?: boolean;
       isRawToken?: boolean;
     },
-  ): Promise<AccessTokenPayload | RefreshTokenPayload> {
+  ): Promise<AccessTokenPayload | DevTokenPayload | RefreshTokenPayload> {
     const token = options?.isRawToken
       ? rawToken
       : this.extractTokenFromBearer(rawToken);
@@ -86,7 +89,7 @@ export class AuthService {
       ) {
         throw new ApiException(HttpStatus.UNAUTHORIZED, TOKEN_TYPE_MISMATCH);
       }
-      return payload as AccessTokenPayload;
+      return payload as AccessTokenPayload | DevTokenPayload;
     } catch (error: unknown) {
       const response =
         error && typeof error === 'object'

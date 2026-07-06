@@ -1,4 +1,4 @@
-import { Exclude } from 'class-transformer';
+import { Role } from 'src/common/constants/role.const';
 import { CustomEntity } from 'src/common/databases/custom.entity';
 import {
   Column,
@@ -8,13 +8,8 @@ import {
   PrimaryGeneratedColumn,
   Relation,
 } from 'typeorm';
-import { Role } from 'src/common/constants/role.const';
-import { CommentEntity } from '../../../posts/infrastructure/persistence/comment.orm-entity';
-import { PostEntity } from '../../../posts/infrastructure/persistence/post.orm-entity';
-
-const ExcludeDeco = Exclude as (options?: {
-  toPlainOnly?: boolean;
-}) => PropertyDecorator;
+import { CommentEntity } from '../../../../posts/infrastructure/persistence/comment.orm-entity';
+import { PostEntity } from '../../../../posts/infrastructure/persistence/post.orm-entity';
 
 @Entity('user')
 export class UserEntity extends CustomEntity {
@@ -26,7 +21,6 @@ export class UserEntity extends CustomEntity {
   email: string;
 
   @Column({ type: 'varchar' })
-  @ExcludeDeco({ toPlainOnly: true })
   password: string;
 
   @Column({ type: 'varchar' })
@@ -36,7 +30,7 @@ export class UserEntity extends CustomEntity {
   role: Role;
 
   @Column({ type: 'timestamptz', nullable: true })
-  latestTryLoginDate?: Date;
+  latestTryLoginDate?: Date | null;
 
   @OneToMany(() => PostEntity, (post) => post.author)
   posts: Relation<PostEntity[]>;

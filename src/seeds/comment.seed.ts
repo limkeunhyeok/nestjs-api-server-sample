@@ -5,7 +5,7 @@ import { Role } from 'src/common/constants/role.const';
 import { SortDirection } from 'src/common/dtos/paginate.dto';
 import { CommentService } from 'src/modules/posts/application/services/comment.service';
 import { PostService } from 'src/modules/posts/application/services/post.service';
-import { UserService } from 'src/modules/users/application/user.service';
+import { UserService } from 'src/modules/users/application/services/user.service';
 import { DataSource } from 'typeorm';
 import {
   addTransactionalDataSource,

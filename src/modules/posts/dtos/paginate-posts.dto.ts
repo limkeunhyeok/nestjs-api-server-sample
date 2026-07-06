@@ -1,7 +1,7 @@
-import { z } from 'zod';
 import { createZodDto } from 'nestjs-zod';
 import { PaginateBaseSchema } from 'src/common/dtos/paginate.dto';
-import { PostEntity } from '../entities/post.entity';
+import { z } from 'zod';
+import { PostEntity } from '../infrastructure/persistence/post.orm-entity';
 
 const POST_SORT_FIELDS: (keyof PostEntity)[] = [
   'id',

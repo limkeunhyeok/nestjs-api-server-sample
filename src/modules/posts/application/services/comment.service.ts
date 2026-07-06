@@ -20,7 +20,7 @@ import { SortDirection } from 'src/common/dtos/paginate.dto';
 import { PaginationResponse } from 'src/common/interfaces/pagination.interface';
 import { removeUndefined } from 'src/libs/object';
 import { Transactional } from 'typeorm-transactional';
-import { UserService } from '../../../users/application/user.service';
+import { UserService } from '../../../users/application/services/user.service';
 import { CommentEntity } from '../../infrastructure/persistence/comment.orm-entity';
 import { getTTL } from '../../utils/comment.util';
 import { PostService } from './post.service';
@@ -52,7 +52,7 @@ export class CommentService {
     return await this.commentRepository.save({
       contents: params.contents,
       published: params.published,
-      author: { id: user.id },
+      authorId: user.id,
       post,
     });
   }

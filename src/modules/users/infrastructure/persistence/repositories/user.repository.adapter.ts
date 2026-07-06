@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Like, Repository } from 'typeorm';
-import { UserRepositoryPort } from '../../domain/repository-ports/user.repository.port';
-import { UserEntity } from './user.orm-entity';
-import { User } from '../../domain/models/user.model';
-import { UserMapper } from './user.mapper';
+import { UserRepositoryPort } from '../../../domain/repositories/user.repository.port';
+import { UserEntity } from '../entities/user.orm-entity';
+import { User } from '../../../domain/entities/user.model';
+import { UserMapper } from '../mappers/user.mapper';
 import { Role } from 'src/common/constants/role.const';
 import { SortDirection } from 'src/common/dtos/paginate.dto';
 import { PaginationResponse } from 'src/common/interfaces/pagination.interface';

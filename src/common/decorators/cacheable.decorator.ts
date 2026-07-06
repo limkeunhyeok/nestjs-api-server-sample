@@ -1,6 +1,5 @@
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject } from '@nestjs/common';
-import { instanceToPlain } from 'class-transformer';
 import { isNil } from 'lodash';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { ExtendedLogger } from '../interfaces/extended-logger.interface';
@@ -82,9 +81,10 @@ export function Cacheable<TArgs extends unknown[] = unknown[]>(
       });
 
       const result = await originalMethod.apply(this, args);
-      const plainResult = (instanceToPlain as (val: unknown) => unknown)(
-        result,
-      );
+      const plainResult: unknown =
+        result !== undefined && result !== null
+          ? JSON.parse(JSON.stringify(result))
+          : result;
 
       try {
         let ttl: number | undefined;

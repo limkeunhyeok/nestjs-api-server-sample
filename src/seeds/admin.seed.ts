@@ -3,7 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from 'src/app.module';
 import { Role } from 'src/common/constants/role.const';
 import { ServerEnv } from 'src/configurations/server.config';
-import { UserService } from 'src/modules/users/application/user.service';
+import { UserService } from 'src/modules/users/application/services/user.service';
 import { DataSource } from 'typeorm';
 import {
   addTransactionalDataSource,

@@ -4,7 +4,7 @@ import { Role } from 'src/common/constants/role.const';
 import { SortDirection } from 'src/common/dtos/paginate.dto';
 import { CommentEntity } from 'src/modules/posts/infrastructure/persistence/comment.orm-entity';
 import { PostEntity } from 'src/modules/posts/infrastructure/persistence/post.orm-entity';
-import { UserEntity } from 'src/modules/users/infrastructure/persistence/user.orm-entity';
+import { UserEntity } from 'src/modules/users/infrastructure/persistence/entities/user.orm-entity';
 import { expectCommentResponseSucceed } from 'test/expectation/comment';
 import {
   expectPagingResponseSucceed,

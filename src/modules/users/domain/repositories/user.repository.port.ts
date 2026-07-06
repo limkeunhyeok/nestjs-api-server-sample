@@ -1,7 +1,7 @@
 import { Role } from 'src/common/constants/role.const';
 import { SortDirection } from 'src/common/dtos/paginate.dto';
 import { PaginationResponse } from 'src/common/interfaces/pagination.interface';
-import { User } from '../models/user.model';
+import { User } from '../entities/user.model';
 
 export interface UserRepositoryPort {
   findOneByEmail(email: string): Promise<User | null>;

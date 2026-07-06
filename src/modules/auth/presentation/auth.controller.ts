@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserInToken } from 'src/common/decorators/user-in-token.decorator';
-import { UserResponseDto } from '../../users/dtos/user-response.dto';
+import { UserResponseDto } from '../../users/presentation/responses/user-response.dto';
 import { AuthTokens } from '../auth.interface';
 import { AuthService } from '../application/auth.service';
 import { ForgotPasswordDto } from '../dtos/forgot-password.dto';

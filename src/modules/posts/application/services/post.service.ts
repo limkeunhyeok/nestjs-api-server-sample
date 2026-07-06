@@ -18,7 +18,7 @@ import { PaginationResponse } from 'src/common/interfaces/pagination.interface';
 import { removeUndefined } from 'src/libs/object';
 import { Transactional } from 'typeorm-transactional';
 import { Role } from 'src/common/constants/role.const';
-import { UserService } from '../../../users/application/user.service';
+import { UserService } from '../../../users/application/services/user.service';
 import { PostEntity } from '../../infrastructure/persistence/post.orm-entity';
 import { getTTL } from '../../utils/post.util';
 import {
@@ -48,7 +48,7 @@ export class PostService {
       title: params.title,
       contents: params.contents,
       published: params.published,
-      author: { id: user.id },
+      authorId: user.id,
     });
   }
 

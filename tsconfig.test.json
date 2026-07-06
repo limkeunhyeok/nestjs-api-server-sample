@@ -4,7 +4,11 @@
   "compilerOptions": {
     "strict": false,
     "noImplicitAny": false,
-    "allowJs": true
+    "allowJs": true,
+    "baseUrl": "./",
+    "paths": {
+      "src/*": ["./src/*"]
+    }
   },
   "include": ["test/**/*.ts", "test/global-teardown.ts"]
 }

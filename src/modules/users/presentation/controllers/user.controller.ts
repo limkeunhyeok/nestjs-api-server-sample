@@ -9,16 +9,16 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Role } from 'src/common/constants/role.const';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserInToken } from 'src/common/decorators/user-in-token.decorator';
 import { PaginationResponse } from 'src/common/interfaces/pagination.interface';
-import { Role } from '../../../common/constants/role.const';
-import { AccessTokenPayload } from '../../auth/auth.interface';
-import { CreateUserDto } from '../dtos/create-user.dto';
-import { PaginateUsersDto } from '../dtos/paginate-user.dto';
-import { UpdateUserByIdDto } from '../dtos/update-user.dto';
-import { UserResponseDto } from '../dtos/user-response.dto';
-import { UserService } from '../application/user.service';
+import { AuthUser } from 'src/modules/auth/auth.interface';
+import { UserService } from 'src/modules/users/application/services/user.service';
+import { CreateUserDto } from 'src/modules/users/presentation/requests/create-user.dto';
+import { PaginateUsersDto } from 'src/modules/users/presentation/requests/paginate-user.dto';
+import { UpdateUserByIdDto } from 'src/modules/users/presentation/requests/update-user.dto';
+import { UserResponseDto } from 'src/modules/users/presentation/responses/user-response.dto';
 
 @ApiTags('users')
 @ApiBearerAuth('accessToken')
@@ -59,7 +59,7 @@ export class UserController {
   async update(
     @Param('userId') userId: number,
     @Body() body: UpdateUserByIdDto,
-    @UserInToken() payload: AccessTokenPayload,
+    @UserInToken() payload: AuthUser,
   ): Promise<UserResponseDto> {
     const user = await this.userService.updateUser(userId, body, payload);
     return UserResponseDto.fromDomain(user);
@@ -68,7 +68,7 @@ export class UserController {
   @Delete('/:userId')
   async delete(
     @Param('userId') userId: number,
-    @UserInToken() payload: AccessTokenPayload,
+    @UserInToken() payload: AuthUser,
   ): Promise<UserResponseDto> {
     const user = await this.userService.deleteUser(userId, payload);
     return UserResponseDto.fromDomain(user);

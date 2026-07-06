@@ -8,7 +8,7 @@ import {
   PrimaryGeneratedColumn,
   Relation,
 } from 'typeorm';
-import { UserEntity } from '../../../users/infrastructure/persistence/user.orm-entity';
+import { UserEntity } from '../../../users/infrastructure/persistence/entities/user.orm-entity';
 import { CommentEntity } from './comment.orm-entity';
 
 @Entity('post')
@@ -25,8 +25,11 @@ export class PostEntity extends CustomEntity {
   @Column({ type: 'boolean' })
   published: boolean;
 
+  @Column({ name: 'author_id' })
+  authorId: number;
+
   @ManyToOne(() => UserEntity, (user) => user.id, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'authorId' })
+  @JoinColumn({ name: 'author_id' })
   author: Relation<UserEntity>;
 
   @OneToMany(() => CommentEntity, (comment) => comment.post)

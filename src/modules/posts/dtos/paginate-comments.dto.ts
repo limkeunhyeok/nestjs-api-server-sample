@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { createZodDto } from 'nestjs-zod';
 import { PaginateBaseSchema } from 'src/common/dtos/paginate.dto';
-import { CommentEntity } from '../entities/comment.entity';
+import { CommentEntity } from '../infrastructure/persistence/comment.orm-entity';
 
 const COMMENT_SORT_FIELDS: (keyof CommentEntity)[] = [
   'id',

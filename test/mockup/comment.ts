@@ -1,7 +1,7 @@
 import * as faker from 'faker';
 import { CommentEntity } from 'src/modules/posts/infrastructure/persistence/comment.orm-entity';
 import { PostEntity } from 'src/modules/posts/infrastructure/persistence/post.orm-entity';
-import { UserEntity } from 'src/modules/users/infrastructure/persistence/user.orm-entity';
+import { UserEntity } from 'src/modules/users/infrastructure/persistence/entities/user.orm-entity';
 import { Repository } from 'typeorm';
 
 export function mockCreateCommentDto(published = true) {

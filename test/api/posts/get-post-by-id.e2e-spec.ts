@@ -1,7 +1,7 @@
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Role } from 'src/common/constants/role.const';
 import { PostEntity } from 'src/modules/posts/infrastructure/persistence/post.orm-entity';
-import { UserEntity } from 'src/modules/users/infrastructure/persistence/user.orm-entity';
+import { UserEntity } from 'src/modules/users/infrastructure/persistence/entities/user.orm-entity';
 import { expectResponseFailed } from 'test/expectation/common';
 import { expectPostResponseSucceed } from 'test/expectation/post';
 import { initE2ETest } from 'test/lib/init-e2e-test';

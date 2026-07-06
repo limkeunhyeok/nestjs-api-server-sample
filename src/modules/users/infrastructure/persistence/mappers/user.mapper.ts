@@ -1,6 +1,6 @@
-import { User } from '../../domain/models/user.model';
-import { Email } from '../../domain/value-objects/email.vo';
-import { UserEntity } from './user.orm-entity';
+import { User } from '../../../domain/entities/user.model';
+import { Email } from '../../../domain/value-objects/email.vo';
+import { UserEntity } from '../entities/user.orm-entity';
 
 export class UserMapper {
   static toDomain(ormEntity: UserEntity): User {
@@ -27,9 +27,15 @@ export class UserMapper {
     ormEntity.name = domain.name;
     ormEntity.role = domain.role;
     ormEntity.latestTryLoginDate = domain.latestTryLoginDate;
-    ormEntity.version = domain.version;
-    ormEntity.createdAt = domain.createdAt;
-    ormEntity.updatedAt = domain.updatedAt;
+    if (domain.version !== undefined) {
+      ormEntity.version = domain.version;
+    }
+    if (domain.createdAt !== undefined) {
+      ormEntity.createdAt = domain.createdAt;
+    }
+    if (domain.updatedAt !== undefined) {
+      ormEntity.updatedAt = domain.updatedAt;
+    }
     return ormEntity;
   }
 }

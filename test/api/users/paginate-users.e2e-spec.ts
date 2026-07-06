@@ -2,7 +2,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { addDays, subDays } from 'date-fns';
 import { Role } from 'src/common/constants/role.const';
 import { SortDirection } from 'src/common/dtos/paginate.dto';
-import { UserEntity } from 'src/modules/users/infrastructure/persistence/user.orm-entity';
+import { UserEntity } from 'src/modules/users/infrastructure/persistence/entities/user.orm-entity';
 import {
   expectPagingResponseSucceed,
   expectResponseFailed,

@@ -1,21 +1,21 @@
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { HttpStatus, Inject, Injectable, NestMiddleware } from '@nestjs/common';
-import { ApiException } from '../../common/exceptions/api.exception';
 import { NextFunction, Request, Response } from 'express';
 import { buildAuthAccessTokenCacheKey } from 'src/common/cache/auth.cache-key';
 import { MISSING_AUTHORIZATION_HEADER } from 'src/common/constants/exception-message.const';
+import { AuthService } from 'src/modules/auth/application/auth.service';
 import { TOKEN_TYPE_DEV } from 'src/modules/auth/auth.const';
 import {
   AccessTokenPayload,
   DevTokenPayload,
 } from 'src/modules/auth/auth.interface';
-import { AuthService } from 'src/modules/auth/application/auth.service';
+import { ApiException } from '../../common/exceptions/api.exception';
 import { ActiveUsersService } from './active-users.service';
 import { DevTokenService } from './dev-token.service';
 import { TokenBlacklistService } from './token-blacklist.service';
 
 export interface RequestWithUser extends Request {
-  user?: AccessTokenPayload;
+  user?: AccessTokenPayload | DevTokenPayload;
 }
 
 @Injectable()
@@ -75,7 +75,7 @@ export class AuthMiddleware implements NestMiddleware {
     });
 
     if (payload.type === TOKEN_TYPE_DEV) {
-      const devPayload = payload as DevTokenPayload;
+      const devPayload = payload;
       const jti = devPayload.jti;
       if (!jti) {
         throw new ApiException(

@@ -1,5 +1,5 @@
 import { Role } from 'src/common/constants/role.const';
-import { UserEntity } from 'src/modules/users/infrastructure/persistence/user.orm-entity';
+import { UserEntity } from 'src/modules/users/infrastructure/persistence/entities/user.orm-entity';
 import request, { Response } from 'supertest';
 import TestAgent from 'supertest/lib/agent';
 import { extractSignInParams } from 'test/mockup/auth';

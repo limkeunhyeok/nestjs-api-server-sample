@@ -1,9 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common';
-import {
-  EmailAlreadyRegisteredException,
-  UserForbiddenException,
-  UserNotFoundException,
-} from '../domain/exceptions/user.exception';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import {
@@ -15,21 +10,26 @@ import {
   FORBIDDEN_RESOURCE_MODIFICATION,
   NOT_FOUND_RESOURCE,
 } from 'src/common/constants/exception-message.const';
+import { Role } from 'src/common/constants/role.const';
 import { CacheEvict } from 'src/common/decorators/cache-evict.decorator';
 import { Cacheable } from 'src/common/decorators/cacheable.decorator';
 import { SortDirection } from 'src/common/dtos/paginate.dto';
 import { PaginationResponse } from 'src/common/interfaces/pagination.interface';
 import { ServerEnv } from 'src/configurations/server.config';
 import { removeUndefined } from 'src/libs/object';
-import { Transactional } from 'typeorm-transactional';
-import { Role } from '../../../common/constants/role.const';
-import { getTTL } from '../user.util';
+import { User } from 'src/modules/users/domain/entities/user.model';
+import {
+  EmailAlreadyRegisteredException,
+  UserForbiddenException,
+  UserNotFoundException,
+} from 'src/modules/users/domain/exceptions/user.exception';
 import {
   USER_REPOSITORY_PORT,
   UserRepositoryPort,
-} from '../domain/repository-ports/user.repository.port';
-import { User } from '../domain/models/user.model';
-import { Email } from '../domain/value-objects/email.vo';
+} from 'src/modules/users/domain/repositories/user.repository.port';
+import { Email } from 'src/modules/users/domain/value-objects/email.vo';
+import { getTTL } from 'src/modules/users/user.util';
+import { Transactional } from 'typeorm-transactional';
 
 @Injectable()
 export class UserService {

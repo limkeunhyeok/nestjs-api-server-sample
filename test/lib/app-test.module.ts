@@ -18,7 +18,7 @@ import { RedisConfigService } from 'src/configurations/redis.config';
 import { ServerEnvValidation } from 'src/configurations/server.config';
 import { AuthMiddleware } from 'src/modules/auth/auth.middleware';
 import { AuthModule } from 'src/modules/auth/auth.module';
-import { JoseJwtModule } from 'src/modules/jose-jwt/jose-jwt.module';
+import { JoseJwtModule } from 'src/common/jose-jwt/jose-jwt.module';
 import { PostModule } from 'src/modules/posts/post.module';
 import { UserModule } from 'src/modules/users/user.module';
 import { TestService } from './test.service';

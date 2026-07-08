@@ -4,7 +4,7 @@ import {
   JoseEcJwk,
   JoseJwtModuleOptions,
   JoseJwtOptionsFactory,
-} from '../modules/jose-jwt/jose-jwt.interface';
+} from 'src/common/jose-jwt/jose-jwt.interface';
 import { ServerEnv } from './server.config';
 
 @Injectable()

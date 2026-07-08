@@ -9,7 +9,7 @@ import * as crypto from 'crypto';
 import { IsNull, Repository } from 'typeorm';
 import { Role } from 'src/common/constants/role.const';
 import { NodeEnv, ServerEnv } from 'src/configurations/server.config';
-import { JoseJwtService } from 'src/modules/jose-jwt/jose-jwt.service';
+import { JoseJwtService } from 'src/common/jose-jwt/jose-jwt.service';
 import { TOKEN_TYPE_DEV } from '../../auth.const';
 import { DevTokenOrmEntity } from '../../infrastructure/persistence/entities/dev-token.orm-entity';
 

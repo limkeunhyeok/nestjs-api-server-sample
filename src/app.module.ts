@@ -21,7 +21,7 @@ import { TypeOrmConfigService } from './configurations/typeorm.config';
 import { WinstonConfigService } from './configurations/winston.config';
 import { AuthMiddleware } from './modules/auth/auth.middleware';
 import { AuthModule } from './modules/auth/auth.module';
-import { JoseJwtModule } from './modules/jose-jwt/jose-jwt.module';
+import { JoseJwtModule } from './common/jose-jwt/jose-jwt.module';
 import { PostModule } from './modules/posts/post.module';
 import { UserModule } from './modules/users/user.module';
 

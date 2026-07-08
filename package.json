@@ -18,6 +18,7 @@
     "start:debug": "cross-env NODE_ENV=dev nest start --debug --watch",
     "start:prod": "cross-env NODE_ENV=prod node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "typecheck": "tsc --noEmit -p tsconfig.build.json && tsc --noEmit -p tsconfig.test.json",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",

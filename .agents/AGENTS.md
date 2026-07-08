@@ -107,6 +107,10 @@ AI 에이전트가 코드를 작성하거나 변경할 때 실수하기 쉬운 �
 ### 4.10. 불필요한 빌드 및 린트 검증 생략 (No Redundant Validation)
 - **제약**: 에이전트는 단순 문서(README.md, ADR, Spec 명세 등 마크다운 파일) 작성이나 정적 리소스 추가와 같이 소스 코드의 컴파일 결과 및 런타임 동작에 어떠한 부수 효과(Side-effect)도 미치지 않는 독립적인 작업을 수행한 경우, 터미널 도구를 통해 `pnpm build`, `pnpm lint` 등의 기계적이고 무의미한 검증 명령을 실행하여 프로세스와 피드백 단계를 낭비해서는 안 됩니다.
 - **예외**: 소스 코드 수정이 수반되거나 실제로 린트/컴파일 검증이 유의미한 코드베이스 변경 시에 한해서만 검증 도구를 기동합니다.
+- **허용 검증 명령어 규격**: 소스 코드 검증 시에는 오직 다음의 프로젝트 정의 표준 명령어만 사용해야 합니다:
+  - 타입 검증: `pnpm run typecheck`
+  - 린트 검증: `pnpm run lint`
+  - E2E 검증: `pnpm run test:e2e`
 
 ### 4.11. 초정밀 디렉토리 표준 구조 강제 준수 (Standard Directory Tree Constraint)
 - **제약**: 신규 파일을 생성하거나 기존 코드를 리팩토링 및 재배치할 때, 에이전트는 [아키텍처 표준 명세서(architecture-specification.md)](file:///Users/limkeunhyeok/Desktop/nestjs-api-server-sample/docs/specs/architecture-specification.md)에 기술된 표준 서브디렉토리 명세(`application/dto/`, `domain/value-objects/`, `infrastructure/persistence/mappers/` 등)를 한 치의 오차도 없이 엄격히 준수하여 배치하여야 합니다. 임의로 디렉토리 구조를 평평하게 변경하는 행위를 원천 금지합니다.

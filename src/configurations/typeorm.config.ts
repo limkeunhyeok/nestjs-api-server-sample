@@ -24,7 +24,12 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
       password: this.configService.get<string>('DB_PASS'),
       synchronize: nodeEnv === NodeEnv.DEV ? true : false,
       logging: nodeEnv === NodeEnv.DEV ? true : false,
-      entities: [UserEntity, PostOrmEntity, CommentOrmEntity, DevTokenOrmEntity],
+      entities: [
+        UserEntity,
+        PostOrmEntity,
+        CommentOrmEntity,
+        DevTokenOrmEntity,
+      ],
       namingStrategy: new SnakeNamingStrategy(),
     };
   }

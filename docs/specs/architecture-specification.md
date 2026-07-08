@@ -76,3 +76,12 @@ src/modules/<domain-model>/
 
 * 도메인 및 서비스에서는 NestJS의 `HttpException` 계열(`BadRequestException`, `NotFoundException` 등)을 임포트하거나 던지지 않습니다.
 * 모든 비즈니스 예외는 `BaseDomainException`을 상속한 커스텀 도메인 예외를 선언해 던지며, 전역 `AllExceptionsFilter`에서 예외 유형을 파악하여 알맞은 HTTP Status(400, 404, 403 등)로 일원화 매핑하여 클라이언트에 출력합니다.
+
+---
+
+## 4. 기술적 공통 인프라 모듈 표준
+
+비즈니스 도메인 상태나 비즈니스 규칙이 존재하지 않는 순수 기술적 공통 인프라 모듈(예: `jose-jwt`, `logger`, `storage` 등)은 복잡한 DDD/헥사고날 레이어(Domain, Application, Infrastructure 등)를 적용하지 않는 것을 원칙으로 합니다.
+
+* **디렉토리 배치**: 비즈니스 모듈(`src/modules/`)에 섞이지 않도록 `src/common/<module-name>/` 디렉토리 하위에 격리하여 배치합니다.
+* **디렉토리 구조**: 레이어를 분할하지 않고 폴더 루트에 `Module`, `Service`, `Interface`, `Const` 등을 위치시키는 **Flat 구조(평평한 단일 디렉토리 구조)**를 유지하여 오버엔지니어링을 방지합니다.

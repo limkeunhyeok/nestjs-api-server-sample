@@ -15,12 +15,12 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserInToken } from 'src/common/decorators/user-in-token.decorator';
 import { PaginationResponse } from 'src/common/interfaces/pagination.interface';
 import { AuthUser } from 'src/modules/auth/auth.interface';
-import { Role } from '../../../common/constants/role.const';
-import { CreatePostDto } from '../application/dto/create-post.dto';
-import { PaginatePostsDto } from '../application/dto/paginate-posts.dto';
-import { UpdatePostDto } from '../application/dto/update-post.dto';
-import { PostEntity } from '../infrastructure/persistence/post.orm-entity';
-import { PostService } from '../application/services/post.service';
+import { Role } from 'src/common/constants/role.const';
+import { CreatePostDto } from '../../application/dto/create-post.dto';
+import { PaginatePostsDto } from '../../application/dto/paginate-posts.dto';
+import { UpdatePostDto } from '../../application/dto/update-post.dto';
+import { PostEntity } from '../../infrastructure/persistence/post.orm-entity';
+import { PostService } from '../../application/services/post.service';
 
 @ApiTags('posts')
 @ApiBearerAuth('accessToken')

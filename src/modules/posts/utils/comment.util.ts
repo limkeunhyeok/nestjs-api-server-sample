@@ -4,7 +4,7 @@ import {
   DEFAULT_TTL,
   FIRST_PAGE_TTL,
   WITH_FILTER_PAGE_TTL,
-} from '../constans/comment.const';
+} from '../constants/comment.const';
 
 export function getTTL(params: {
   authorId?: number;

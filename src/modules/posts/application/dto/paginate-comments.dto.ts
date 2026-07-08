@@ -1,9 +1,9 @@
-import { z } from 'zod';
 import { createZodDto } from 'nestjs-zod';
 import { PaginateBaseSchema } from 'src/common/dtos/paginate.dto';
-import { CommentEntity } from '../../infrastructure/persistence/comment.orm-entity';
+import { z } from 'zod';
+import { Comment } from '../../domain/entities/comment.model';
 
-const COMMENT_SORT_FIELDS: (keyof CommentEntity)[] = [
+const COMMENT_SORT_FIELDS: (keyof Comment)[] = [
   'id',
   'published',
   'createdAt',
@@ -22,9 +22,7 @@ export const PaginateCommentsSchema = PaginateBaseSchema.extend({
 })
   .refine(
     (data) => {
-      return COMMENT_SORT_FIELDS.includes(
-        data.sortField as keyof CommentEntity,
-      );
+      return COMMENT_SORT_FIELDS.includes(data.sortField as keyof Comment);
     },
     {
       message: `sortField must be one of: ${COMMENT_SORT_FIELDS.join(', ')}`,

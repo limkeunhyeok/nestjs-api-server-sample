@@ -19,7 +19,7 @@ import { removeUndefined } from 'src/libs/object';
 import { Transactional } from 'typeorm-transactional';
 import { Role } from 'src/common/constants/role.const';
 import { UserService } from '../../../users/application/services/user.service';
-import { PostEntity } from '../../infrastructure/persistence/post.orm-entity';
+import { Post } from '../../domain/entities/post.model';
 import { getTTL } from '../../utils/post.util';
 import {
   POST_REPOSITORY_PORT,
@@ -41,15 +41,19 @@ export class PostService {
     title: string;
     contents: string;
     published: boolean;
-  }): Promise<PostEntity> {
+  }): Promise<Post> {
     const user = await this.userService.getUserById(params.userId);
 
-    return await this.postRepository.save({
-      title: params.title,
-      contents: params.contents,
-      published: params.published,
-      authorId: user.id,
-    });
+    const post = new Post(
+      0,
+      params.title,
+      params.contents,
+      params.published,
+      user.id,
+      user,
+    );
+
+    return await this.postRepository.save(post);
   }
 
   @Cacheable({
@@ -66,25 +70,25 @@ export class PostService {
     offset: number;
     sortField: string;
     sortDirection: SortDirection;
-  }): Promise<PaginationResponse<PostEntity>> {
+  }): Promise<PaginationResponse<Post>> {
     return await this.postRepository.paginate(params);
   }
 
   @Cacheable<[number]>({
     keyGenerator: (postId: number) => buildPostByIdCacheKey(postId),
-    ttl: 3600000, // 1시간
+    ttl: 3600000,
     trackKeys: true,
     keysSetName: 'cacheKeys',
   })
   @Transactional()
-  async getPostById(postId: number): Promise<PostEntity> {
-    const postEntity = await this.postRepository.findOneById(postId);
+  async getPostById(postId: number): Promise<Post> {
+    const post = await this.postRepository.findOneById(postId);
 
-    if (!postEntity) {
+    if (!post) {
       throw new PostNotFoundException(NOT_FOUND_RESOURCE);
     }
 
-    return postEntity;
+    return post;
   }
 
   @CacheEvict({ keysSetName: 'cacheKeys' })
@@ -100,16 +104,20 @@ export class PostService {
       sub: number;
       role: Role;
     },
-  ): Promise<PostEntity> {
-    const post = await this.getPostById(postId);
+  ): Promise<Post> {
+    const post = await this.postRepository.findOneById(postId);
 
-    if (userInToken.role !== Role.ADMIN && userInToken.sub !== post.author.id) {
+    if (!post) {
+      throw new PostNotFoundException(NOT_FOUND_RESOURCE);
+    }
+
+    if (userInToken.role !== Role.ADMIN && userInToken.sub !== post.authorId) {
       throw new PostForbiddenException(FORBIDDEN_RESOURCE_MODIFICATION);
     }
 
     const updateFields = removeUndefined(params);
 
-    Object.assign(post, updateFields);
+    post.update(updateFields);
 
     return await this.postRepository.save(post);
   }
@@ -122,17 +130,19 @@ export class PostService {
       sub: number;
       role: Role;
     },
-  ): Promise<PostEntity> {
-    const post = await this.getPostById(postId);
+  ): Promise<Post> {
+    const post = await this.postRepository.findOneById(postId);
 
-    if (userInToken.role !== Role.ADMIN && userInToken.sub !== post.author.id) {
+    if (!post) {
+      throw new PostNotFoundException(NOT_FOUND_RESOURCE);
+    }
+
+    if (userInToken.role !== Role.ADMIN && userInToken.sub !== post.authorId) {
       throw new PostForbiddenException(FORBIDDEN_RESOURCE_MODIFICATION);
     }
 
-    const deletedPost = { ...post };
-
     await this.postRepository.delete(post.id);
 
-    return deletedPost;
+    return post;
   }
 }

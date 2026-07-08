@@ -1,5 +1,5 @@
 import * as faker from 'faker';
-import { PostEntity } from 'src/modules/posts/infrastructure/persistence/post.orm-entity';
+import { PostOrmEntity } from 'src/modules/posts/infrastructure/persistence/entities/post.orm-entity';
 import { UserEntity } from 'src/modules/users/infrastructure/persistence/entities/user.orm-entity';
 import { Repository } from 'typeorm';
 
@@ -25,9 +25,9 @@ export function mockPostRaw(user: Partial<UserEntity>, published = true) {
 }
 
 export async function createPost(
-  repository: Repository<PostEntity>,
-  postRaw: Partial<PostEntity>,
-): Promise<PostEntity> {
+  repository: Repository<PostOrmEntity>,
+  postRaw: Partial<PostOrmEntity>,
+): Promise<PostOrmEntity> {
   const data = JSON.parse(JSON.stringify(postRaw));
   return await repository.save(data);
 }

@@ -11,20 +11,20 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Role } from 'src/common/constants/role.const';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserInToken } from 'src/common/decorators/user-in-token.decorator';
 import { PaginationResponse } from 'src/common/interfaces/pagination.interface';
 import { AuthUser } from 'src/modules/auth/auth.interface';
-import { Role } from 'src/common/constants/role.const';
+import { CommentResponseDto } from '../../application/dto/comment-response.dto';
 import { CreateCommentDto } from '../../application/dto/create-comment.dto';
 import { PaginateCommentsDto } from '../../application/dto/paginate-comments.dto';
 import { UpdateCommentDto } from '../../application/dto/update-comment.dto';
-import { CommentEntity } from '../../infrastructure/persistence/comment.orm-entity';
 import { CommentService } from '../../application/services/comment.service';
 
 @ApiTags('posts')
 @ApiBearerAuth('accessToken')
-@UseInterceptors(ClassSerializerInterceptor) // author password
+@UseInterceptors(ClassSerializerInterceptor)
 @Roles([Role.ADMIN, Role.MEMBER])
 @Controller('posts')
 export class CommentController {
@@ -35,33 +35,39 @@ export class CommentController {
     @Param('postId') postId: number,
     @Body() body: CreateCommentDto,
     @UserInToken('sub') userId: number,
-  ): Promise<CommentEntity> {
-    return await this.commentService.createComment({
+  ): Promise<CommentResponseDto> {
+    const comment = await this.commentService.createComment({
       userId,
       postId,
       ...body,
     });
+    return CommentResponseDto.fromDomain(comment);
   }
 
   @Get('/:postId/comments')
   async paginate(
     @Param('postId') postId: number,
     @Query() query: PaginateCommentsDto,
-  ): Promise<PaginationResponse<CommentEntity>> {
-    return await this.commentService.paginateComments({
+  ): Promise<PaginationResponse<CommentResponseDto>> {
+    const paginated = await this.commentService.paginateComments({
       postId,
       ...query,
       startDate: query.startDate ? new Date(query.startDate) : undefined,
       endDate: query.endDate ? new Date(query.endDate) : undefined,
     });
+    return {
+      ...paginated,
+      data: paginated.data.map((c) => CommentResponseDto.fromDomain(c)),
+    };
   }
 
   @Get('/:postId/comments/:commentId')
   async getOneById(
     @Param('postId') postId: number,
     @Param('commentId') commentId: number,
-  ): Promise<CommentEntity> {
-    return await this.commentService.getCommentById(postId, commentId);
+  ): Promise<CommentResponseDto> {
+    const comment = await this.commentService.getCommentById(postId, commentId);
+    return CommentResponseDto.fromDomain(comment);
   }
 
   @Put('/:postId/comments/:commentId')
@@ -70,13 +76,14 @@ export class CommentController {
     @Param('commentId') commentId: number,
     @Body() body: UpdateCommentDto,
     @UserInToken() payload: AuthUser,
-  ): Promise<CommentEntity> {
-    return await this.commentService.updateComment(
+  ): Promise<CommentResponseDto> {
+    const comment = await this.commentService.updateComment(
       postId,
       commentId,
       body,
       payload,
     );
+    return CommentResponseDto.fromDomain(comment);
   }
 
   @Delete('/:postId/comments/:commentId')
@@ -84,7 +91,12 @@ export class CommentController {
     @Param('postId') postId: number,
     @Param('commentId') commentId: number,
     @UserInToken() payload: AuthUser,
-  ): Promise<CommentEntity> {
-    return await this.commentService.deleteComment(postId, commentId, payload);
+  ): Promise<CommentResponseDto> {
+    const comment = await this.commentService.deleteComment(
+      postId,
+      commentId,
+      payload,
+    );
+    return CommentResponseDto.fromDomain(comment);
   }
 }

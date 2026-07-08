@@ -1,4 +1,5 @@
 import { CustomEntity } from 'src/common/databases/custom.entity';
+import { UserEntity } from 'src/modules/users/infrastructure/persistence/entities/user.orm-entity';
 import {
   Column,
   Entity,
@@ -7,11 +8,10 @@ import {
   PrimaryGeneratedColumn,
   Relation,
 } from 'typeorm';
-import { UserEntity } from '../../../users/infrastructure/persistence/entities/user.orm-entity';
-import { PostEntity } from './post.orm-entity';
+import { PostOrmEntity } from './post.orm-entity';
 
 @Entity('comment')
-export class CommentEntity extends CustomEntity {
+export class CommentOrmEntity extends CustomEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -21,9 +21,9 @@ export class CommentEntity extends CustomEntity {
   @Column({ type: 'boolean' })
   published: boolean;
 
-  @ManyToOne(() => PostEntity, (post) => post.id, { onDelete: 'CASCADE' })
+  @ManyToOne(() => PostOrmEntity, (post) => post.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'postId' })
-  post: Relation<PostEntity>;
+  post: Relation<PostOrmEntity>;
 
   @Column({ name: 'author_id' })
   authorId: number;

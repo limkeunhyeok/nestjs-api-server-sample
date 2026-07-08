@@ -1,9 +1,9 @@
 import { isEmptyObject } from 'src/libs/validator';
-import { CommentEntity } from 'src/modules/posts/infrastructure/persistence/comment.orm-entity';
+import { CommentOrmEntity } from 'src/modules/posts/infrastructure/persistence/entities/comment.orm-entity';
 
 export function expectCommentResponseSucceed(
-  result: Partial<CommentEntity>,
-  commentRaw: Partial<CommentEntity> = {},
+  result: Partial<CommentOrmEntity>,
+  commentRaw: Partial<CommentOrmEntity> = {},
 ) {
   expect(result).toHaveProperty('id');
   expect(result).toHaveProperty('contents');

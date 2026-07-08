@@ -1,9 +1,9 @@
 import { createZodDto } from 'nestjs-zod';
 import { PaginateBaseSchema } from 'src/common/dtos/paginate.dto';
 import { z } from 'zod';
-import { PostEntity } from '../../infrastructure/persistence/post.orm-entity';
+import { Post } from '../../domain/entities/post.model';
 
-const POST_SORT_FIELDS: (keyof PostEntity)[] = [
+const POST_SORT_FIELDS: (keyof Post)[] = [
   'id',
   'published',
   'createdAt',
@@ -22,7 +22,7 @@ export const PaginatePostsSchema = PaginateBaseSchema.extend({
 })
   .refine(
     (data) => {
-      return POST_SORT_FIELDS.includes(data.sortField as keyof PostEntity);
+      return POST_SORT_FIELDS.includes(data.sortField as keyof Post);
     },
     {
       message: `sortField must be one of: ${POST_SORT_FIELDS.join(', ')}`,

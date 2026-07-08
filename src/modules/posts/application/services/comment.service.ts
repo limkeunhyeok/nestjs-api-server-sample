@@ -1,10 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 import {
-  CommentConflictException,
-  CommentForbiddenException,
-  CommentNotFoundException,
-} from '../../domain/exceptions/comment.exception';
-import {
   buildCommentByIdCacheKey,
   buildCommentsPaginationCacheKey,
 } from 'src/common/cache/comment.cache-key';
@@ -21,13 +16,18 @@ import { PaginationResponse } from 'src/common/interfaces/pagination.interface';
 import { removeUndefined } from 'src/libs/object';
 import { Transactional } from 'typeorm-transactional';
 import { UserService } from '../../../users/application/services/user.service';
-import { CommentEntity } from '../../infrastructure/persistence/comment.orm-entity';
-import { getTTL } from '../../utils/comment.util';
-import { PostService } from './post.service';
+import { Comment } from '../../domain/entities/comment.model';
+import {
+  CommentConflictException,
+  CommentForbiddenException,
+  CommentNotFoundException,
+} from '../../domain/exceptions/comment.exception';
 import {
   COMMENT_REPOSITORY_PORT,
   CommentRepositoryPort,
 } from '../../domain/repository-ports/comment.repository.port';
+import { getTTL } from '../../utils/comment.util';
+import { PostService } from './post.service';
 
 @Injectable()
 export class CommentService {
@@ -45,16 +45,20 @@ export class CommentService {
     postId: number;
     contents: string;
     published: boolean;
-  }): Promise<CommentEntity> {
+  }): Promise<Comment> {
     const user = await this.userService.getUserById(params.userId);
     const post = await this.postService.getPostById(params.postId);
 
-    return await this.commentRepository.save({
-      contents: params.contents,
-      published: params.published,
-      authorId: user.id,
+    const comment = new Comment(
+      0,
+      params.contents,
+      params.published,
+      user.id,
+      user,
       post,
-    });
+    );
+
+    return await this.commentRepository.save(comment);
   }
 
   @Cacheable({
@@ -72,22 +76,19 @@ export class CommentService {
     offset: number;
     sortField: string;
     sortDirection: SortDirection;
-  }): Promise<PaginationResponse<CommentEntity>> {
+  }): Promise<PaginationResponse<Comment>> {
     return await this.commentRepository.paginate(params);
   }
 
   @Cacheable<[number, number]>({
     keyGenerator: (postId: number, commentId: number) =>
       buildCommentByIdCacheKey(commentId),
-    ttl: 3600000, // 1시간
+    ttl: 3600000,
     trackKeys: true,
     keysSetName: 'cacheKeys',
   })
   @Transactional()
-  async getCommentById(
-    postId: number,
-    commentId: number,
-  ): Promise<CommentEntity> {
+  async getCommentById(postId: number, commentId: number): Promise<Comment> {
     const post = await this.postService.getPostById(postId);
 
     const comment = await this.commentRepository.findOneById(commentId);
@@ -96,7 +97,7 @@ export class CommentService {
       throw new CommentNotFoundException(NOT_FOUND_RESOURCE);
     }
 
-    if (post.id !== comment.post.id) {
+    if (!comment.post || post.id !== comment.post.id) {
       throw new CommentConflictException(RESOURCE_NOT_ASSOCIATED);
     }
 
@@ -116,19 +117,28 @@ export class CommentService {
       sub: number;
       role: Role;
     },
-  ): Promise<CommentEntity> {
-    const comment = await this.getCommentById(postId, commentId);
+  ): Promise<Comment> {
+    const post = await this.postService.getPostById(postId);
+    const comment = await this.commentRepository.findOneById(commentId);
+
+    if (!comment) {
+      throw new CommentNotFoundException(NOT_FOUND_RESOURCE);
+    }
+
+    if (!comment.post || post.id !== comment.post.id) {
+      throw new CommentConflictException(RESOURCE_NOT_ASSOCIATED);
+    }
 
     if (
       userInToken.role !== Role.ADMIN &&
-      userInToken.sub !== comment.author.id
+      userInToken.sub !== comment.authorId
     ) {
       throw new CommentForbiddenException(FORBIDDEN_RESOURCE_MODIFICATION);
     }
 
     const updateFields = removeUndefined(params);
 
-    Object.assign(comment, updateFields);
+    comment.update(updateFields);
 
     return await this.commentRepository.save(comment);
   }
@@ -142,20 +152,27 @@ export class CommentService {
       sub: number;
       role: Role;
     },
-  ): Promise<CommentEntity> {
-    const comment = await this.getCommentById(postId, commentId);
+  ): Promise<Comment> {
+    const post = await this.postService.getPostById(postId);
+    const comment = await this.commentRepository.findOneById(commentId);
+
+    if (!comment) {
+      throw new CommentNotFoundException(NOT_FOUND_RESOURCE);
+    }
+
+    if (!comment.post || post.id !== comment.post.id) {
+      throw new CommentConflictException(RESOURCE_NOT_ASSOCIATED);
+    }
 
     if (
       userInToken.role !== Role.ADMIN &&
-      userInToken.sub !== comment.author.id
+      userInToken.sub !== comment.authorId
     ) {
       throw new CommentForbiddenException(FORBIDDEN_RESOURCE_MODIFICATION);
     }
 
-    const deletedComment = { ...comment };
-
     await this.commentRepository.delete(comment.id);
 
-    return deletedComment;
+    return comment;
   }
 }

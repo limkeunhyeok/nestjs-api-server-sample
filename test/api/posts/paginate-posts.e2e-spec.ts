@@ -2,7 +2,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { addDays, subDays } from 'date-fns';
 import { Role } from 'src/common/constants/role.const';
 import { SortDirection } from 'src/common/dtos/paginate.dto';
-import { PostEntity } from 'src/modules/posts/infrastructure/persistence/post.orm-entity';
+import { PostOrmEntity } from 'src/modules/posts/infrastructure/persistence/entities/post.orm-entity';
 import { UserEntity } from 'src/modules/users/infrastructure/persistence/entities/user.orm-entity';
 import {
   expectPagingResponseSucceed,
@@ -16,7 +16,7 @@ import { Repository } from 'typeorm';
 
 describe('Post API Test', () => {
   let userRepository: Repository<UserEntity>;
-  let postRepository: Repository<PostEntity>;
+  let postRepository: Repository<PostOrmEntity>;
 
   let memberTokenHeaders: any;
   let withHeadersIncludeMemberToken: any;
@@ -25,8 +25,8 @@ describe('Post API Test', () => {
     userRepository = module.get<Repository<UserEntity>>(
       getRepositoryToken(UserEntity),
     );
-    postRepository = module.get<Repository<PostEntity>>(
-      getRepositoryToken(PostEntity),
+    postRepository = module.get<Repository<PostOrmEntity>>(
+      getRepositoryToken(PostOrmEntity),
     );
 
     memberTokenHeaders = await fetchUserTokenAndHeaders(

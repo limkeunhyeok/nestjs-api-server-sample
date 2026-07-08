@@ -1,10 +1,10 @@
 import { SortDirection } from 'src/common/dtos/paginate.dto';
 import { PaginationResponse } from 'src/common/interfaces/pagination.interface';
-import { CommentEntity } from '../../infrastructure/persistence/comment.orm-entity';
+import { Comment } from '../entities/comment.model';
 
 export interface CommentRepositoryPort {
-  findOneById(id: number): Promise<CommentEntity | null>;
-  save(comment: Partial<CommentEntity>): Promise<CommentEntity>;
+  findOneById(id: number): Promise<Comment | null>;
+  save(comment: Comment): Promise<Comment>;
   paginate(params: {
     authorId?: number;
     postId?: number;
@@ -15,7 +15,7 @@ export interface CommentRepositoryPort {
     offset: number;
     sortField: string;
     sortDirection: SortDirection;
-  }): Promise<PaginationResponse<CommentEntity>>;
+  }): Promise<PaginationResponse<Comment>>;
   delete(id: number): Promise<void>;
 }
 

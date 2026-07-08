@@ -1,4 +1,5 @@
 import { CustomEntity } from 'src/common/databases/custom.entity';
+import { UserEntity } from 'src/modules/users/infrastructure/persistence/entities/user.orm-entity';
 import {
   Column,
   Entity,
@@ -8,11 +9,10 @@ import {
   PrimaryGeneratedColumn,
   Relation,
 } from 'typeorm';
-import { UserEntity } from '../../../users/infrastructure/persistence/entities/user.orm-entity';
-import { CommentEntity } from './comment.orm-entity';
+import { CommentOrmEntity } from './comment.orm-entity';
 
 @Entity('post')
-export class PostEntity extends CustomEntity {
+export class PostOrmEntity extends CustomEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -32,6 +32,6 @@ export class PostEntity extends CustomEntity {
   @JoinColumn({ name: 'author_id' })
   author: Relation<UserEntity>;
 
-  @OneToMany(() => CommentEntity, (comment) => comment.post)
-  comments: Relation<CommentEntity[]>;
+  @OneToMany(() => CommentOrmEntity, (comment) => comment.post)
+  comments: Relation<CommentOrmEntity[]>;
 }

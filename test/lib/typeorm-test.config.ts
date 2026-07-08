@@ -4,8 +4,8 @@ import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm';
 import { SnakeNamingStrategy } from 'src/common/databases/snake-naming.strategy';
 import { ServerEnv } from 'src/configurations/server.config';
 import { DevTokenOrmEntity } from 'src/modules/auth/infrastructure/persistence/entities/dev-token.orm-entity';
-import { CommentEntity } from 'src/modules/posts/infrastructure/persistence/comment.orm-entity';
-import { PostEntity } from 'src/modules/posts/infrastructure/persistence/post.orm-entity';
+import { CommentOrmEntity } from 'src/modules/posts/infrastructure/persistence/entities/comment.orm-entity';
+import { PostOrmEntity } from 'src/modules/posts/infrastructure/persistence/entities/post.orm-entity';
 import { UserEntity } from 'src/modules/users/infrastructure/persistence/entities/user.orm-entity';
 
 @Injectable()
@@ -22,7 +22,12 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
       password: this.configService.get<string>('DB_PASS'),
       synchronize: true,
       logging: false,
-      entities: [UserEntity, PostEntity, CommentEntity, DevTokenOrmEntity],
+      entities: [
+        UserEntity,
+        PostOrmEntity,
+        CommentOrmEntity,
+        DevTokenOrmEntity,
+      ],
       namingStrategy: new SnakeNamingStrategy(),
     };
   }

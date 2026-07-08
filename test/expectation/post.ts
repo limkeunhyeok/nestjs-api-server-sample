@@ -1,9 +1,9 @@
 import { isEmptyObject } from 'src/libs/validator';
-import { PostEntity } from 'src/modules/posts/infrastructure/persistence/post.orm-entity';
+import { PostOrmEntity } from 'src/modules/posts/infrastructure/persistence/entities/post.orm-entity';
 
 export function expectPostResponseSucceed(
-  result: Partial<PostEntity>,
-  postRaw: Partial<PostEntity> = {},
+  result: Partial<PostOrmEntity>,
+  postRaw: Partial<PostOrmEntity> = {},
 ) {
   expect(result).toHaveProperty('id');
   expect(result).toHaveProperty('title');

@@ -1,5 +1,7 @@
 import { Role } from 'src/common/constants/role.const';
 import { CustomEntity } from 'src/common/databases/custom.entity';
+import { CommentOrmEntity } from 'src/modules/posts/infrastructure/persistence/entities/comment.orm-entity';
+import { PostOrmEntity } from 'src/modules/posts/infrastructure/persistence/entities/post.orm-entity';
 import {
   Column,
   Entity,
@@ -8,8 +10,6 @@ import {
   PrimaryGeneratedColumn,
   Relation,
 } from 'typeorm';
-import { CommentEntity } from '../../../../posts/infrastructure/persistence/comment.orm-entity';
-import { PostEntity } from '../../../../posts/infrastructure/persistence/post.orm-entity';
 
 @Entity('user')
 export class UserEntity extends CustomEntity {
@@ -32,9 +32,9 @@ export class UserEntity extends CustomEntity {
   @Column({ type: 'timestamptz', nullable: true })
   latestTryLoginDate?: Date | null;
 
-  @OneToMany(() => PostEntity, (post) => post.author)
-  posts: Relation<PostEntity[]>;
+  @OneToMany(() => PostOrmEntity, (post) => post.author)
+  posts: Relation<PostOrmEntity[]>;
 
-  @OneToMany(() => CommentEntity, (comment) => comment.author)
-  comments: Relation<CommentEntity[]>;
+  @OneToMany(() => CommentOrmEntity, (comment) => comment.author)
+  comments: Relation<CommentOrmEntity[]>;
 }

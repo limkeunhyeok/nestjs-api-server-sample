@@ -31,7 +31,7 @@ import {
   RefreshTokenPayload,
 } from '../auth.interface';
 import { InvalidEmailOrPasswordException } from '../exceptions/auth.exception';
-import { TokenBlacklistService } from '../token-blacklist.service';
+import { TokenBlacklistService } from './services/token-blacklist.service';
 
 @Injectable()
 export class AuthService {

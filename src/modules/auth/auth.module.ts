@@ -1,18 +1,18 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from '../users/user.module';
-import { ActiveUsersController } from './active-users.controller';
-import { ActiveUsersService } from './active-users.service';
-import { AuthController } from './presentation/auth.controller';
+import { ActiveUsersController } from './presentation/controllers/active-users.controller';
+import { ActiveUsersService } from './application/services/active-users.service';
+import { AuthController } from './presentation/controllers/auth.controller';
 import { AuthService } from './application/auth.service';
-import { DevTokenController } from './dev-token.controller';
-import { DevTokenEntity } from './dev-token.entity';
-import { DevTokenService } from './dev-token.service';
-import { JwksController } from './jwks.controller';
-import { TokenBlacklistService } from './token-blacklist.service';
+import { DevTokenController } from './presentation/controllers/dev-token.controller';
+import { DevTokenOrmEntity } from './infrastructure/persistence/entities/dev-token.orm-entity';
+import { DevTokenService } from './application/services/dev-token.service';
+import { JwksController } from './presentation/controllers/jwks.controller';
+import { TokenBlacklistService } from './application/services/token-blacklist.service';
 
 @Module({
-  imports: [UserModule, TypeOrmModule.forFeature([DevTokenEntity])],
+  imports: [UserModule, TypeOrmModule.forFeature([DevTokenOrmEntity])],
   providers: [
     AuthService,
     DevTokenService,

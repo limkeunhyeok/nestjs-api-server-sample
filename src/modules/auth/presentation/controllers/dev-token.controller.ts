@@ -11,9 +11,9 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Role } from 'src/common/constants/role.const';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserInToken } from 'src/common/decorators/user-in-token.decorator';
-import { DevTokenEntity } from './dev-token.entity';
-import { DevTokenService } from './dev-token.service';
-import { CreateDevTokenDto } from './application/dto/create-dev-token.dto';
+import { DevTokenOrmEntity } from '../../infrastructure/persistence/entities/dev-token.orm-entity';
+import { DevTokenService } from '../../application/services/dev-token.service';
+import { CreateDevTokenDto } from '../../application/dto/create-dev-token.dto';
 
 @ApiTags('dev-tokens')
 @ApiBearerAuth('accessToken')
@@ -26,7 +26,7 @@ export class DevTokenController {
   async createDevToken(
     @Body() dto: CreateDevTokenDto,
     @UserInToken('sub') userId: number,
-  ): Promise<{ token: string; devToken: DevTokenEntity }> {
+  ): Promise<{ token: string; devToken: DevTokenOrmEntity }> {
     return await this.devTokenService.createDevToken({
       ...dto,
       createdBy: userId,
@@ -35,7 +35,7 @@ export class DevTokenController {
 
   @Get()
   @Roles([Role.ADMIN])
-  async listDevTokens(): Promise<DevTokenEntity[]> {
+  async listDevTokens(): Promise<DevTokenOrmEntity[]> {
     return await this.devTokenService.listDevTokens();
   }
 
@@ -43,7 +43,7 @@ export class DevTokenController {
   @Roles([Role.ADMIN])
   async revokeDevToken(
     @Param('id', ParseIntPipe) id: number,
-  ): Promise<DevTokenEntity> {
+  ): Promise<DevTokenOrmEntity> {
     return await this.devTokenService.revokeDevToken(id);
   }
 }

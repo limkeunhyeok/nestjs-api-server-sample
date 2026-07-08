@@ -1,9 +1,9 @@
 import { CustomEntity } from 'src/common/databases/custom.entity';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { Role } from '../../common/constants/role.const';
+import { Role } from 'src/common/constants/role.const';
 
 @Entity('dev_token')
-export class DevTokenEntity extends CustomEntity {
+export class DevTokenOrmEntity extends CustomEntity {
   @PrimaryGeneratedColumn()
   id: number;
 

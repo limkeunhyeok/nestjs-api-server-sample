@@ -1,7 +1,7 @@
 import { Controller, Get, Header } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/common/decorators/public.decorator';
-import { JoseJwtService } from '../jose-jwt/jose-jwt.service';
+import { JoseJwtService } from 'src/modules/jose-jwt/jose-jwt.service';
 
 @ApiTags('jwks')
 @Public()

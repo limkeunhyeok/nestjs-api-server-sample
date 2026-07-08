@@ -2,7 +2,7 @@ import { Controller, Get } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Role } from 'src/common/constants/role.const';
 import { Roles } from 'src/common/decorators/roles.decorator';
-import { ActiveUsersService } from './active-users.service';
+import { ActiveUsersService } from '../../application/services/active-users.service';
 
 @ApiTags('active-users')
 @ApiBearerAuth('accessToken')

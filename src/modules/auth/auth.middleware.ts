@@ -10,9 +10,9 @@ import {
   DevTokenPayload,
 } from 'src/modules/auth/auth.interface';
 import { ApiException } from '../../common/exceptions/api.exception';
-import { ActiveUsersService } from './active-users.service';
-import { DevTokenService } from './dev-token.service';
-import { TokenBlacklistService } from './token-blacklist.service';
+import { ActiveUsersService } from './application/services/active-users.service';
+import { DevTokenService } from './application/services/dev-token.service';
+import { TokenBlacklistService } from './application/services/token-blacklist.service';
 
 export interface RequestWithUser extends Request {
   user?: AccessTokenPayload | DevTokenPayload;

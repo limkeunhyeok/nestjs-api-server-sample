@@ -2,22 +2,22 @@ import { Injectable } from '@nestjs/common';
 import {
   DevTokenBadRequestException,
   DevTokenNotFoundException,
-} from './exceptions/auth.exception';
+} from '../../exceptions/auth.exception';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as crypto from 'crypto';
 import { IsNull, Repository } from 'typeorm';
-import { Role } from '../../common/constants/role.const';
-import { NodeEnv, ServerEnv } from '../../configurations/server.config';
-import { JoseJwtService } from '../jose-jwt/jose-jwt.service';
-import { TOKEN_TYPE_DEV } from './auth.const';
-import { DevTokenEntity } from './dev-token.entity';
+import { Role } from 'src/common/constants/role.const';
+import { NodeEnv, ServerEnv } from 'src/configurations/server.config';
+import { JoseJwtService } from 'src/modules/jose-jwt/jose-jwt.service';
+import { TOKEN_TYPE_DEV } from '../../auth.const';
+import { DevTokenOrmEntity } from '../../infrastructure/persistence/entities/dev-token.orm-entity';
 
 @Injectable()
 export class DevTokenService {
   constructor(
-    @InjectRepository(DevTokenEntity)
-    private readonly devTokenRepository: Repository<DevTokenEntity>,
+    @InjectRepository(DevTokenOrmEntity)
+    private readonly devTokenRepository: Repository<DevTokenOrmEntity>,
     private readonly joseJwtService: JoseJwtService,
     private readonly configService: ConfigService<ServerEnv, true>,
   ) {}
@@ -27,7 +27,7 @@ export class DevTokenService {
     role?: Role;
     expiresIn?: string;
     createdBy: number;
-  }): Promise<{ token: string; devToken: DevTokenEntity }> {
+  }): Promise<{ token: string; devToken: DevTokenOrmEntity }> {
     const nodeEnv = this.configService.get<string>('NODE_ENV');
     if (nodeEnv === NodeEnv.PROD) {
       throw new DevTokenBadRequestException(
@@ -65,14 +65,14 @@ export class DevTokenService {
     return { token, devToken };
   }
 
-  async listDevTokens(): Promise<DevTokenEntity[]> {
+  async listDevTokens(): Promise<DevTokenOrmEntity[]> {
     return await this.devTokenRepository.find({
       where: { revokedAt: IsNull() },
       order: { createdAt: 'DESC' },
     });
   }
 
-  async revokeDevToken(id: number): Promise<DevTokenEntity> {
+  async revokeDevToken(id: number): Promise<DevTokenOrmEntity> {
     const devToken = await this.devTokenRepository.findOne({ where: { id } });
 
     if (!devToken) {

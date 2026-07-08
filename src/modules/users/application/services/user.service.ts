@@ -28,7 +28,7 @@ import {
   UserRepositoryPort,
 } from 'src/modules/users/domain/repositories/user.repository.port';
 import { Email } from 'src/modules/users/domain/value-objects/email.vo';
-import { getTTL } from 'src/modules/users/user.util';
+import { getTTL } from 'src/modules/users/utils/user.util';
 import { Transactional } from 'typeorm-transactional';
 
 @Injectable()

@@ -5,7 +5,7 @@ import {
   DEFAULT_TTL,
   FIRST_PAGE_TTL,
   WITH_FILTER_PAGE_TTL,
-} from './user.const';
+} from '../constants/user.const';
 
 export function getTTL(params: {
   role?: Role;

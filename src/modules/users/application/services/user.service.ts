@@ -28,6 +28,7 @@ import {
   UserRepositoryPort,
 } from 'src/modules/users/domain/repositories/user.repository.port';
 import { Email } from 'src/modules/users/domain/value-objects/email.vo';
+import { Password } from 'src/modules/users/domain/value-objects/password.vo';
 import { getTTL } from 'src/modules/users/utils/user.util';
 import { Transactional } from 'typeorm-transactional';
 
@@ -53,6 +54,8 @@ export class UserService {
       throw new EmailAlreadyRegisteredException(EMAIL_IS_ALREADY_REGISTERED);
     }
 
+    Password.validateRawPassword(params.password);
+
     const hash = await bcrypt.hash(
       params.password,
       this.configService.get<number>('SALT_ROUND'),
@@ -61,7 +64,7 @@ export class UserService {
     const user = new User(
       0,
       new Email(params.email),
-      hash,
+      new Password(hash),
       params.name,
       params.role,
     );
@@ -141,12 +144,14 @@ export class UserService {
     const updateFields = removeUndefined(params);
 
     if (updateFields.password) {
+      Password.validateRawPassword(updateFields.password);
+
       const hash = await bcrypt.hash(
         updateFields.password,
         this.configService.get<number>('SALT_ROUND'),
       );
 
-      user.updatePassword(hash);
+      user.updatePassword(new Password(hash));
     }
 
     if (updateFields.name) {
@@ -196,12 +201,14 @@ export class UserService {
       throw new UserNotFoundException(NOT_FOUND_RESOURCE);
     }
 
+    Password.validateRawPassword(newPassword);
+
     const hash = await bcrypt.hash(
       newPassword,
       this.configService.get<number>('SALT_ROUND'),
     );
 
-    user.updatePassword(hash);
+    user.updatePassword(new Password(hash));
     return await this.userRepository.save(user);
   }
 }

@@ -1,5 +1,6 @@
 import { User } from '../../../domain/entities/user.model';
 import { Email } from '../../../domain/value-objects/email.vo';
+import { Password } from '../../../domain/value-objects/password.vo';
 import { UserEntity } from '../entities/user.orm-entity';
 
 export class UserMapper {
@@ -7,7 +8,7 @@ export class UserMapper {
     return new User(
       ormEntity.id,
       new Email(ormEntity.email),
-      ormEntity.password,
+      new Password(ormEntity.password),
       ormEntity.name,
       ormEntity.role,
       ormEntity.latestTryLoginDate,

@@ -1,11 +1,12 @@
 import { Email } from '../value-objects/email.vo';
+import { Password } from '../value-objects/password.vo';
 import { Role } from 'src/common/constants/role.const';
 
 export class User {
   constructor(
     public readonly id: number,
     private _email: Email,
-    private _passwordHash: string,
+    private _password: Password,
     private _name: string,
     private _role: Role,
     public readonly latestTryLoginDate?: Date | null,
@@ -19,7 +20,7 @@ export class User {
   }
 
   get passwordHash(): string {
-    return this._passwordHash;
+    return this._password.hash;
   }
 
   get name(): string {
@@ -37,8 +38,8 @@ export class User {
     this._name = newName;
   }
 
-  updatePassword(newHash: string) {
-    this._passwordHash = newHash;
+  updatePassword(newPassword: Password) {
+    this._password = newPassword;
   }
 
   changeRole(newRole: Role) {

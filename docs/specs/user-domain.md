@@ -1,7 +1,7 @@
 ---
-status: draft
+status: approved
 owner: limkeunhyeok
-last-updated: 2026-07-17
+last-updated: 2026-08-16
 ---
 
 # User 도메인 명세 (User Domain Specification)

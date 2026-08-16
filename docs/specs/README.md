@@ -45,4 +45,5 @@
 | 스펙 문서 | 설계 요약 | 상태 |
 | :--- | :--- | :--- |
 | [auth-enhancements](./auth-enhancements.md) | 인증 및 인가 고도화 명세 (JWT 토큰 발급, Role 기반 가드, 개발자 전용 토큰 기능 구현) | approved |
-| [user-domain](./user-domain.md) | User 도메인 모델, 비즈니스 규칙, 유스케이스 및 API 인터페이스 명세 | draft |
+| [user-domain](./user-domain.md) | User 도메인 모델, 비즈니스 규칙, 유스케이스 및 API 인터페이스 명세 | approved |
+| [auth-domain](./auth-domain.md) | Auth 도메인 모델, 토큰 페이로드, 비즈니스 규칙, 유스케이스 및 API 인터페이스 명세 | draft |

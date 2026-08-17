@@ -108,11 +108,76 @@ AI 에이전트가 코드를 작성하거나 변경할 때 실수하기 쉬운 �
 - **제약**: 에이전트는 단순 문서(README.md, ADR, Spec 명세 등 마크다운 파일) 작성이나 정적 리소스 추가와 같이 소스 코드의 컴파일 결과 및 런타임 동작에 어떠한 부수 효과(Side-effect)도 미치지 않는 독립적인 작업을 수행한 경우, 터미널 도구를 통해 `pnpm build`, `pnpm lint` 등의 기계적이고 무의미한 검증 명령을 실행하여 프로세스와 피드백 단계를 낭비해서는 안 됩니다.
 - **예외**: 소스 코드 수정이 수반되거나 실제로 린트/컴파일 검증이 유의미한 코드베이스 변경 시에 한해서만 검증 도구를 기동합니다.
 - **허용 검증 명령어 규격**: 소스 코드 검증 시에는 오직 다음의 프로젝트 정의 표준 명령어만 사용해야 합니다:
+  - 단위 검증: `pnpm run test`
   - 타입 검증: `pnpm run typecheck`
   - 린트 검증: `pnpm run lint`
   - E2E 검증: `pnpm run test:e2e`
 
 ### 4.11. 초정밀 디렉토리 표준 구조 강제 준수 (Standard Directory Tree Constraint)
 - **제약**: 신규 파일을 생성하거나 기존 코드를 리팩토링 및 재배치할 때, 에이전트는 [아키텍처 표준 명세서(architecture-specification.md)](file:///Users/limkeunhyeok/Desktop/nestjs-api-server-sample/docs/specs/architecture-specification.md)에 기술된 표준 서브디렉토리 명세(`application/dto/`, `domain/value-objects/`, `infrastructure/persistence/mappers/` 등)를 한 치의 오차도 없이 엄격히 준수하여 배치하여야 합니다. 임의로 디렉토리 구조를 평평하게 변경하는 행위를 원천 금지합니다.
+
+---
+
+## 5. SDD(명세 기반 개발) 및 의사결정 프로토콜 (SDD & Decision Protocol)
+
+본 프로젝트는 비즈니스 무결성과 구현의 일관성을 유지하기 위해 **SDD(Spec-Driven Development, 명세 기반 개발)**와 **ADR(Architecture Decision Records, 아키텍처 의사결정 기록)**을 핵심 엔지니어링 프로토콜로 채택합니다.
+
+### 5.1. Spec vs ADR 작성 기준 (Decision Matrix)
+
+작업의 성격에 따라 작성해야 하는 문서 유형이 명확히 구분됩니다:
+
+| 구분 | **Spec (`docs/specs/`)** | **ADR (`docs/adr/`)** |
+| :--- | :--- | :--- |
+| **핵심 목적** | **What** — 비즈니스 요구사항 및 기능 명세 | **Why** — 기술적 갈림길에서의 대안 비교 및 결정 |
+| **작성 기준** | 도메인 모델, 비즈니스 규칙(`BR-xxx`), 유스케이스, API 인터페이스 정의 시 | 프레임워크/라이브러리 도입, DB/캐시 전략 선택, 아키텍처 패턴 결정 시 |
+| **문서 성격** | **Living Document** (비즈니스 변경 시 지속 갱신) | **Immutable Document** (한번 승인되면 불변, 변경 시 새 ADR 발행) |
+| **작성 시점** | 비즈니스 기능 개발 및 도메인 리팩토링 전 | 번복하기 어려운 기술적 결정 및 구조적 변경 발생 시 |
+
+* **복합 시나리오 (ADR + Spec)**: 새로운 기술/인프라(예: SSE 알림, Redis Write-Behind 등)를 도입하여 기능을 구현할 때는 **ADR을 먼저 작성하여 기술 결정을 확정한 후**, 이를 기반으로 **Spec 사양서**를 작성하고 상호 링크를 연결합니다.
+
+---
+
+### 5.2. SDD 5단계 개발 라이프사이클 (5-Stage SDD Lifecycle)
+
+```mermaid
+graph LR
+    S0[0. ADR Check<br>기술 갈림길 시 ADR 선행] --> S1[1. Spec Discovery<br>스펙 초안 작성]
+    S1 --> S2[2. Spec Approval<br>스펙 확정]
+    S2 --> S3[3. Plan & Interface<br>구현 계획 승인]
+    S3 --> S4[4. TDD & Code<br>단위/통합 구현]
+    S4 --> S5[5. Verify & Sync<br>표준 검증 및 동기화]
+```
+
+1. **Step 1 — 명세 초안 작성 (Spec Discovery & Draft)**:
+   - 새로운 기술 도입이나 아키텍처적 트레이드오프가 수반되는 경우 `docs/adr/`에 ADR을 먼저 작성합니다.
+   - 비즈니스 요구사항과 도메인 모델을 `docs/specs/<domain>-domain.md` 파일에 먼저 명세합니다.
+   - 필수 항목: 도메인 모델(클래스 다이어그램), 비즈니스 규칙(`BR-xxx`), 유스케이스(`UC-xxx`), 예외 체계, API 인터페이스, 오픈 질문.
+   - 최상단 프론트매터의 상태를 `status: draft`로 설정하고 `docs/specs/README.md` 인덱스에 등록합니다.
+2. **Step 2 — 스펙 검토 및 확정 (Spec Approval)**:
+   - 작성된 사양서를 사용자에게 공유하고 기술적/비즈니스적 합의를 거칩니다.
+   - 확정 시 프론트매터와 인덱스의 상태를 `status: approved`로 변경합니다.
+3. **Step 3 — 구현 계획 및 인터페이스 승인 (Implementation Plan)**:
+   - [AGENTS.md 4.5](file:///Users/limkeunhyeok/Desktop/nestjs-api-server-sample/.agents/AGENTS.md) 규칙에 따라 어떤 범위의 파일들을 어떻게 변경할 것인지 의사코드와 함께 제시하고 명시적 승인을 받습니다.
+4. **Step 4 — TDD 기반 구현 (Implementation with Tests)**:
+   - 순수 도메인 모델(`entities/`, `value-objects/`), 포트 인터페이스(`repository-ports/`), 인프라 어댑터(`repositories/`, `mappers/`), 서비스, DTO, 컨트롤러 순서로 구현합니다.
+   - 도메인 단위 테스트(`.spec.ts`)를 함께 작성하여 비즈니스 규칙의 자가 검증을 보장합니다.
+5. **Step 5 — 표준 검증 및 스펙 동기화 (Verification & Status Update)**:
+   - 표준 명령어 4종(`test`, `lint`, `typecheck`, `test:e2e`)으로 완전성을 검증합니다.
+   - 구현 과정에서 변경되거나 구체화된 비즈니스 규칙이 있다면 스펙 문서에 즉시 역동기화합니다.
+
+### 5.3. 규칙 및 유스케이스 식별자 체계 (Identifier Conventions)
+
+추적성(Traceability)과 명확한 소통을 위해 스펙과 코드, 테스트 전반에서 일관된 식별자 규칙을 적용합니다:
+
+| 구분 | 식별자 패턴 | 예시 |
+| :--- | :--- | :--- |
+| **비즈니스 규칙 (Business Rules)** | `BR-<도메인이니셜><두자리숫자>` | `BR-U01` (User), `BR-A01` (Auth), `BR-P01` (Post) |
+| **유스케이스 (Use Cases)** | `UC-<도메인이니셜><두자리숫자>` | `UC-U01` (User), `UC-A01` (Auth), `UC-P01` (Post) |
+| **아키텍처 의사결정 (ADR)** | `ADR-<네자리숫자>` | `ADR-0001`, `ADR-0002`, `ADR-0003` |
+
+### 5.4. 스펙 동기화 의무 (Spec Sync Obligation)
+
+- `docs/specs/` 하위의 사양서는 일회성 기획 문서가 아닌 **코드베이스의 단일 진실 공급원(Single Source of Truth)**입니다.
+- 엔티티 속성 추가, 비즈니스 규칙 변경, DTO 스키마 수정 등 도메인/인터페이스의 변경이 일어날 경우, 소스 코드 수정과 함께 반드시 대응하는 스펙 문서도 같은 트랜잭션 단위로 갱신되어야 합니다.
 
 

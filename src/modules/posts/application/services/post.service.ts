@@ -59,6 +59,15 @@ export class PostService {
   @Cacheable({
     keyGenerator: (params) => buildPostsPaginationCacheKey(params),
     ttl: (params) => getTTL(params),
+    transform: (cached: unknown): PaginationResponse<Post> => {
+      const c = cached as PaginationResponse<unknown>;
+      return {
+        ...c,
+        data: c.data
+          .map((item) => Post.reconstitute(item))
+          .filter((p): p is Post => p instanceof Post),
+      };
+    },
   })
   @Transactional()
   async paginatePosts(params: {
@@ -79,6 +88,7 @@ export class PostService {
     ttl: 3600000,
     trackKeys: true,
     keysSetName: 'cacheKeys',
+    transform: (cached: unknown): Post => Post.reconstitute(cached) as Post,
   })
   @Transactional()
   async getPostById(postId: number): Promise<Post> {

@@ -75,6 +75,15 @@ export class UserService {
   @Cacheable({
     keyGenerator: (params) => buildUsersPaginationCacheKey(params),
     ttl: (params) => getTTL(params),
+    transform: (cached: unknown): PaginationResponse<User> => {
+      const c = cached as PaginationResponse<unknown>;
+      return {
+        ...c,
+        data: c.data
+          .map((item) => User.reconstitute(item))
+          .filter((u): u is User => u instanceof User),
+      };
+    },
   })
   @Transactional()
   async paginateUsers(params: {
@@ -92,9 +101,10 @@ export class UserService {
 
   @Cacheable<[number]>({
     keyGenerator: (userId: number) => buildUserByIdCacheKey(userId),
-    ttl: 3600000, // 1시간
+    ttl: 3600000,
     trackKeys: true,
     keysSetName: 'cacheKeys',
+    transform: (cached: unknown): User => User.reconstitute(cached) as User,
   })
   @Transactional()
   async getUserById(userId: number): Promise<User> {

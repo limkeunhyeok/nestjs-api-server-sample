@@ -4,11 +4,15 @@ import { isNil } from 'lodash';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { ExtendedLogger } from '../interfaces/extended-logger.interface';
 
-export interface CacheableOptions<TArgs extends unknown[] = unknown[]> {
+export interface CacheableOptions<
+  TArgs extends unknown[] = unknown[],
+  TResult = unknown,
+> {
   keyGenerator?: (...args: TArgs) => string;
   ttl?: number | ((...args: TArgs) => number);
   trackKeys?: boolean;
   keysSetName?: string; // 서비스 내, 키셋이 여러개 일수도 있음
+  transform?: (cached: unknown) => TResult;
 }
 
 export interface CacheableInstance {
@@ -17,9 +21,10 @@ export interface CacheableInstance {
   [key: string]: unknown;
 }
 
-export function Cacheable<TArgs extends unknown[] = unknown[]>(
-  options: CacheableOptions<TArgs>,
-) {
+export function Cacheable<
+  TArgs extends unknown[] = unknown[],
+  TResult = unknown,
+>(options: CacheableOptions<TArgs, TResult>) {
   const LOG_CONTEXT = 'CacheableDecorator';
 
   const injectCacheManager = Inject(CACHE_MANAGER);
@@ -59,13 +64,16 @@ export function Cacheable<TArgs extends unknown[] = unknown[]>(
         `${propertyKey}:${JSON.stringify(args)}`;
 
       try {
-        const cached = await cacheManager.get<T>(cacheKey);
+        const cached = await cacheManager.get<unknown>(cacheKey);
         if (!isNil(cached)) {
           logger.debug({
             context: LOG_CONTEXT,
             message: `Cache hit: ${cacheKey}`,
           });
-          return cached;
+          const restored = options.transform
+            ? options.transform(cached)
+            : cached;
+          return restored as T;
         }
       } catch (error) {
         logger.error({
@@ -117,7 +125,7 @@ export function Cacheable<TArgs extends unknown[] = unknown[]>(
         });
       }
 
-      return plainResult as T;
+      return result;
     };
 
     return descriptor;

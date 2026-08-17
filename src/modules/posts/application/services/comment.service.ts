@@ -64,6 +64,15 @@ export class CommentService {
   @Cacheable({
     keyGenerator: (params) => buildCommentsPaginationCacheKey(params),
     ttl: (params) => getTTL(params),
+    transform: (cached: unknown): PaginationResponse<Comment> => {
+      const c = cached as PaginationResponse<unknown>;
+      return {
+        ...c,
+        data: c.data
+          .map((item) => Comment.reconstitute(item))
+          .filter((cm): cm is Comment => cm instanceof Comment),
+      };
+    },
   })
   @Transactional()
   async paginateComments(params: {
@@ -86,6 +95,8 @@ export class CommentService {
     ttl: 3600000,
     trackKeys: true,
     keysSetName: 'cacheKeys',
+    transform: (cached: unknown): Comment =>
+      Comment.reconstitute(cached) as Comment,
   })
   @Transactional()
   async getCommentById(postId: number, commentId: number): Promise<Comment> {

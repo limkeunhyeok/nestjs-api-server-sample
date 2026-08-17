@@ -16,21 +16,8 @@ export class CommentResponseDto {
   static fromDomain(domain: Comment): CommentResponseDto {
     const dto = new CommentResponseDto();
     dto.id = domain.id;
-
-    const raw = domain as unknown as Record<string, unknown>;
-    const contentsVal = raw._contents || raw.contents;
-    const publishedVal =
-      raw._published !== undefined ? raw._published : raw.published;
-
-    dto.contents =
-      domain.contents || (typeof contentsVal === 'string' ? contentsVal : '');
-    dto.published =
-      domain.published !== undefined
-        ? domain.published
-        : typeof publishedVal === 'boolean'
-          ? publishedVal
-          : false;
-
+    dto.contents = domain.contents;
+    dto.published = domain.published;
     dto.authorId = domain.authorId;
     if (domain.author) {
       dto.author = UserResponseDto.fromDomain(domain.author);

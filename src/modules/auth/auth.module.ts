@@ -8,6 +8,8 @@ import { AuthService } from './application/auth.service';
 import { DevTokenController } from './presentation/controllers/dev-token.controller';
 import { DevTokenOrmEntity } from './infrastructure/persistence/entities/dev-token.orm-entity';
 import { DevTokenService } from './application/services/dev-token.service';
+import { DevTokenRepository } from './infrastructure/persistence/repositories/dev-token.repository';
+import { DEV_TOKEN_REPOSITORY_PORT } from './domain/repositories/dev-token.repository.port';
 import { JwksController } from './presentation/controllers/jwks.controller';
 import { TokenBlacklistService } from './application/services/token-blacklist.service';
 
@@ -18,6 +20,10 @@ import { TokenBlacklistService } from './application/services/token-blacklist.se
     DevTokenService,
     TokenBlacklistService,
     ActiveUsersService,
+    {
+      provide: DEV_TOKEN_REPOSITORY_PORT,
+      useClass: DevTokenRepository,
+    },
   ],
   controllers: [
     AuthController,

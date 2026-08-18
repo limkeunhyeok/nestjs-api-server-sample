@@ -33,7 +33,7 @@ export class DevTokenController {
     });
     return {
       token: result.token,
-      devToken: DevTokenResponseDto.fromEntity(result.devToken),
+      devToken: DevTokenResponseDto.fromDomain(result.devToken),
     };
   }
 
@@ -41,7 +41,7 @@ export class DevTokenController {
   @Roles([Role.ADMIN])
   async listDevTokens(): Promise<DevTokenResponseDto[]> {
     const tokens = await this.devTokenService.listDevTokens();
-    return tokens.map((token) => DevTokenResponseDto.fromEntity(token));
+    return tokens.map((token) => DevTokenResponseDto.fromDomain(token));
   }
 
   @Delete(':id')
@@ -50,6 +50,6 @@ export class DevTokenController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<DevTokenResponseDto> {
     const revoked = await this.devTokenService.revokeDevToken(id);
-    return DevTokenResponseDto.fromEntity(revoked);
+    return DevTokenResponseDto.fromDomain(revoked);
   }
 }

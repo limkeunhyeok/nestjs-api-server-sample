@@ -1,23 +1,25 @@
-import { Injectable } from '@nestjs/common';
-import {
-  DevTokenBadRequestException,
-  DevTokenNotFoundException,
-} from '../../exceptions/auth.exception';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm';
 import * as crypto from 'crypto';
-import { IsNull, Repository } from 'typeorm';
 import { Role } from 'src/common/constants/role.const';
 import { NodeEnv, ServerEnv } from 'src/configurations/server.config';
 import { JoseJwtService } from 'src/common/jose-jwt/jose-jwt.service';
 import { TOKEN_TYPE_DEV } from '../../auth.const';
-import { DevTokenOrmEntity } from '../../infrastructure/persistence/entities/dev-token.orm-entity';
+import { DevToken } from '../../domain/entities/dev-token.model';
+import {
+  DEV_TOKEN_REPOSITORY_PORT,
+  DevTokenRepositoryPort,
+} from '../../domain/repositories/dev-token.repository.port';
+import {
+  DevTokenBadRequestException,
+  DevTokenNotFoundException,
+} from '../../exceptions/auth.exception';
 
 @Injectable()
 export class DevTokenService {
   constructor(
-    @InjectRepository(DevTokenOrmEntity)
-    private readonly devTokenRepository: Repository<DevTokenOrmEntity>,
+    @Inject(DEV_TOKEN_REPOSITORY_PORT)
+    private readonly devTokenRepository: DevTokenRepositoryPort,
     private readonly joseJwtService: JoseJwtService,
     private readonly configService: ConfigService<ServerEnv, true>,
   ) {}
@@ -27,7 +29,7 @@ export class DevTokenService {
     role?: Role;
     expiresIn?: string;
     createdBy: number;
-  }): Promise<{ token: string; devToken: DevTokenOrmEntity }> {
+  }): Promise<{ token: string; devToken: DevToken }> {
     const nodeEnv = this.configService.get<string>('NODE_ENV');
     if (nodeEnv === NodeEnv.PROD) {
       throw new DevTokenBadRequestException(
@@ -52,53 +54,49 @@ export class DevTokenService {
 
     const expiresAt = this.calculateExpiresAt(expiresIn);
 
-    const devToken = this.devTokenRepository.create({
-      name: params.name,
+    const devToken = new DevToken(
+      0,
+      params.name,
       jti,
       role,
       expiresAt,
-      createdBy: params.createdBy,
-    });
+      params.createdBy,
+    );
 
-    await this.devTokenRepository.save(devToken);
+    const saved = await this.devTokenRepository.save(devToken);
 
-    return { token, devToken };
+    return { token, devToken: saved };
   }
 
-  async listDevTokens(): Promise<DevTokenOrmEntity[]> {
-    return await this.devTokenRepository.find({
-      where: { revokedAt: IsNull() },
-      order: { createdAt: 'DESC' },
-    });
+  async listDevTokens(): Promise<DevToken[]> {
+    return await this.devTokenRepository.findAllActive();
   }
 
-  async revokeDevToken(id: number): Promise<DevTokenOrmEntity> {
-    const devToken = await this.devTokenRepository.findOne({ where: { id } });
+  async revokeDevToken(id: number): Promise<DevToken> {
+    const devToken = await this.devTokenRepository.findById(id);
 
     if (!devToken) {
       throw new DevTokenNotFoundException(`Dev token with id ${id} not found.`);
     }
 
-    if (devToken.revokedAt) {
+    if (devToken.isRevoked()) {
       throw new DevTokenBadRequestException(
         `Dev token with id ${id} is already revoked.`,
       );
     }
 
-    devToken.revokedAt = new Date();
+    devToken.revoke();
     return await this.devTokenRepository.save(devToken);
   }
 
   async isDevTokenRevoked(jti: string): Promise<boolean> {
-    const devToken = await this.devTokenRepository.findOne({
-      where: { jti },
-    });
+    const devToken = await this.devTokenRepository.findByJti(jti);
 
     if (!devToken) {
       return true;
     }
 
-    return devToken.revokedAt !== null;
+    return devToken.isRevoked();
   }
 
   private calculateExpiresAt(expiresIn: string): Date {

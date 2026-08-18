@@ -1,5 +1,5 @@
 import { Role } from 'src/common/constants/role.const';
-import { DevTokenOrmEntity } from '../../infrastructure/persistence/entities/dev-token.orm-entity';
+import { DevToken } from '../../domain/entities/dev-token.model';
 
 export class DevTokenResponseDto {
   id: number;
@@ -9,22 +9,22 @@ export class DevTokenResponseDto {
   expiresAt: Date;
   revokedAt?: Date | null;
   createdBy: number;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
   version?: number;
 
-  static fromEntity(entity: DevTokenOrmEntity): DevTokenResponseDto {
+  static fromDomain(domain: DevToken): DevTokenResponseDto {
     const dto = new DevTokenResponseDto();
-    dto.id = entity.id;
-    dto.name = entity.name;
-    dto.jti = entity.jti;
-    dto.role = entity.role;
-    dto.expiresAt = entity.expiresAt;
-    dto.revokedAt = entity.revokedAt;
-    dto.createdBy = entity.createdBy;
-    dto.createdAt = entity.createdAt;
-    dto.updatedAt = entity.updatedAt;
-    dto.version = entity.version;
+    dto.id = domain.id;
+    dto.name = domain.name;
+    dto.jti = domain.jti;
+    dto.role = domain.role;
+    dto.expiresAt = domain.expiresAt;
+    dto.revokedAt = domain.revokedAt;
+    dto.createdBy = domain.createdBy;
+    dto.createdAt = domain.createdAt;
+    dto.updatedAt = domain.updatedAt;
+    dto.version = domain.version;
     return dto;
   }
 }

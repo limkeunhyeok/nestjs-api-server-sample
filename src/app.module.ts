@@ -12,6 +12,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { WinstonModule } from 'nest-winston';
 import { RoleGuard } from './common/guards/role.guard';
 import { HealthCheckModule } from './common/health-check/health-check.module';
+import { JoseJwtModule } from './common/jose-jwt/jose-jwt.module';
 import { HttpLoggingMiddleware } from './common/middlewares/http-logging.middleware';
 import { IgnoreBrowserRequestMiddleware } from './common/middlewares/ignore-browser-request.middleware';
 import { JoseJwtConfigService } from './configurations/jose-jwt.config';
@@ -21,7 +22,6 @@ import { TypeOrmConfigService } from './configurations/typeorm.config';
 import { WinstonConfigService } from './configurations/winston.config';
 import { AuthMiddleware } from './modules/auth/auth.middleware';
 import { AuthModule } from './modules/auth/auth.module';
-import { JoseJwtModule } from './common/jose-jwt/jose-jwt.module';
 import { PostModule } from './modules/posts/post.module';
 import { UserModule } from './modules/users/user.module';
 

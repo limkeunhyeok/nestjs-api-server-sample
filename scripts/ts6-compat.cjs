@@ -14,6 +14,6 @@ try {
     loaded: true,
     exports: ts6,
   };
-} catch (e) {
+} catch {
   // If @typescript/typescript6 is not available, proceed with default resolution
 }

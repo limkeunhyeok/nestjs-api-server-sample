@@ -35,3 +35,4 @@
 | [0003](./0003-technical-infrastructure-modules.md) | 기술적 공통 인프라 모듈의 구조 표준 및 배치 규정 | accepted |
 | [0004](./0004-nestjs-12-framework-migration.md) | NestJS 12 프레임워크 메이저 마이그레이션 및 모듈 호환성 전략 | accepted |
 | [0005](./0005-typescript-7-migration.md) | TypeScript 7.0 메이저 마이그레이션 및 컴파일러 도구 체인 호환성 전략 | accepted |
+| [0006](./0006-oxlint-migration.md) | Rust 기반 고속 린터 Oxlint 도입 및 ESLint 도구 체인 마이그레이션 | proposed |

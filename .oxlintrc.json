@@ -13,7 +13,6 @@
     "node": true
   },
   "ignorePatterns": [
-    "eslint.config.mjs",
     "ecosystem.config.js",
     "scripts/**",
     "test/",

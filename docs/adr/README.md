@@ -32,3 +32,5 @@
 | :--- | :--- | :--- |
 | [0001](./0001-ddd-hexagonal-architecture.md) | 도메인 주도 설계(DDD) 및 헥사고날(Ports & Adapters) 아키텍처 도입 | accepted |
 | [0002](./0002-standard-directory-structure.md) | 초정밀 클린 DDD 및 헥사고날 아키텍처 표준 디렉토리 구조 수립 | accepted |
+| [0003](./0003-technical-infrastructure-modules.md) | 기술적 공통 인프라 모듈의 구조 표준 및 배치 규정 | accepted |
+| [0004](./0004-nestjs-12-framework-migration.md) | NestJS 12 프레임워크 메이저 마이그레이션 및 모듈 호환성 전략 | accepted |

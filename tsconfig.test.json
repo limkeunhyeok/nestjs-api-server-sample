@@ -5,9 +5,9 @@
     "strict": false,
     "noImplicitAny": false,
     "allowJs": true,
-    "baseUrl": "./",
     "paths": {
-      "src/*": ["./src/*"]
+      "src/*": ["./src/*"],
+      "test/*": ["./test/*"]
     }
   },
   "include": ["test/**/*.ts", "test/global-teardown.ts"]

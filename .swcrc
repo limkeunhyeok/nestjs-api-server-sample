@@ -11,7 +11,11 @@
       "decoratorMetadata": true
     },
     "target": "es2023",
-    "keepClassNames": true
+    "keepClassNames": true,
+    "baseUrl": "./",
+    "paths": {
+      "src/*": ["./src/*"]
+    }
   },
   "minify": true,
   "sourceMaps": true

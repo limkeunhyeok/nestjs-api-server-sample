@@ -36,6 +36,7 @@ import { UserModule } from './modules/users/user.module';
       useClass: TypeOrmConfigService,
     }),
     WinstonModule.forRootAsync({
+      imports: [],
       useClass: WinstonConfigService,
     }),
     CacheModule.registerAsync({

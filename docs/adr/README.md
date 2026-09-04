@@ -36,3 +36,4 @@
 | [0004](./0004-nestjs-12-framework-migration.md) | NestJS 12 프레임워크 메이저 마이그레이션 및 모듈 호환성 전략 | accepted |
 | [0005](./0005-typescript-7-migration.md) | TypeScript 7.0 메이저 마이그레이션 및 컴파일러 도구 체인 호환성 전략 | accepted |
 | [0006](./0006-oxlint-migration.md) | Rust 기반 고속 린터 Oxlint 도입 및 ESLint 도구 체인 마이그레이션 | accepted |
+| [0007](./0007-vitest-migration.md) | 테스트 러너를 Jest에서 Vitest로 전면 마이그레이션 | proposed |

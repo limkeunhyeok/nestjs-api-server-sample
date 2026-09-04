@@ -9,7 +9,6 @@
   },
   "env": {
     "builtin": true,
-    "jest": true,
     "node": true
   },
   "ignorePatterns": [

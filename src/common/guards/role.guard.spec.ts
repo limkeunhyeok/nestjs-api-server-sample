@@ -8,21 +8,21 @@ import { RoleGuard } from './role.guard';
 
 const mockExecutionContext = (user?: { role: any }): ExecutionContext =>
   ({
-    getHandler: jest.fn(),
-    getClass: jest.fn(),
+    getHandler: vi.fn(),
+    getClass: vi.fn(),
     switchToHttp: () => ({
       getRequest: () => ({ user }),
     }),
   }) as unknown as ExecutionContext;
 
 describe('RoleGuard Unit Test', () => {
-  let reflector: jest.Mocked<Reflector>;
+  let reflector: { getAllAndOverride: any };
   let guard: RoleGuard;
 
   beforeEach(() => {
     reflector = {
-      getAllAndOverride: jest.fn(),
-    } as unknown as jest.Mocked<Reflector>;
+      getAllAndOverride: vi.fn(),
+    };
   });
 
   describe('Public Route', () => {
@@ -33,7 +33,7 @@ describe('RoleGuard Unit Test', () => {
         }
         return undefined;
       });
-      guard = new RoleGuard(reflector);
+      guard = new RoleGuard(reflector as unknown as Reflector);
     });
 
     it('should grant access when route is public without user', () => {
@@ -53,7 +53,7 @@ describe('RoleGuard Unit Test', () => {
         }
         return undefined;
       });
-      guard = new RoleGuard(reflector);
+      guard = new RoleGuard(reflector as unknown as Reflector);
     });
 
     it('should grant access to an admin user', () => {
@@ -70,7 +70,7 @@ describe('RoleGuard Unit Test', () => {
       const ctx = mockExecutionContext(undefined);
       try {
         guard.canActivate(ctx);
-        fail('should have thrown');
+        expect.fail('should have thrown');
       } catch (error) {
         expect(error).toBeInstanceOf(ApiException);
         expect((error as ApiException).status).toBe(
@@ -83,7 +83,7 @@ describe('RoleGuard Unit Test', () => {
       const ctx = mockExecutionContext({ role: 'role' });
       try {
         guard.canActivate(ctx);
-        fail('should have thrown');
+        expect.fail('should have thrown');
       } catch (error) {
         expect(error).toBeInstanceOf(ApiException);
         expect((error as ApiException).status).toBe(HttpStatus.FORBIDDEN);
@@ -102,7 +102,7 @@ describe('RoleGuard Unit Test', () => {
         }
         return undefined;
       });
-      guard = new RoleGuard(reflector);
+      guard = new RoleGuard(reflector as unknown as Reflector);
     });
 
     it('should grant access to an admin user', () => {
@@ -114,7 +114,7 @@ describe('RoleGuard Unit Test', () => {
       const ctx = mockExecutionContext({ role: Role.MEMBER });
       try {
         guard.canActivate(ctx);
-        fail('should have thrown');
+        expect.fail('should have thrown');
       } catch (error) {
         expect(error).toBeInstanceOf(ApiException);
         expect((error as ApiException).status).toBe(HttpStatus.FORBIDDEN);
@@ -133,7 +133,7 @@ describe('RoleGuard Unit Test', () => {
         }
         return undefined;
       });
-      guard = new RoleGuard(reflector);
+      guard = new RoleGuard(reflector as unknown as Reflector);
     });
 
     it('should grant access to an member user', () => {
@@ -145,7 +145,7 @@ describe('RoleGuard Unit Test', () => {
       const ctx = mockExecutionContext({ role: Role.ADMIN });
       try {
         guard.canActivate(ctx);
-        fail('should have thrown');
+        expect.fail('should have thrown');
       } catch (error) {
         expect(error).toBeInstanceOf(ApiException);
         expect((error as ApiException).status).toBe(HttpStatus.FORBIDDEN);
@@ -164,7 +164,7 @@ describe('RoleGuard Unit Test', () => {
         }
         return undefined;
       });
-      guard = new RoleGuard(reflector);
+      guard = new RoleGuard(reflector as unknown as Reflector);
     });
 
     it('should allow access when an empty array is provided, indicating all roles are permitted', () => {

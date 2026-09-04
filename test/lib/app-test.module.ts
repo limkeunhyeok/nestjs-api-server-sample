@@ -25,11 +25,11 @@ import { TestService } from './test.service';
 import { TypeOrmConfigService } from './typeorm-test.config';
 
 const mockLogger: LoggerService = {
-  log: jest.fn(),
-  error: jest.fn(),
-  warn: jest.fn(),
-  debug: jest.fn(),
-  verbose: jest.fn(),
+  log: vi.fn(),
+  error: vi.fn(),
+  warn: vi.fn(),
+  debug: vi.fn(),
+  verbose: vi.fn(),
 };
 
 @Global()

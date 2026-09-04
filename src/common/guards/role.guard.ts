@@ -53,18 +53,11 @@ export class RoleGuard implements CanActivate {
     }
 
     if (isNil(user)) {
-      console.log('RoleGuard: INVALID_CREDENTIALS');
       throw new ApiException(HttpStatus.UNAUTHORIZED, INVALID_CREDENTIALS);
     }
 
     const hasRole = roles.includes(user.role);
     if (!hasRole) {
-      console.log(
-        'RoleGuard FORBIDDEN! roles required:',
-        roles,
-        'user.role:',
-        user.role,
-      );
       throw new ApiException(
         HttpStatus.FORBIDDEN,
         FORBIDDEN_RESOURCE_MODIFICATION,

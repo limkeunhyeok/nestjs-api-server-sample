@@ -10,5 +10,10 @@
       "test/*": ["./test/*"]
     }
   },
-  "include": ["test/**/*.ts", "test/global-teardown.ts"]
+  "include": [
+    "test/**/*.ts",
+    "src/**/*.spec.ts",
+    "vitest.config.mts",
+    "vitest.config.e2e.mts"
+  ]
 }

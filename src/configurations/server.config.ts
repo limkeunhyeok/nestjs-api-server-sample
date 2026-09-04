@@ -90,4 +90,4 @@ export const ServerEnvValidation = Joi.object({
   JWT_PUBLIC_JWK: Joi.string()
     .required()
     .custom(validateJwk(false), 'JWK JSON validation'),
-});
+}).unknown(true);

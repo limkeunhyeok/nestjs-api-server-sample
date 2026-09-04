@@ -1,6 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { TestingModule } from '@nestjs/testing';
-import * as request from 'supertest';
+import request from 'supertest';
 import TestAgent from 'supertest/lib/agent';
 import { createTestApp } from './create-test-app';
 import { TestService } from './test.service';

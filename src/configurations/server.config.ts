@@ -1,4 +1,4 @@
-import * as Joi from 'joi';
+import { z } from 'zod';
 
 export const NodeEnv = {
   DEV: 'dev',
@@ -33,13 +33,17 @@ export interface ServerEnv {
   JWT_PUBLIC_JWK: any;
 }
 
-const validateJwk =
-  (isPrivate: boolean) => (value: string, helpers: Joi.CustomHelpers) => {
+const validateJwk = (isPrivate: boolean) =>
+  z.string().transform((val, ctx) => {
     try {
-      const obj: unknown = JSON.parse(value);
+      const obj: unknown = JSON.parse(val);
 
       if (typeof obj !== 'object' || obj === null) {
-        return helpers.error('any.invalid');
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'JWK must be a valid JSON object',
+        });
+        return z.NEVER;
       }
 
       const jwk = obj as Record<string, any>;
@@ -51,43 +55,47 @@ const validateJwk =
       const hasAllFields = requiredFields.every((field) => field in jwk);
 
       if (!hasAllFields) {
-        return helpers.error('any.invalid');
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `JWK missing required fields: ${requiredFields.join(', ')}`,
+        });
+        return z.NEVER;
       }
 
       return jwk;
     } catch {
-      return helpers.error('any.invalid');
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'JWK must be a valid JSON string',
+      });
+      return z.NEVER;
     }
-  };
+  });
 
-export const ServerEnvValidation = Joi.object({
-  NODE_ENV: Joi.string()
-    .valid(...Object.values(NodeEnv))
-    .required(),
-  PORT: Joi.number().required(),
+export const ServerEnvValidation = z
+  .object({
+    NODE_ENV: z.nativeEnum(NodeEnv).or(z.enum(['dev', 'prod', 'test'])),
+    PORT: z.coerce.number(),
 
-  DB_NAME: Joi.string().required(),
-  DB_PORT: Joi.number().required(),
-  DB_HOST: Joi.string().required(),
-  DB_USER: Joi.string().required(),
-  DB_PASS: Joi.string().required(),
+    DB_NAME: z.string(),
+    DB_PORT: z.coerce.number(),
+    DB_HOST: z.string(),
+    DB_USER: z.string(),
+    DB_PASS: z.string(),
 
-  SALT_ROUND: Joi.number().required(),
-  ACCESS_TOKEN_SECRET: Joi.string().required(),
-  REFRESH_TOKEN_SECRET: Joi.string().required(),
+    SALT_ROUND: z.coerce.number(),
+    ACCESS_TOKEN_SECRET: z.string(),
+    REFRESH_TOKEN_SECRET: z.string(),
 
-  ADMIN_EMAIL: Joi.string(),
-  ADMIN_PASSWORD: Joi.string(),
-  ADMIN_NAME: Joi.string(),
+    ADMIN_EMAIL: z.string().optional(),
+    ADMIN_PASSWORD: z.string().optional(),
+    ADMIN_NAME: z.string().optional(),
 
-  REDIS_PORT: Joi.number().required(),
-  REDIS_HOST: Joi.string().required(),
-  REDIS_PASSWORD: Joi.string().required(),
+    REDIS_PORT: z.coerce.number(),
+    REDIS_HOST: z.string(),
+    REDIS_PASSWORD: z.string(),
 
-  JWT_PRIVATE_JWK: Joi.string()
-    .required()
-    .custom(validateJwk(true), 'JWK JSON validation'),
-  JWT_PUBLIC_JWK: Joi.string()
-    .required()
-    .custom(validateJwk(false), 'JWK JSON validation'),
-}).unknown(true);
+    JWT_PRIVATE_JWK: validateJwk(true),
+    JWT_PUBLIC_JWK: validateJwk(false),
+  })
+  .passthrough();

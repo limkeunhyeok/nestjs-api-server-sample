@@ -20,7 +20,7 @@ export class PostRepositoryAdapter implements PostRepositoryPort {
   async findOneById(id: number): Promise<Post | null> {
     const orm = await this.repo.findOne({
       where: { id },
-      relations: ['author'],
+      relations: { author: true },
     });
     return orm ? PostMapper.toDomain(orm) : null;
   }
@@ -73,7 +73,7 @@ export class PostRepositoryAdapter implements PostRepositoryPort {
       },
       skip: limit > 0 ? offset : undefined,
       take: limit > 0 ? limit : undefined,
-      relations: ['author'],
+      relations: { author: true },
     });
 
     const domainPosts = posts.map((p) => PostMapper.toDomain(p));

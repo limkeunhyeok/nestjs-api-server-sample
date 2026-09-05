@@ -20,7 +20,7 @@ export class CommentRepositoryAdapter implements CommentRepositoryPort {
   async findOneById(id: number): Promise<Comment | null> {
     const orm = await this.repo.findOne({
       where: { id },
-      relations: ['author', 'post'],
+      relations: { author: true, post: true },
     });
     return orm ? CommentMapper.toDomain(orm) : null;
   }
@@ -79,7 +79,7 @@ export class CommentRepositoryAdapter implements CommentRepositoryPort {
       },
       skip: limit > 0 ? offset : undefined,
       take: limit > 0 ? limit : undefined,
-      relations: ['author', 'post'],
+      relations: { author: true, post: true },
     });
 
     const domainComments = comments.map((c) => CommentMapper.toDomain(c));

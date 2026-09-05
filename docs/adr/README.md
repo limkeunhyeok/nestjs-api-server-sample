@@ -38,3 +38,4 @@
 | [0006](./0006-oxlint-migration.md) | Rust 기반 고속 린터 Oxlint 도입 및 ESLint 도구 체인 마이그레이션 | accepted |
 | [0007](./0007-vitest-migration.md) | 테스트 러너를 Jest에서 Vitest로 전면 마이그레이션 | accepted |
 | [0008](./0008-zod-config-migration.md) | 환경 변수 검증 라이브러리를 Joi에서 Zod로 일원화 | accepted |
+| [0009](./0009-typeorm-1-migration.md) | TypeORM 1.x 메이저 마이그레이션 및 ORM 계층 호환성 전략 | proposed |

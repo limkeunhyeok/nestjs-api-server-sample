@@ -1,0 +1,102 @@
+{
+  "name": "Node.js & PostgreSQL Dev Environment",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/mikaello/devcontainer-features/modern-shell-utils:2": {},
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+    "ghcr.io/nils-geistmann/devcontainers-features/zsh:0": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "MS-CEINTL.vscode-language-pack-ko",
+        "eamodio.gitlens",
+        "yzhang.markdown-all-in-one",
+        "mhutchie.git-graph",
+        "github.vscode-github-actions"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit"
+        },
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "bash",
+            "icon": "terminal-bash"
+          },
+          "zsh": {
+            "path": "zsh"
+          },
+          "fish": {
+            "path": "fish"
+          },
+          "tmux": {
+            "path": "tmux",
+            "icon": "terminal-tmux"
+          },
+          "pwsh": {
+            "path": "pwsh",
+            "icon": "terminal-powershell"
+          }
+        }
+      }
+    }
+  },
+
+  "mounts": [
+    "source=${env:HOME}/.gitconfig,target=/home/node/.gitconfig,type=bind",
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  ],
+
+  // 서비스에서 포트 읽어오기
+  "runServices": [
+    "app",
+    "db",
+    "pgadmin",
+    "redis",
+    "minio",
+    "elasticsearch",
+    "kibana",
+    "fluent-bit"
+  ],
+
+  // 포트는 자동으로 감지됨
+  "forwardPorts": [],
+
+  "containerEnv": {
+    "PNPM_HOME": "/home/node/.local/share/pnpm",
+    "PATH": "/home/node/.local/share/pnpm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "TESTCONTAINERS_RYUK_DISABLED": "true", // Testcontainers의 정리 담당 컨테이너(Ryuk / Reaper)를 아예 쓰지 말아라는 뜻. Docker-in-Docker 환경에서 호스트 ↔ Ryuk TCP 연결이 자주 깨짐.
+    "TESTCONTAINERS_HOST_OVERRIDE": "host.docker.internal"
+  },
+
+  "postCreateCommand": "pnpm install && pnpm add -g typescript@${TYPESCRIPT_VERSION:-5.9.3}",
+
+  "remoteUser": "root"
+  // "forwardPorts": [3000, 5432, 5050],
+
+  // "portsAttributes": {
+  //   "3000": {
+  //     "label": "Application",
+  //     "onAutoForward": "notify"
+  //   },
+  //   "5432": {
+  //     "label": "PostgreSQL"
+  //   },
+  //   "5050": {
+  //     "label": "pgAdmin"
+  //   }
+  // },
+
+  // "postCreateCommand": "pnpm install && pnpm add -g typescript@5.9.3",
+
+  // "remoteUser": "node"
+}

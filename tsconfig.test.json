@@ -1,0 +1,19 @@
+{
+  "composite": true,
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "strict": false,
+    "noImplicitAny": false,
+    "allowJs": true,
+    "paths": {
+      "src/*": ["./src/*"],
+      "test/*": ["./test/*"]
+    }
+  },
+  "include": [
+    "test/**/*.ts",
+    "src/**/*.spec.ts",
+    "vitest.config.mts",
+    "vitest.config.e2e.mts"
+  ]
+}

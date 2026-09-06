@@ -1,5 +1,5 @@
 import { isEmptyObject } from 'src/libs/validator';
-import { UserEntity } from 'src/modules/users/user.entity';
+import { UserEntity } from 'src/modules/users/infrastructure/persistence/entities/user.orm-entity';
 
 export function expectUserResponseSucceed(
   result: Partial<UserEntity>,
@@ -14,6 +14,7 @@ export function expectUserResponseSucceed(
   expect(result).toHaveProperty('version');
 
   if (!isEmptyObject(userRaw)) {
+    expect(result.name).toBe(userRaw.name);
     expect(result.role).toBe(userRaw.role);
   }
 }

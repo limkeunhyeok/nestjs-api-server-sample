@@ -1,0 +1,41 @@
+# 아키텍처 의사결정 기록 (Architecture Decision Records, ADR)
+
+이 디렉토리는 프로젝트 구조, 의존성, 인터페이스 정의 및 개발 공수에 큰 영향을 미치는 핵심 기술적 아키텍처 결정 사항을 기록하고 보존하는 곳입니다.
+
+우리는 가장 널리 활용되는 마크다운 아키텍처 문서 포맷 표준인 [MADR 4.0.0](https://adr.github.io/madr/)을 준수합니다.
+
+---
+
+## ADR 작성 기준
+
+다음 항목 중 하나 이상에 해당되는 경우 의사결정 기록(ADR)을 작성합니다:
+
+1. **아키텍처적으로 중요한 영향**: 폴더 구조 개편, 프레임워크 선택, 외부 데이터베이스/미들웨어 의존성 추가 등 구조적 변화가 생기는 경우.
+2. **번복하기 어려운 결정**: 한번 코드로 구현 및 배포가 완료되면 이전 상태로 롤백하거나 아키텍처를 뒤엎기에 큰 공수와 리스크가 동반되는 경우.
+3. **암묵지 최소화**: 미래의 나 또는 미래의 협업 멤버들이 구두 설명이나 별도의 지식 파편 없이 이 아키텍처적 결정을 한눈에 납득할 수 있어야 하는 경우.
+
+---
+
+## 새 ADR 작성 방법
+
+1. 이 디렉토리에 있는 [`template.md`](./template.md) 양식을 복사하여 `NNNN-짧은-제목.md` 파일명으로 생성합니다. (`NNNN`은 `0002`와 같이 순차적으로 부여되는 4자리 제로패딩 번호입니다.)
+2. 프론트매터(Front-matter)와 가이드 섹션의 중괄호(`{}`) 내용을 프로젝트 맥락에 맞춰 기재합니다. ADR은 설계 사양서가 아니므로 간결함을 유지해야 합니다.
+3. Git 브랜치 또는 작업 변경 사항과 함께 제출합니다.
+4. 의사결정이 승인되어 코드가 머지 및 적용되면 상태를 **accepted**로 활성화합니다.
+5. 훗날 이미 내린 결정을 번복하거나 수정해야 할 때에는 기존 ADR을 수정하지 않고, **새 번호로 신규 ADR을 작성**한 뒤 기존 ADR의 status 필드를 `superseded by [NNNN](...)`으로 업데이트하고 새 문서 링크를 걸어 히스토리를 보존합니다.
+
+---
+
+## 아키텍처 의사결정 목록 (Index)
+
+| 순번 | 결정 사항 (제목) | 상태 |
+| :--- | :--- | :--- |
+| [0001](./0001-ddd-hexagonal-architecture.md) | 도메인 주도 설계(DDD) 및 헥사고날(Ports & Adapters) 아키텍처 도입 | accepted |
+| [0002](./0002-standard-directory-structure.md) | 초정밀 클린 DDD 및 헥사고날 아키텍처 표준 디렉토리 구조 수립 | accepted |
+| [0003](./0003-technical-infrastructure-modules.md) | 기술적 공통 인프라 모듈의 구조 표준 및 배치 규정 | accepted |
+| [0004](./0004-nestjs-12-framework-migration.md) | NestJS 12 프레임워크 메이저 마이그레이션 및 모듈 호환성 전략 | accepted |
+| [0005](./0005-typescript-7-migration.md) | TypeScript 7.0 메이저 마이그레이션 및 컴파일러 도구 체인 호환성 전략 | accepted |
+| [0006](./0006-oxlint-migration.md) | Rust 기반 고속 린터 Oxlint 도입 및 ESLint 도구 체인 마이그레이션 | accepted |
+| [0007](./0007-vitest-migration.md) | 테스트 러너를 Jest에서 Vitest로 전면 마이그레이션 | accepted |
+| [0008](./0008-zod-config-migration.md) | 환경 변수 검증 라이브러리를 Joi에서 Zod로 일원화 | accepted |
+| [0009](./0009-typeorm-1-migration.md) | TypeORM 1.x 메이저 마이그레이션 및 ORM 계층 호환성 전략 | accepted |

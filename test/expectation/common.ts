@@ -12,9 +12,8 @@ export function expectPagingResponseSucceed(res: Response) {
 export function expectResponseFailed(res: Response) {
   const body = res.body;
 
-  expect(body).toHaveProperty('status');
+  expect(body).toHaveProperty('code');
   expect(body).toHaveProperty('message');
-  expect(body).toHaveProperty('error');
-  expect(body).toHaveProperty('timestamp');
-  expect(body).toHaveProperty('path');
+  expect(body).toHaveProperty('status');
+  expect(body).toHaveProperty('stack');
 }

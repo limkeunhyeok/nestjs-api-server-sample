@@ -1,0 +1,18 @@
+FROM postgres:18
+
+RUN apt-get update && apt-get install -y \
+  curl \
+  ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+
+# MinIO Client (mc)
+RUN curl -o /usr/local/bin/mc https://dl.min.io/client/mc/release/linux-amd64/mc \
+  && chmod +x /usr/local/bin/mc
+
+WORKDIR /backup
+
+COPY scripts/backup.sh .
+
+RUN chmod +x backup.sh
+
+CMD ["./backup.sh"]

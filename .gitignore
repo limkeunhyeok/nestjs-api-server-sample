@@ -17,6 +17,7 @@ lerna-debug.log*
 # Tests
 /coverage
 /.nyc_output
+*.tsbuildinfo
 
 # IDEs and editors
 /.idea
@@ -36,3 +37,10 @@ lerna-debug.log*
 
 # Migrations
 /src/migrations
+
+.pnpm-store
+
+.env
+jenkins_home
+
+~

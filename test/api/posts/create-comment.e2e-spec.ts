@@ -1,104 +1,34 @@
-import {
-  INestApplication,
-  MiddlewareConsumer,
-  Module,
-  NestModule,
-  RequestMethod,
-} from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
-import { AllExceptionsFilter } from 'src/common/filters/all-exceptions.filter';
-import { HealthCheckModule } from 'src/common/health-check/health-check.module';
-import { AuthMiddleware } from 'src/common/middlewares/auth.middleware';
-import { DtoValidationPipe } from 'src/common/pipes/dto-validation.pipe';
-import { AuthModule } from 'src/modules/auth/auth.module';
-import { CommentEntity } from 'src/modules/comments/comment.entity';
-import { CommentModule } from 'src/modules/comments/comment.module';
-import { PostEntity } from 'src/modules/posts/post.entity';
-import { PostModule } from 'src/modules/posts/post.module';
-import { Role, UserEntity } from 'src/modules/users/user.entity';
-import { UserModule } from 'src/modules/users/user.module';
-import { getDbConfig } from 'src/typeorm/db.config';
-import * as request from 'supertest';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Role } from 'src/common/constants/role.const';
+import { CommentOrmEntity } from 'src/modules/posts/infrastructure/persistence/entities/comment.orm-entity';
+import { PostOrmEntity } from 'src/modules/posts/infrastructure/persistence/entities/post.orm-entity';
+import { UserEntity } from 'src/modules/users/infrastructure/persistence/entities/user.orm-entity';
 import { expectCommentResponseSucceed } from 'test/expectation/comment';
 import { expectResponseFailed } from 'test/expectation/common';
+import { initE2ETest } from 'test/lib/init-e2e-test';
 import { fetchUserTokenAndHeaders, withHeadersBy } from 'test/lib/utils';
 import { mockCreateCommentDto } from 'test/mockup/comment';
 import { createPost, mockPostRaw } from 'test/mockup/post';
-import { DataSource, Repository } from 'typeorm';
-import {
-  addTransactionalDataSource,
-  initializeTransactionalContext,
-} from 'typeorm-transactional';
-
-@Module({
-  imports: [
-    HealthCheckModule,
-    AuthModule,
-    TypeOrmModule.forRootAsync({
-      useFactory() {
-        return getDbConfig([UserEntity, PostEntity, CommentEntity]);
-      },
-      async dataSourceFactory(options) {
-        if (!options) {
-          throw new Error('Invalid options passed.');
-        }
-        return addTransactionalDataSource(new DataSource(options));
-      },
-    }),
-    UserModule,
-    PostModule,
-    CommentModule,
-  ],
-})
-class TestModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(AuthMiddleware)
-      .forRoutes(
-        { path: '/posts/*/comments', method: RequestMethod.POST },
-        { path: '/auth/me', method: RequestMethod.GET },
-      );
-  }
-}
+import { Repository } from 'typeorm';
 
 describe('Comment API Test', () => {
-  let app: INestApplication;
-  let req: request.SuperTest<request.Test>;
-
-  let testingModule: TestingModule;
   let userRepository: Repository<UserEntity>;
-  let postRepository: Repository<PostEntity>;
-  let commentRepository: Repository<CommentEntity>;
+  let postRepository: Repository<PostOrmEntity>;
+  let commentRepository: Repository<CommentOrmEntity>;
 
   let memberTokenHeaders: any;
   let withHeadersIncludeMemberToken: any;
 
-  initializeTransactionalContext();
-
-  beforeAll(async () => {
-    testingModule = await Test.createTestingModule({
-      imports: [TestModule],
-    }).compile();
-
-    app = testingModule.createNestApplication();
-
-    app.useGlobalPipes(new DtoValidationPipe());
-    app.useGlobalFilters(new AllExceptionsFilter());
-
-    await app.init();
-
-    userRepository = testingModule.get<Repository<UserEntity>>(
+  const ctx = initE2ETest(async ({ module, req }) => {
+    userRepository = module.get<Repository<UserEntity>>(
       getRepositoryToken(UserEntity),
     );
-    postRepository = testingModule.get<Repository<PostEntity>>(
-      getRepositoryToken(PostEntity),
+    postRepository = module.get<Repository<PostOrmEntity>>(
+      getRepositoryToken(PostOrmEntity),
     );
-    commentRepository = testingModule.get<Repository<CommentEntity>>(
-      getRepositoryToken(CommentEntity),
+    commentRepository = module.get<Repository<CommentOrmEntity>>(
+      getRepositoryToken(CommentOrmEntity),
     );
-
-    req = request(app.getHttpServer());
 
     memberTokenHeaders = await fetchUserTokenAndHeaders(
       req,
@@ -108,21 +38,13 @@ describe('Comment API Test', () => {
     withHeadersIncludeMemberToken = withHeadersBy(memberTokenHeaders);
   });
 
-  afterAll(async () => {
-    await postRepository.delete({});
-    await userRepository.delete({});
-    await commentRepository.delete({});
-
-    await app.close();
-  });
-
   describe('POST /posts/:postId/comments', () => {
     const rootApiPath = '/posts';
 
-    it('success - create comment (201)', async () => {
+    it('success create comment successfully and return 201', async () => {
       // given
       const authResult = await withHeadersIncludeMemberToken(
-        req.get('/auth/me'),
+        ctx.req.get('/auth/me'),
       ).expect(200);
 
       const user: Partial<UserEntity> = authResult.body;
@@ -134,7 +56,7 @@ describe('Comment API Test', () => {
 
       // when
       const res = await withHeadersIncludeMemberToken(
-        req.post(`${rootApiPath}/${post.id}/comments`).send(params),
+        ctx.req.post(`${rootApiPath}/${post.id}/comments`).send(params),
       ).expect(201);
 
       // then
@@ -142,10 +64,10 @@ describe('Comment API Test', () => {
       expectCommentResponseSucceed(body, params);
     });
 
-    it('failed - required contents (400)', async () => {
+    it('should return 400 when contents is missing', async () => {
       // given
       const authResult = await withHeadersIncludeMemberToken(
-        req.get('/auth/me'),
+        ctx.req.get('/auth/me'),
       ).expect(200);
 
       const user: Partial<UserEntity> = authResult.body;
@@ -154,21 +76,22 @@ describe('Comment API Test', () => {
       const post = await createPost(postRepository, postRaw);
 
       const params = mockCreateCommentDto();
-      delete params.contents;
+
+      params.contents = undefined as any;
 
       // when
       const res = await withHeadersIncludeMemberToken(
-        req.post(`${rootApiPath}/${post.id}/comments`).send(params),
+        ctx.req.post(`${rootApiPath}/${post.id}/comments`).send(params),
       ).expect(400);
 
       // then
       expectResponseFailed(res);
     });
 
-    it('failed - invalid published (400)', async () => {
+    it('should return 400 when published is invalid', async () => {
       // given
       const authResult = await withHeadersIncludeMemberToken(
-        req.get('/auth/me'),
+        ctx.req.get('/auth/me'),
       ).expect(200);
 
       const user: Partial<UserEntity> = authResult.body;
@@ -181,7 +104,7 @@ describe('Comment API Test', () => {
 
       // when
       const res = await withHeadersIncludeMemberToken(
-        req
+        ctx.req
           .post(`${rootApiPath}/${post.id}/comments`)
           .send({ ...params, published }),
       ).expect(400);
@@ -190,10 +113,10 @@ describe('Comment API Test', () => {
       expectResponseFailed(res);
     });
 
-    it('failed - not found post entity (404)', async () => {
+    it('should return 404 when post is not found', async () => {
       // given
       const authResult = await withHeadersIncludeMemberToken(
-        req.get('/auth/me'),
+        ctx.req.get('/auth/me'),
       ).expect(200);
 
       const user: Partial<UserEntity> = authResult.body;
@@ -206,7 +129,7 @@ describe('Comment API Test', () => {
 
       // when
       const res = await withHeadersIncludeMemberToken(
-        req.post(`${rootApiPath}/${nonExistentId}/comments`).send(params),
+        ctx.req.post(`${rootApiPath}/${nonExistentId}/comments`).send(params),
       ).expect(404);
 
       // then

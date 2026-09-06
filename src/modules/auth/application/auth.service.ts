@@ -1,0 +1,290 @@
+import { HttpStatus, Injectable } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
+import { errors } from 'jose';
+import {
+  INVALID_AUTHORIZATION_HEADER_FORMAT,
+  INVALID_CREDENTIALS,
+  INVALID_EMAIL_OR_PASSWORD,
+  INVALID_OR_MALFORMED_TOKEN,
+  TOKEN_EXPIRED,
+  TOKEN_TYPE_MISMATCH,
+} from 'src/common/constants/exception-message.const';
+import { Role } from 'src/common/constants/role.const';
+import { generateRandomString } from 'src/libs/string';
+import { ApiException } from '../../../common/exceptions/api.exception';
+import { JoseJwtService } from 'src/common/jose-jwt/jose-jwt.service';
+import { UserService } from '../../users/application/services/user.service';
+import { User } from '../../users/domain/entities/user.model';
+import { UserNotFoundException } from '../../users/domain/exceptions/user.exception';
+import {
+  ACCESS_TOKEN_EXPIRES_IN,
+  AUTH_SCHEME_BEARER,
+  REFRESH_TOKEN_EXPIRES_IN,
+  TOKEN_TYPE_ACCESS,
+  TOKEN_TYPE_DEV,
+  TOKEN_TYPE_REFRESH,
+} from '../auth.const';
+import {
+  AccessTokenPayload,
+  AuthTokens,
+  DevTokenPayload,
+  RefreshTokenPayload,
+} from '../auth.interface';
+import { InvalidEmailOrPasswordException } from '../exceptions/auth.exception';
+import { TokenBlacklistService } from './services/token-blacklist.service';
+
+@Injectable()
+export class AuthService {
+  constructor(
+    private readonly userService: UserService,
+    private readonly joseJwtService: JoseJwtService,
+    private readonly tokenBlacklistService: TokenBlacklistService,
+  ) {}
+
+  async parseBearerToken(
+    rawToken: string,
+  ): Promise<AccessTokenPayload | DevTokenPayload>;
+  async parseBearerToken(
+    rawToken: string,
+    options: {
+      isRefreshToken: true;
+      isRawToken?: boolean;
+    },
+  ): Promise<RefreshTokenPayload>;
+  async parseBearerToken(
+    rawToken: string,
+    options:
+      | {
+          isRefreshToken?: false;
+          isRawToken?: boolean;
+        }
+      | undefined,
+  ): Promise<AccessTokenPayload | DevTokenPayload>;
+  async parseBearerToken(
+    rawToken: string,
+    options?: {
+      isRefreshToken?: boolean;
+      isRawToken?: boolean;
+    },
+  ): Promise<AccessTokenPayload | DevTokenPayload | RefreshTokenPayload> {
+    const token = options?.isRawToken
+      ? rawToken
+      : this.extractTokenFromBearer(rawToken);
+
+    const isRefreshToken = options?.isRefreshToken ?? false;
+
+    try {
+      const payload = await this.joseJwtService.verify(token);
+
+      if (isRefreshToken) {
+        if (payload.type !== TOKEN_TYPE_REFRESH) {
+          throw new ApiException(HttpStatus.UNAUTHORIZED, TOKEN_TYPE_MISMATCH);
+        }
+        return payload as RefreshTokenPayload;
+      }
+
+      if (
+        payload.type !== TOKEN_TYPE_ACCESS &&
+        payload.type !== TOKEN_TYPE_DEV
+      ) {
+        throw new ApiException(HttpStatus.UNAUTHORIZED, TOKEN_TYPE_MISMATCH);
+      }
+      return payload as AccessTokenPayload | DevTokenPayload;
+    } catch (error: unknown) {
+      const response =
+        error && typeof error === 'object'
+          ? (Reflect.get(error, 'response') as unknown)
+          : undefined;
+      const statusCode =
+        response && typeof response === 'object'
+          ? (Reflect.get(response, 'statusCode') as unknown)
+          : undefined;
+      if (statusCode || error instanceof ApiException) {
+        throw error;
+      }
+      if (error instanceof errors.JWTExpired) {
+        throw new ApiException(HttpStatus.UNAUTHORIZED, TOKEN_EXPIRED);
+      }
+      throw new ApiException(
+        HttpStatus.UNAUTHORIZED,
+        INVALID_OR_MALFORMED_TOKEN,
+      );
+    }
+  }
+
+  async issueToken(
+    user: {
+      id: number;
+      role: Role;
+    },
+    options?: {
+      isRefreshToken?: boolean;
+    },
+  ): Promise<string> {
+    const isRefreshToken = options?.isRefreshToken ?? false;
+
+    const expiresIn = isRefreshToken
+      ? REFRESH_TOKEN_EXPIRES_IN
+      : ACCESS_TOKEN_EXPIRES_IN;
+
+    const payload: {
+      sub: string;
+      role?: Role;
+      type: typeof TOKEN_TYPE_ACCESS | typeof TOKEN_TYPE_REFRESH;
+    } = {
+      sub: user.id.toString(),
+      type: isRefreshToken ? TOKEN_TYPE_REFRESH : TOKEN_TYPE_ACCESS,
+    };
+
+    if (!isRefreshToken) {
+      payload.role = user.role;
+    }
+
+    return await this.joseJwtService.sign(payload, expiresIn);
+  }
+
+  async authenticateUser(params: {
+    email: string;
+    password: string;
+  }): Promise<User> {
+    const { email, password } = params;
+
+    let user: User;
+
+    try {
+      user = await this.userService.getUserByEmail(email);
+    } catch (error: unknown) {
+      if (error instanceof UserNotFoundException) {
+        throw new InvalidEmailOrPasswordException(INVALID_EMAIL_OR_PASSWORD);
+      }
+      throw error;
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+
+    if (!isPasswordValid) {
+      throw new InvalidEmailOrPasswordException(INVALID_EMAIL_OR_PASSWORD);
+    }
+
+    return user;
+  }
+
+  async loginUser(params: {
+    email: string;
+    password: string;
+  }): Promise<AuthTokens> {
+    const user = await this.authenticateUser(params);
+
+    const accessToken = await this.issueToken(user, { isRefreshToken: false });
+    const refreshToken = await this.issueToken(user, { isRefreshToken: true });
+
+    return { accessToken, refreshToken };
+  }
+
+  async registerUser(params: {
+    email: string;
+    password: string;
+    name: string;
+  }): Promise<AuthTokens> {
+    const user = await this.userService.createUser({
+      ...params,
+      role: Role.MEMBER,
+    });
+
+    const accessToken = await this.issueToken(user, { isRefreshToken: false });
+    const refreshToken = await this.issueToken(user, { isRefreshToken: true });
+
+    return {
+      accessToken,
+      refreshToken,
+    };
+  }
+
+  async getAuthorizedUserById(userId: number): Promise<User> {
+    try {
+      return await this.userService.getUserById(userId);
+    } catch (error: unknown) {
+      if (error instanceof UserNotFoundException) {
+        throw new ApiException(HttpStatus.UNAUTHORIZED, INVALID_CREDENTIALS);
+      }
+      throw error;
+    }
+  }
+
+  async refreshTokens(params: { refreshToken: string }): Promise<AuthTokens> {
+    const { refreshToken } = params;
+
+    const payload = await this.parseBearerToken(refreshToken, {
+      isRefreshToken: true,
+      isRawToken: true,
+    });
+
+    const userId = Number(payload.sub);
+
+    const user = await this.getAuthorizedUserById(userId);
+
+    const accessToken = await this.issueToken(user, { isRefreshToken: false });
+    const newRefreshToken = await this.issueToken(user, {
+      isRefreshToken: true,
+    });
+
+    return {
+      accessToken,
+      refreshToken: newRefreshToken,
+    };
+  }
+
+  async resetPassword(params: {
+    email: string;
+  }): Promise<{ newPassword: string }> {
+    const { email } = params;
+
+    const user = await this.userService.getUserByEmail(email);
+
+    const randomPassword = generateRandomString(8);
+
+    await this.userService.resetUserPassword({
+      userId: user.id,
+      newPassword: randomPassword,
+    });
+
+    return { newPassword: randomPassword };
+  }
+
+  async logout(rawToken: string): Promise<void> {
+    const token = this.extractTokenFromBearer(rawToken);
+    const payload = await this.parseBearerToken(rawToken);
+
+    const expirySeconds = payload.exp - Math.floor(Date.now() / 1000);
+
+    if (expirySeconds > 0) {
+      await this.tokenBlacklistService.blacklist(token, expirySeconds);
+    }
+  }
+
+  extractTokenFromBearer(rawToken: string): string {
+    if (!rawToken || typeof rawToken !== 'string') {
+      throw new ApiException(
+        HttpStatus.UNAUTHORIZED,
+        INVALID_AUTHORIZATION_HEADER_FORMAT,
+      );
+    }
+
+    const parts = rawToken.split(' ');
+    if (parts.length !== 2) {
+      throw new ApiException(
+        HttpStatus.UNAUTHORIZED,
+        INVALID_AUTHORIZATION_HEADER_FORMAT,
+      );
+    }
+
+    const [bearer, token] = parts;
+    if (bearer.toLowerCase() !== AUTH_SCHEME_BEARER) {
+      throw new ApiException(
+        HttpStatus.UNAUTHORIZED,
+        INVALID_AUTHORIZATION_HEADER_FORMAT,
+      );
+    }
+    return token;
+  }
+}

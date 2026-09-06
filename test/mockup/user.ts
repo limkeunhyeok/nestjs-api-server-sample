@@ -1,6 +1,7 @@
 import * as bcrypt from 'bcrypt';
 import * as faker from 'faker';
-import { Role, UserEntity } from 'src/modules/users/user.entity';
+import { Role } from 'src/common/constants/role.const';
+import { UserEntity } from 'src/modules/users/infrastructure/persistence/entities/user.orm-entity';
 import { Repository } from 'typeorm';
 
 export function mockUserRaw(role: Role = Role.MEMBER) {
@@ -9,6 +10,7 @@ export function mockUserRaw(role: Role = Role.MEMBER) {
   return {
     email: faker.internet.email(),
     password: faker.internet.password(8),
+    name: faker.internet.userName(),
     role,
     latestTryLoginDate: now,
     createdAt: now,
@@ -22,6 +24,7 @@ export function extractUserCreationParams(
   return {
     email: userRaw.email,
     password: userRaw.password,
+    name: userRaw.name,
     role: userRaw.role,
   };
 }

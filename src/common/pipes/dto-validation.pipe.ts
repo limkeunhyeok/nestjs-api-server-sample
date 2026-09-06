@@ -1,33 +1,46 @@
-import { classToClass } from '@nestjs/class-transformer';
+/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call */
 import {
   ArgumentMetadata,
-  BadRequestException,
+  HttpStatus,
   Injectable,
   PipeTransform,
 } from '@nestjs/common';
-import { plainToInstance } from 'class-transformer';
-import { validate } from 'class-validator';
+import { ZodIssue } from 'zod';
+import { ApiException } from '../exceptions/api.exception';
 
 @Injectable()
-export class DtoValidationPipe implements PipeTransform<any> {
-  async transform(value: any, { metatype }: ArgumentMetadata) {
-    if (!metatype || !this.toValidate(metatype)) {
+export class DtoValidationPipe implements PipeTransform {
+  transform(value: any, metadata: ArgumentMetadata) {
+    const { metatype } = metadata;
+
+    if (
+      !metatype ||
+      (typeof metatype !== 'function' && typeof metatype !== 'object')
+    ) {
       return value;
     }
 
-    const object = plainToInstance(metatype, value);
-    const converted = classToClass(object);
-
-    const errors = await validate(object);
-    if (errors.length > 0) {
-      throw new BadRequestException('Request data is invalid.', String(errors));
+    if (
+      !('schema' in metatype) ||
+      typeof (metatype as any).schema?.safeParse !== 'function'
+    ) {
+      return value;
     }
 
-    return converted;
-  }
+    const schema = (metatype as any).schema;
+    const result = schema.safeParse(value);
 
-  private toValidate(metatype): boolean {
-    const types = [String, Boolean, Number, Array, Object];
-    return !types.includes(metatype);
+    if (!result.success) {
+      const messages: string = result.error.issues
+        .map((e: ZodIssue) => {
+          const field = e.path.join('.');
+          return field ? `${field}: ${e.message}` : e.message;
+        })
+        .join('; ');
+
+      throw new ApiException(HttpStatus.BAD_REQUEST, messages);
+    }
+
+    return result.data;
   }
 }

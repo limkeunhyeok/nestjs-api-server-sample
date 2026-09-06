@@ -1,4 +1,4 @@
-import { UserEntity } from 'src/modules/users/user.entity';
+import { UserEntity } from 'src/modules/users/infrastructure/persistence/entities/user.orm-entity';
 
 export function extractSignInParams(
   userRaw: Omit<UserEntity, 'id' | 'version' | 'posts' | 'comments'>,

@@ -1,63 +1,91 @@
+import { CacheModule } from '@nestjs/cache-manager';
 import {
   MiddlewareConsumer,
   Module,
   NestModule,
-  OnModuleInit,
   RequestMethod,
 } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
-import { addTransactionalDataSource } from 'typeorm-transactional';
+import { WinstonModule } from 'nest-winston';
+import { RoleGuard } from './common/guards/role.guard';
 import { HealthCheckModule } from './common/health-check/health-check.module';
-import { AuthMiddleware } from './common/middlewares/auth.middleware';
+import { JoseJwtModule } from './common/jose-jwt/jose-jwt.module';
 import { HttpLoggingMiddleware } from './common/middlewares/http-logging.middleware';
+import { IgnoreBrowserRequestMiddleware } from './common/middlewares/ignore-browser-request.middleware';
+import { JoseJwtConfigService } from './configurations/jose-jwt.config';
+import { RedisConfigService } from './configurations/redis.config';
+import { ServerEnvValidation } from './configurations/server.config';
+import { TypeOrmConfigService } from './configurations/typeorm.config';
+import { WinstonConfigService } from './configurations/winston.config';
+import { AuthMiddleware } from './modules/auth/auth.middleware';
 import { AuthModule } from './modules/auth/auth.module';
-import { CommentEntity } from './modules/comments/comment.entity';
-import { PostEntity } from './modules/posts/post.entity';
 import { PostModule } from './modules/posts/post.module';
-import { UserEntity } from './modules/users/user.entity';
 import { UserModule } from './modules/users/user.module';
-import { getDbConfig } from './typeorm/db.config';
-import { initializeData } from './typeorm/initialize';
 
 @Module({
   imports: [
-    TypeOrmModule.forRootAsync({
-      useFactory() {
-        return getDbConfig([UserEntity, PostEntity, CommentEntity]);
-      },
-      async dataSourceFactory(options) {
-        if (!options) {
-          throw new Error('Invalid options passed.');
-        }
-        return addTransactionalDataSource(new DataSource(options));
-      },
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+      validationSchema: ServerEnvValidation,
     }),
+    TypeOrmModule.forRootAsync({
+      useClass: TypeOrmConfigService,
+    }),
+    WinstonModule.forRootAsync({
+      imports: [],
+      useClass: WinstonConfigService,
+    }),
+    CacheModule.registerAsync({
+      isGlobal: true,
+      useClass: RedisConfigService,
+    }),
+    JoseJwtModule.registerAsync({
+      global: true,
+      useClass: JoseJwtConfigService,
+    }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 100,
+      },
+    ]),
     UserModule,
     AuthModule,
     HealthCheckModule,
     PostModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: RoleGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
-export class AppModule implements NestModule, OnModuleInit {
-  constructor(private readonly datasource: DataSource) {}
-
+export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(HttpLoggingMiddleware)
       .forRoutes({ path: '*', method: RequestMethod.ALL })
+      .apply(IgnoreBrowserRequestMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.GET })
       .apply(AuthMiddleware)
       .exclude(
-        { path: '/auth/sign-in', method: RequestMethod.POST },
-        { path: '/auth/sign-up', method: RequestMethod.POST },
+        { path: '/auth/login', method: RequestMethod.POST },
+        { path: '/auth/register', method: RequestMethod.POST },
+        { path: '/auth/refresh', method: RequestMethod.POST },
+        { path: '/auth/forgot-password', method: RequestMethod.POST },
         { path: '/health-check/(.*)', method: RequestMethod.GET },
+        { path: '/.well-known/(.*)', method: RequestMethod.GET },
       )
       .forRoutes({ path: '*', method: RequestMethod.ALL });
-  }
-
-  async onModuleInit() {
-    await initializeData(this.datasource);
   }
 }

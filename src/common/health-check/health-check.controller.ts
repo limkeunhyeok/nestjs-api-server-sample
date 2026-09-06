@@ -6,8 +6,10 @@ import {
   HttpHealthIndicator,
   TypeOrmHealthIndicator,
 } from '@nestjs/terminus';
+import { SkipThrottle } from '@nestjs/throttler';
 
 @ApiTags('health-check')
+@SkipThrottle()
 @Controller('health-check')
 export class HealthCheckController {
   constructor(
